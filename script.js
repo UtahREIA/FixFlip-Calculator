@@ -1,5 +1,5 @@
 /* ========== CONFIG ========== */
-/* Replace with your GoHighLevel webhook/form endpoint to store leads.
+/* Replace with GoHighLevel webhook/form endpoint to store leads.
    If left empty (''), the code will display results but not POST to server */
 const webhookUrl = ''; // <-- PUT YOUR GHL WEBHOOK URL HERE, e.g. https://hooks.example.com/ghl
 
