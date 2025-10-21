@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Utah REIA Fix & Flip Calculator</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <section class="utahreia-calc-wrap" id="ut-reia-calc-section">
+        <div class="utahreia-top">
+            <img src="https://assets.cdn.filesafe.space/DNirEjy0ejVwbHsaBYrn/media/682f680ec314718407baed82.png"
+                alt="Utah REIA logo">
+        </div>
+
+        <div class="utahreia-title">Utah REIA Fix & Flip Calculator</div>
+        <div class="utahreia-sub">Step-by-step analysis to estimate profit, ROI, and total investment for your next Utah
+            flip.</div>
+
+        <!-- Progress -->
+        <div style="max-width:760px;margin:0 auto 10px">
+            <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="progress-fill" id="progressFill" style="width:0%"></div>
+            </div>
+            <div class="step-indicator" id="stepIndicator">Step 1 of 7</div>
+        </div>
+
+        <div class="calc-card" id="calcCard">
+
+            <!-- Step 1: Property Info -->
+            <div class="step active" data-step="1" id="step-1">
+                <div class="small muted">Property Information</div>
+                <div class="row">
+                    <div class="field"><label>Street address</label><input id="street" type="text"
+                            placeholder="123 Main St"></div>
+                    <div class="field"><label>City</label><input id="city" type="text" placeholder="Salt Lake City">
+                    </div>
+                    <div class="field"><label>State</label><input id="state" type="text" placeholder="UT"></div>
+                    <div class="field"><label>ZIP code</label><input id="zip" type="text" placeholder="84101"></div>
+                </div>
+                <div class="field"><label>Optional: property features / description</label><textarea id="features"
+                        rows="2" placeholder="3 bed / 2 bath, single family..."></textarea></div>
+            </div>
+
+            <!-- Step 2: Estimates -->
+            <div class="step" data-step="2" id="step-2">
+                <div class="small muted">Estimates</div>
+                <div class="row">
+                    <div class="field">
+                        <label>After Repair Value (ARV) *</label>
+                        <input id="arv" type="number" placeholder="e.g. 350000" min="0" required>
+                        <div class="small muted">A property’s ARV is its estimated market value after rehab.</div>
+                        <button class="help-toggle" type="button" data-help="help-arv">Help: How to estimate
+                            ARV?</button>
+                        <div class="help-box" id="help-arv" style="display:none">Use comparable sales in the
+                            neighborhood
+                            after planned repairs. Look at recent sales of similar renovated properties.</div>
+                    </div>
+
+                    <div class="field">
+                        <label>Desired Profit *</label>
+                        <input id="desiredProfit" type="number" placeholder="e.g. 30000" min="0" required>
+                        <div class="small muted">Enter how much profit you want to pocket after the flip.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Purchase -->
+            <div class="step" data-step="3" id="step-3">
+                <div class="small muted">Purchase Costs</div>
+                <div class="row">
+                    <div class="field">
+                        <label>Purchase Price *</label>
+                        <input id="purchasePrice" type="number" placeholder="e.g. 240000" min="0" required>
+                    </div>
+                    <div class="field">
+                        <label>Purchase closing costs (total)</label>
+                        <input id="purchaseClosing" type="number" placeholder="e.g. 3000" min="0">
+                        <div class="small muted">Advanced: itemize closing charges if you prefer.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Rehab -->
+            <div class="step" data-step="4" id="step-4">
+                <div class="small muted">Rehab Costs</div>
+                <div class="row">
+                    <div class="field">
+                        <label>Repair costs *</label>
+                        <input id="repairs" type="number" placeholder="e.g. 40000" min="0" required>
+                        <div class="small muted">Include labor, materials, permits, contractor markup.</div>
+                    </div>
+                    <div class="field">
+                        <label>Advanced: itemize repair costs (optional)</label>
+                        <input id="repairDetail" type="text" placeholder="e.g. kitchen $12k, roof $6k">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Holding -->
+            <div class="step" data-step="5" id="step-5">
+                <div class="small muted">Holding Costs</div>
+                <div class="row">
+                    <div class="field">
+                        <label>Holding costs (monthly)</label>
+                        <input id="holdingMonthly" type="number" placeholder="e.g. 1200" min="0">
+                        <div class="small muted">Monthly costs while rehabbing & marketing: mortgage, utilities,
+                            insurance,
+                            HOA, taxes.</div>
+                    </div>
+                    <div class="field">
+                        <label>Estimated timeframe *</label>
+                        <select id="holdingTime">
+                            <option value="0.5">2 wks</option>
+                            <option value="1">1 mo</option>
+                            <option value="3">3 mo</option>
+                            <option value="6" selected>6 mo</option>
+                            <option value="12">12 mo</option>
+                            <option value="24">24 mo</option>
+                        </select>
+                        <div class="small muted">Typical experienced flips: 6–8 weeks; beginners may take months.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 6: Sale -->
+            <div class="step" data-step="6" id="step-6">
+                <div class="small muted">Sale Costs</div>
+                <div class="row">
+                    <div class="field">
+                        <label>Agent commission (%)</label>
+                        <input id="agentCommission" type="number" placeholder="e.g. 6" min="0" value="6">
+                    </div>
+                    <div class="field">
+                        <label>Sale closing costs (total)</label>
+                        <input id="saleClosing" type="number" placeholder="e.g. 2000" min="0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 7: Final / Lead -->
+            <div class="step" data-step="7" id="step-7">
+                <div class="small muted">Finish Analysis</div>
+                <div class="field">
+                    <label>Agree to Terms</label>
+                    <div class="small muted">Use of this calculator signifies your agreement to our Terms of Use shown
+                        below.</div>
+                </div>
+
+                <!-- Results area shows after calculate -->
+                <div id="finalResults" style="display:none;margin-top:12px"></div>
+
+                <!-- Lead capture -->
+                <div class="lead-box" aria-label="Lead capture">
+                    <input id="leadName" type="text" placeholder="Your name" required>
+                    <input id="leadEmail" type="email" placeholder="Your email" required>
+                    <button id="sendLead" class="btn" type="button">Send My Report</button>
+                </div>
+
+                <div class="disclaimer">
+                    *Estimates are for educational purposes only. Always consult a licensed professional before making
+                    investment decisions.
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="nav" style="max-width:760px;margin:14px auto 0">
+                <button id="prevBtn" class="btn secondary" type="button" aria-label="Previous step">← Back</button>
+                <div style="display:flex;gap:8px;">
+                    <button id="nextBtn" class="btn" type="button">Next →</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer links -->
+        <div class="footer-links">
+            © 2025 Utah REIA |
+            <a id="privacyLink" href="https://utahreia.org/privacy-policy" target="_blank">Privacy Policy</a> |
+            <a id="termsLink" href="https://utahreia.org/terms" target="_blank">Terms of Use</a>
+        </div>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

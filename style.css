@@ -1,0 +1,251 @@
+:root {
+    --blue: #1a2a4f;
+    --gold: #d4af37;
+    --green: #2E8b57;
+    --muted: #777;
+    --card-bg: #ffffff;
+    --page-bg: #f9fafb;
+    --radius: 12px;
+    --maxw: 920px;
+}
+
+.utahreia-calc-wrap {
+    max-width: var(--maxw);
+    margin: 28px auto;
+    padding: 28px;
+    background: var(--page-bg);
+    border-radius: 18px;
+    box-shadow: 0 6px 26px rgba(0, 0, 0, 0.08);
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial;
+}
+
+.utahreia-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.utahreia-top img {
+    max-height: 64px;
+}
+
+.utahreia-title {
+    text-align: center;
+    color: var(--blue);
+    font-size: 22px;
+    font-weight: 700;
+    margin: 8px 0;
+}
+
+.utahreia-sub {
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.progress {
+    height: 10px;
+    background: linear-gradient(90deg, var(--gold) 0%, var(--green) 100%);
+    border-radius: 999px;
+    overflow: hidden;
+    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.04);
+}
+
+.progress-track {
+    height: 100%;
+    background: #e6e6e6;
+    border-radius: 999px;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--gold), var(--green));
+    transition: width .4s ease;
+}
+
+.step-indicator {
+    text-align: center;
+    font-weight: 600;
+    color: var(--blue);
+    margin: 8px 0 20px;
+}
+
+.calc-card {
+    background: var(--card-bg);
+    padding: 22px;
+    border-radius: var(--radius);
+    max-width: 760px;
+    margin: 0 auto;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.step {
+    display: none;
+}
+
+.step.active {
+    display: block;
+}
+
+.row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.field {
+    flex: 1 1 220px;
+    min-width: 140px;
+    margin-bottom: 12px;
+}
+
+.field label {
+    display: block;
+    font-weight: 600;
+    color: var(--blue);
+    margin-bottom: 6px;
+}
+
+.field input,
+.field select,
+.field textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.input-inline {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.help-toggle {
+    font-size: 13px;
+    color: var(--gold);
+    cursor: pointer;
+    text-decoration: underline;
+    border: none;
+    background: none;
+    padding: 0;
+}
+
+.help-box {
+    background: #f7f8fb;
+    padding: 10px;
+    border-left: 3px solid var(--gold);
+    border-radius: 8px;
+    margin-top: 8px;
+    color: #333;
+}
+
+.nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    background: var(--green);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn.secondary {
+    background: #eaeaea;
+    color: var(--blue);
+}
+
+.results {
+    margin-top: 18px;
+    padding: 16px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(26, 42, 79, 0.95), rgba(26, 42, 79, 0.95));
+    color: #fff;
+}
+
+.results h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+}
+
+.results .line {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.muted {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.small {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.lead-box {
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 10px;
+    background: var(--card-bg);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.lead-box input {
+    flex: 1 1 180px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.disclaimer {
+    font-size: 12px;
+    color: #666;
+    margin-top: 12px;
+}
+
+.footer-links {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+}
+
+.footer-links a {
+    color: var(--blue);
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width:720px) {
+    .row {
+        flex-direction: column;
+    }
+
+    .utahreia-top {
+        flex-direction: column;
+    }
+
+    .lead-box {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
