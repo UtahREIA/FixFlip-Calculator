@@ -31,10 +31,12 @@
     h1{color:var(--blue);font-size:20px;margin:6px 0 2px;text-align:center}
     .subtitle{text-align:center;color:var(--muted);margin-bottom:12px}
     .card{background:var(--card-bg);padding:16px;border-radius:12px;margin-bottom:12px;box-shadow:0 8px 30px rgba(0,0,0,0.03)}
+    @media(max-width:480px){.card{padding:12px;margin-bottom:10px;border-radius:8px}}
     .row{display:flex;gap:12px;flex-wrap:wrap}
     .field{flex:1 1 220px;min-width:140px;margin-bottom:10px}
     label{display:block;font-weight:600;color:var(--blue);margin-bottom:6px;font-size:13px}
     input[type="text"],input[type="number"],select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #e7e7e7;font-size:14px}
+    @media(max-width:480px){label{font-size:12px}input[type="text"],input[type="number"],select,textarea{padding:12px;font-size:16px;border-radius:6px}}
     textarea{min-height:64px}
     .muted{color:var(--muted);font-size:13px}
     .nav{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
@@ -42,7 +44,8 @@
     .btn.secondary{background:#eaeaea;color:var(--blue)}
     .pencil{cursor:pointer;border:1px solid #eee;padding:6px;border-radius:8px;background:#fff;display:inline-flex;align-items:center;gap:8px}
     .editor{display:none;margin-top:10px;padding:12px;border-radius:10px;background:#fbfbfb;border:1px solid #f0f0f0}
-    .editor .item{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+    @media(max-width:480px){.editor{padding:10px;margin-top:8px}}
+    .editor .item{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
     .editor .item input[type=text]{flex:1;padding:8px;border-radius:6px;border:1px solid #e6e6e6}
     .editor .item .small-input{width:110px;padding:8px;border-radius:6px;border:1px solid #e6e6e6}
     .editor .item select{width:150px;padding:8px;border-radius:6px;border:1px solid #e6e6e6}
@@ -53,11 +56,15 @@
     .results .line{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)}
     .charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
     .chart-card{background:#fff;padding:12px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.05)}
+    .chart-card h4{margin:0 0 8px;font-size:14px}
     @media(max-width:900px){.row{flex-direction:column}.charts{grid-template-columns:1fr}}
+    @media(max-width:768px){.wrap{padding:14px;margin:12px}.top img{height:52px}h1{font-size:18px}.subtitle{font-size:13px}.btn{font-size:14px}label{font-size:12px}input[type="text"],input[type="number"],select,textarea{padding:10px;font-size:15px}}
+    @media(max-width:480px){.wrap{padding:12px;margin:8px}.field{flex:1 1 100%;min-width:100%}.row{gap:8px;flex-direction:column}.editor .item{flex-direction:column;align-items:stretch;gap:6px}.editor .item input,.editor .item select{width:100%}.editor .item .small-input{width:100%}.btn{padding:12px;width:100%;font-size:16px}.nav{flex-direction:column;gap:8px}.chart-card{padding:8px}.chart-card h4{font-size:13px}input[type="text"],input[type="number"],select,textarea{padding:12px;font-size:16px}.loan-card{flex-direction:column;align-items:stretch}.loan-info{font-size:12px}.loan-actions{width:100%;flex-direction:column}.editor .row-actions{flex-direction:column}.pencil{width:100%;justify-content:space-between}.small-ghost{width:100%;padding:10px}}
     .icon-btn{background:none;border:0;padding:6px;border-radius:8px;cursor:pointer}
     .small-ghost{background:#fff;border:1px solid #ddd;padding:7px;border-radius:8px}
     .step { display: none; opacity: 0; transition: opacity 240ms ease; }
     .step.active { display: block; opacity: 1; }
+    @media(max-width:480px){.step{padding:0}}
     .small-note{font-size:13px;color:var(--muted)}
     .subheading{font-weight:700;margin:6px 0 8px;color:var(--blue)}
     .link-row{display:flex;align-items:center;gap:8px;margin-top:6px}
@@ -195,9 +202,14 @@
             <div class="field"><label>Loan Term (months)</label><input id="newLoanTerm" type="number" min="0" step="1" placeholder="e.g., 6"></div>
           </div>
 
-          <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+          <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button type="button" class="btn" id="calculateLoanBtn" style="background:#001F3F;color:#fff">Save</button>
             <button type="button" class="btn" id="addLoanBtn">Add a Loan</button>
-            <div class="muted-small">Add multiple loans; totals are used for interest calc across the holding months below.</div>
+            <div class="muted-small">Click Save to calculate financed amount, then Add a Loan to confirm.</div>
+          </div>
+          <div id="loanPreview" style="margin-top:10px;padding:12px;border-radius:8px;background:#f0f8ff;border:1px solid #d0e8ff;display:none">
+            <strong>Loan Preview:</strong>
+            <div id="loanPreviewContent" style="margin-top:6px;font-size:13px;color:#333"></div>
           </div>
 
           <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
@@ -985,6 +997,9 @@ function addLoanFromInputs() {
   loans.push(loan);
   renderLoanList();
   clearLoanInputs();
+  // hide preview after adding
+  const preview = $('loanPreview');
+  if(preview) preview.style.display = 'none';
   updateAggregatedLoanAmountDisplay();
 }
 
@@ -1001,6 +1016,51 @@ function clearLoanInputs() {
   $('newLoanCustomAmountWrap').style.display = 'none';
   $('dpPurchaseWrap').style.display = 'none';
   $('dpRehabWrap').style.display = 'none';
+}
+
+function calculateLoanPreview() {
+  const label = $('newLoanLabel').value || 'Loan';
+  const target = $('newLoanTarget').value;
+  const type = $('newLoanType').value;
+  const rate = Number($('newLoanRate').value) || 0;
+  const term = Number($('newLoanTerm').value) || 0;
+
+  const purchasePrice = unformatCurrency($('purchasePrice').value) || 0;
+  const repairs = unformatCurrency($('repairs').value) || 0;
+  const arv = unformatCurrency($('arv').value) || 0;
+
+  let financed = 0;
+
+  if (target === 'purchase_rehab') {
+    const pctPriceDP = Number($('newLoanPriceDownPct').value) || 0;
+    const pctRehabDP = Number($('newLoanRehabDownPct').value) || 0;
+    financed = purchasePrice * (1 - pctPriceDP / 100) + repairs * (1 - pctRehabDP / 100);
+  } else if (target === 'purchase') {
+    const dp = Number($('newLoanDownPct').value) || 0;
+    financed = purchasePrice * (1 - dp / 100);
+  } else if (target === 'rehab') {
+    const dp = Number($('newLoanDownPct').value) || 0;
+    financed = repairs * (1 - dp / 100);
+  } else if (target === 'arv') {
+    const dp = Number($('newLoanDownPct').value) || 0;
+    financed = arv * (1 - dp / 100);
+  } else if (target === 'custom') {
+    financed = unformatCurrency($('newLoanCustomAmount').value || 0);
+  }
+
+  // Display preview
+  const preview = $('loanPreview');
+  const content = $('loanPreviewContent');
+  if (preview && content) {
+    content.innerHTML = `
+      <div><strong>${escapeHtml(label)}</strong></div>
+      <div>Target: ${target === 'purchase_rehab' ? 'Purchase + Repair' : target.charAt(0).toUpperCase() + target.slice(1)}</div>
+      <div>Financed Amount: ${formatCurrency(financed)}</div>
+      <div>Type: ${type}</div>
+      <div>Rate: ${rate}% | Term: ${term ? term + ' months' : 'Not Set'}</div>
+    `;
+    preview.style.display = 'block';
+  }
 }
 
 
@@ -1420,6 +1480,7 @@ document.getElementById("newLoanTarget").addEventListener("change", function () 
 
 
       if($('addLoanBtn')) $('addLoanBtn').addEventListener('click', addLoanFromInputs);
+      if($('calculateLoanBtn')) $('calculateLoanBtn').addEventListener('click', calculateLoanPreview);
 
       renderLoanList();
 
