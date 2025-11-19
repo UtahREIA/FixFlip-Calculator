@@ -1168,19 +1168,25 @@ function updateAggregatedLoanAmountDisplay() {
         reportContainer.appendChild(numeric);
       }
 
-      // charts area
-      const chartsArea = $('chartsArea') || document.createElement('div');
-      chartsArea.id = 'chartsArea';
-      chartsArea.className = 'charts';
-      chartsArea.style.marginTop = '12px';
-      chartsArea.innerHTML = `
+      // charts area - update existing area in-place when possible to avoid duplicate canvases
+      const chartsHtml = `
         <div class="chart-card"><h4 style="margin:0 0 6px">Investment Breakdown</h4><canvas id="chartInvest" height="260"></canvas></div>
         <div class="chart-card"><h4 style="margin:0 0 6px">Profit vs Target</h4><canvas id="chartProfit" height="260"></canvas></div>
       `;
-
-      // clean previous charts if any
-      try{ const existingCharts = document.getElementById('chartsArea'); if(existingCharts) existingCharts.remove(); }catch(e){}
-      if(reportContainer) reportContainer.appendChild(chartsArea);
+      let chartsArea = document.getElementById('chartsArea');
+      if (chartsArea) {
+        // replace innerHTML of existing container (preserve DOM node)
+        chartsArea.className = 'charts';
+        chartsArea.style.marginTop = '12px';
+        chartsArea.innerHTML = chartsHtml;
+      } else {
+        chartsArea = document.createElement('div');
+        chartsArea.id = 'chartsArea';
+        chartsArea.className = 'charts';
+        chartsArea.style.marginTop = '12px';
+        chartsArea.innerHTML = chartsHtml;
+        if(reportContainer) reportContainer.appendChild(chartsArea);
+      }
 
       // data for charts
       const investLabels = ['Purchase','Closing & Fees','Repairs','Holding','Sales & Other'];
@@ -1188,6 +1194,8 @@ function updateAggregatedLoanAmountDisplay() {
 
       if(chartInvest) try{ chartInvest.destroy(); }catch(e){}
       if(chartProfit) try{ chartProfit.destroy(); }catch(e){}
+      // ensure we don't keep references to destroyed charts
+      chartInvest = null; chartProfit = null;
 
       try{
         chartInvest = new Chart($('chartInvest').getContext('2d'), {
@@ -1263,7 +1271,16 @@ function updateAggregatedLoanAmountDisplay() {
       if(!reportContainer || !charts){ alert('Run analysis first (Finish Analysis)'); return; }
 
       // clone charts area and replace canvases with images from chart instances
-      const cloneCharts = charts.cloneNode(true);
+      // Only include the charts with actual rendered canvases (not the first empty block)
+      let chartsToExport = charts;
+      // If chartsArea contains duplicate blocks, use only the second one (with canvases rendered)
+      if (charts && charts.parentNode) {
+        const allChartsAreas = charts.parentNode.querySelectorAll('#chartsArea');
+        if (allChartsAreas.length > 1) {
+          chartsToExport = allChartsAreas[allChartsAreas.length - 1];
+        }
+      }
+      const cloneCharts = chartsToExport.cloneNode(true);
       Array.from(cloneCharts.querySelectorAll('canvas')).forEach((canvasNode, idx)=>{
         let src = '';
         try{
@@ -1276,17 +1293,25 @@ function updateAggregatedLoanAmountDisplay() {
         const img = document.createElement('img');
         img.style.maxWidth = '100%';
         img.style.display = 'block';
+        img.style.margin = '12px auto 0 auto'; // reduce top margin
         img.src = src || '';
         canvasNode.parentNode.replaceChild(img, canvasNode);
       });
 
       const container = document.createElement('div');
-      container.style.width = '1100px';
+      container.style.width = '900px'; // slightly narrower for better fit
       container.style.background = '#fff';
-      container.style.padding = '18px';
+      container.style.padding = '12px';
+      container.style.boxSizing = 'border-box';
       container.innerHTML = `<h2 style="color:#1a2a4f;margin-bottom:8px">UTAH REIA Fix & Flip Report</h2>`;
-      container.appendChild(reportContainer.cloneNode(true));
-      container.appendChild(document.createElement('hr'));
+      // summary/report first
+      // Clone the report summary, but remove any chartsArea blocks inside it
+      const summaryClone = reportContainer.cloneNode(true);
+      Array.from(summaryClone.querySelectorAll('#chartsArea')).forEach(el => el.remove());
+      // Remove the download PDF button from the summary clone
+      Array.from(summaryClone.querySelectorAll('#downloadPDF')).forEach(el => el.remove());
+      container.appendChild(summaryClone);
+      // charts directly below, no extra <hr>
       container.appendChild(cloneCharts);
 
       document.body.appendChild(container);
@@ -1295,9 +1320,21 @@ function updateAggregatedLoanAmountDisplay() {
         const img = canvas.toDataURL('image/jpeg', 0.98);
         const pdf = new jspdf.jsPDF('p','pt','a4');
         const pdfW = pdf.internal.pageSize.getWidth();
-        const imgW = pdfW - 40;
-        const imgH = canvas.height * imgW / canvas.width;
-        pdf.addImage(img, 'JPEG', 20, 20, imgW, imgH);
+        const pdfH = pdf.internal.pageSize.getHeight();
+        const margin = 20; // points
+        const maxW = pdfW - margin * 2;
+        const maxH = pdfH - margin * 2;
+        // compute image size to fit within A4 page while preserving aspect ratio
+        let imgW = maxW;
+        let imgH = (canvas.height * imgW) / canvas.width;
+        if(imgH > maxH){
+          imgH = maxH;
+          imgW = (canvas.width * imgH) / canvas.height;
+        }
+        // center the image within the page margins
+        const x = (pdfW - imgW) / 2;
+        const y = margin + Math.max(0, (maxH - imgH) / 2);
+        pdf.addImage(img, 'JPEG', x, y, imgW, imgH);
         pdf.save('UTAHREIA_FixFlip_Report.pdf');
       }catch(e){ console.error(e); alert('PDF generation failed - try hosting the page (some environments block canvas).'); }
       finally{ container.remove(); }
@@ -1437,14 +1474,19 @@ document.getElementById("newLoanTarget").addEventListener("change", function () 
       const manualBase = editorState.purchaseManualBase || 0;
       const itemized = editorState.purchaseExtrasUpfront || 0;
       if ($('purchaseClosing')) {
-    if (editorState.purchaseManualOnly) {
-        // show ONLY manual input
-        $('purchaseClosing').value = formatCurrency(manualBase);
-    } else {
-        // show ONLY itemized total
-        $('purchaseClosing').value = formatCurrency(itemized);
-    }
-}
+        // don't overwrite the purchaseClosing input while the user is actively editing it
+        const pc = $('purchaseClosing');
+        const focused = document.activeElement === pc;
+        if (!focused) {
+          if (editorState.purchaseManualOnly) {
+            // show ONLY manual input
+            pc.value = formatCurrency(manualBase);
+          } else {
+            // show ONLY itemized total
+            pc.value = formatCurrency(itemized);
+          }
+        }
+      }
 
       // Update purchase breakdown summary
       let purchaseBreak = document.getElementById('purchaseBreakdown');
@@ -1483,9 +1525,11 @@ if (editorState.holdingManualOnly) {
     displayedMonthly = holdExtrasMonthly;
 }
 
-// Update field safely (NO RECALC)
+// Update field safely (NO RECALC) — but don't overwrite while user is typing in the field
 if ($('holdingMonthly')) {
-    $('holdingMonthly').value = formatCurrency(displayedMonthly);
+  const hm = $('holdingMonthly');
+  const hmFocused = document.activeElement === hm;
+  if(!hmFocused){ hm.value = formatCurrency(displayedMonthly); }
 }
 
 // totals
