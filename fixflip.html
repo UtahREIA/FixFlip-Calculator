@@ -1,0 +1,1577 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>UTAH REIA - Fix & Flip Calculator</title>
+
+  <!-- Chart.js + datalabels -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+  <!-- html2canvas + jsPDF for PDF download -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- Google Places (replace API key) -->
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBv5v5ZA_pJvv_jT_ERUuXAQbG0xBqOWRY&libraries=places"
+    defer>
+  </script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{ --blue:#1a2a4f; --gold:#D4AF37; --green:#2E8B57; --muted:#666; --card-bg:#fff; --page-bg:#f6f7f8; --radius:14px; --maxw:1200px; }
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0;background:var(--page-bg);color:#111}
+    .wrap{max-width:var(--maxw);margin:18px auto;padding:20px;border-radius:12px;background:#fff;box-shadow:0 20px 60px rgba(10,20,30,0.06)}
+    .top{display:flex;align-items:center;gap:16px;justify-content:center;margin-bottom:6px}
+    .top img{height:68px}
+    h1{color:var(--blue);font-size:20px;margin:6px 0 2px;text-align:center}
+    .subtitle{text-align:center;color:var(--muted);margin-bottom:12px}
+    .card{background:var(--card-bg);padding:16px;border-radius:12px;margin-bottom:12px;box-shadow:0 8px 30px rgba(0,0,0,0.03)}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .field{flex:1 1 220px;min-width:140px;margin-bottom:10px}
+    label{display:block;font-weight:600;color:var(--blue);margin-bottom:6px;font-size:13px}
+    input[type="text"],input[type="number"],select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #e7e7e7;font-size:14px}
+    textarea{min-height:64px}
+    .muted{color:var(--muted);font-size:13px}
+    .nav{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+    .btn{background:var(--green);color:#fff;padding:10px 14px;border-radius:10px;border:none;font-weight:700;cursor:pointer}
+    .btn.secondary{background:#eaeaea;color:var(--blue)}
+    .pencil{cursor:pointer;border:1px solid #eee;padding:6px;border-radius:8px;background:#fff;display:inline-flex;align-items:center;gap:8px}
+    .editor{display:none;margin-top:10px;padding:12px;border-radius:10px;background:#fbfbfb;border:1px solid #f0f0f0}
+    .editor .item{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+    .editor .item input[type=text]{flex:1;padding:8px;border-radius:6px;border:1px solid #e6e6e6}
+    .editor .item .small-input{width:110px;padding:8px;border-radius:6px;border:1px solid #e6e6e6}
+    .editor .item select{width:150px;padding:8px;border-radius:6px;border:1px solid #e6e6e6}
+    .editor .small{font-size:13px;color:var(--muted)}
+    .editor .row-actions{margin-top:10px;display:flex;gap:8px;justify-content:flex-end;align-items:center}
+    .total-display{font-weight:700;font-size:16px}
+    .results{margin-top:12px;padding:14px;border-radius:10px;background:linear-gradient(180deg,rgba(26,42,79,0.95),rgba(26,42,79,0.95));color:#fff}
+    .results .line{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06)}
+    .charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+    .chart-card{background:#fff;padding:12px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.05)}
+    @media(max-width:900px){.row{flex-direction:column}.charts{grid-template-columns:1fr}}
+    .icon-btn{background:none;border:0;padding:6px;border-radius:8px;cursor:pointer}
+    .small-ghost{background:#fff;border:1px solid #ddd;padding:7px;border-radius:8px}
+    .step { display: none; opacity: 0; transition: opacity 240ms ease; }
+    .step.active { display: block; opacity: 1; }
+    .small-note{font-size:13px;color:var(--muted)}
+    .subheading{font-weight:700;margin:6px 0 8px;color:var(--blue)}
+    .link-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+    .click-here { background:var(--blue); color:#fff; padding:6px 10px; border-radius:8px; text-decoration:none; font-weight:700; display:inline-block; }
+    .switch { position:relative; display:inline-block; width:56px; height:30px; }
+    .switch input { display:none; }
+    .slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#ccc; transition:.2s; border-radius:999px; }
+    .slider:before { position:absolute; content:""; height:22px; width:22px; left:4px; top:4px; background:white; transition:.2s; border-radius:50%; box-shadow:0 2px 6px rgba(0,0,0,0.12); }
+    input:checked + .slider { background:var(--green); }
+    input:checked + .slider:before { transform:translateX(26px); }
+    .toggle-label { display:inline-flex; gap:8px; align-items:center; font-weight:600; color:var(--blue); }
+    .muted-small { color:var(--muted); font-size:12px; }
+    .loan-list { margin-top:8px; display:flex; flex-direction:column; gap:8px; }
+    .loan-card { background:#f8fafb; padding:10px; border-radius:8px; display:flex; gap:8px; align-items:center; justify-content:space-between; }
+    .loan-info { font-size:13px; color:#333 }
+    .loan-actions { display:flex; gap:8px; align-items:center }
+  </style>
+</head>
+
+<body>
+  <div class="wrap" id="calcWrap">
+    <div class="top"><img src="https://assets.cdn.filesafe.space/DNirEjy0ejVwbHsaBYrn/media/682f680ec314718407baed82.png" alt="UTAH REIA logo"></div>
+    <h1>UTAH REIA Fix & Flip Calculator</h1>
+    <div class="subtitle">Step-by-step analysis to estimate profit, ROI, and investment - includes itemized editing and visual summaries.</div>
+
+    <div class="card">
+      <div class="step-ind" id="stepIndicator">Step 1 of 7</div>
+    </div>
+
+    <div id="stepsArea">
+
+      <!-- STEP 1 -->
+      <div class="card step active" data-step="1">
+        <div class="muted">Property Information</div>
+        <div class="row">
+          <div class="field"><label>Street address</label><input id="street" type="text" placeholder="Start typing address..."></div>
+          <div class="field"><label>City</label><input id="city" type="text" placeholder="City"></div>
+          <div class="field"><label>State</label><input id="state" type="text" placeholder="UT"></div>
+          <div class="field"><label>ZIP code</label><input id="zip" type="text" placeholder="ZIP"></div>
+        </div>
+        <div class="field"><label>Optional: property features / description</label><textarea id="features" placeholder="3 bed / 2 bath..."></textarea></div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="card step" data-step="2">
+        <div class="muted">Estimates</div>
+        <div class="row">
+          <div class="field"><label>Purchase Price</label><input id="purchasePrice" type="text" placeholder="$240,000"></div>
+          <div class="field"><label>After Repair Value (ARV)</label><input id="arv" type="text" inputmode="numeric" placeholder="$350,000"></div>
+          <div class="field"><label>Desired Profit</label><input id="desiredProfit" type="text" inputmode="numeric" placeholder="$30,000"></div>
+        </div>
+
+        <div style="margin-top:12px">
+          <label style="font-weight:600;color:var(--blue);display:block;margin-bottom:8px">How to Estimate ARV - Video</label>
+          <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;">
+            <iframe src="https://www.loom.com/embed/393dcac19b484e07aaadcd6271864f4d" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%"></iframe>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4: Financing -->
+      <div class="card step" data-step="4">
+        <div class="muted">Financing</div>
+
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+          <label class="toggle-label">
+            Use Financing
+            <label class="switch" title="Enable financing for this property">
+              <input id="useFinancing" type="checkbox">
+              <span class="slider"></span>
+            </label>
+          </label>
+          <div class="muted-small">Default: Financing ON. Add loans to model interest and financed amounts.</div>
+          <!-- Get a Loan Button (TOP of Step 3) -->
+<div style="margin-top:10px; margin-bottom:15px;">
+  <a href="https://retorocapitalinvestments.com/funding" 
+     target="_blank" 
+     rel="noopener"
+     class="btn"
+     style="
+       background:#001F3F;
+       color:#fff;
+       text-decoration:none;
+       padding:10px 18px;
+       border-radius:8px;
+       font-weight:600;
+       display:inline-block;
+     ">
+     Get a Loan
+  </a>
+</div>
+
+        </div>
+
+        <div id="financingArea" style="margin-top:8px;display:none">
+
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <div class="field"><label>Loan Label</label><input id="newLoanLabel" type="text" placeholder="e.g., Hard Money - Lender A"></div>
+
+            <div class="field">
+              <label>Loan Based On</label>
+              <select id="newLoanTarget">
+
+                <option value="purchase">% of Purchase Price</option>
+                <option value="rehab">% of Repair Cost</option>
+                <option value="arv">% of ARV</option>
+                <option value="purchase_rehab">% of Purchase + Repair Cost</option>
+                <option value="custom">Custom Amount</option>
+              </select>
+
+            </div>
+
+            <div class="field" id="newLoanCustomAmountWrap" style="display:none">
+              <label>Custom Loan Amount</label>
+              <input id="newLoanCustomAmount" type="text" placeholder="$50,000">
+            </div>
+            <!-- SHOW WHEN % of Purchase + Repair is selected -->
+<div class="field" id="dpPurchaseWrap" style="display:none">
+  <label>Purchase Down Payment (%)</label>
+  <input id="newLoanPriceDownPct" type="number" min="0" max="100" step="0.1" value="10">
+</div>
+
+<div class="field" id="dpRehabWrap" style="display:none">
+  <label>Rehab Down Payment (%)</label>
+  <input id="newLoanRehabDownPct" type="number" min="0" max="100" step="0.1" value="10">
+</div>
+
+
+            <div class="field"><label>Down Payment (%)</label><input id="newLoanDownPct" type="number" min="0" max="100" value="10" step="0.1"></div>
+
+            <div class="field"><label>Loan Type</label><select id="newLoanType"><option>Interest-Only</option><option>Amortized</option></select></div>
+
+            <div class="field"><label>Interest Rate (%)</label><input id="newLoanRate" type="number" min="0" step="0.1" value="15"></div>
+
+            <div class="field"><label>Loan Term (months)</label><input id="newLoanTerm" type="number" min="0" step="1" placeholder="e.g., 6"></div>
+          </div>
+
+          <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+            <button type="button" class="btn" id="addLoanBtn">Add a Loan</button>
+            <div class="muted-small">Add multiple loans; totals are used for interest calc across the holding months below.</div>
+          </div>
+
+          <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+            <div class="field" style="min-width:220px">
+              <label>Holding Timeframe (months)</label>
+              <select id="holdingTime">
+                <option value="0.5">0.5 (2 wks)</option><option value="1">1</option><option value="3">3</option>
+                <option value="6" selected>6</option><option value="9">9</option><option value="12">12</option><option value="24">24</option>
+              </select>
+            </div>
+
+            <div class="field" style="min-width:220px">
+              <label>Computed Financed Amount</label>
+              <div style="display:flex;gap:8px;align-items:center">
+                <div id="computedLoanAmount" style="font-weight:700;padding:10px;background:#fff;border-radius:8px;border:1px solid #e7e7e7;">$0</div>
+                <div class="muted-small">Uses added loans.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="loan-list" id="loanList"></div>
+
+        </div>
+      </div>
+
+      <!-- STEP 3: Rehab -->
+      <div class="card step" data-step="3">
+        <div class="muted">Rehab Costs</div>
+        <div class="field"><label>Repair costs (total)</label><input id="repairs" type="text" placeholder="$40,000"></div>
+      </div>
+
+      <!-- STEP 5: Purchase Closing Costs -->
+      <div class="card step" data-step="5">
+        <div class="muted">Purchase Closing Costs</div>
+
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+          <div style="font-weight:700">Manual entry or itemized breakdown.</div>
+          <div style="margin-left:auto" class="muted-small">Manual-only toggle defaults OFF.</div>
+        </div>
+
+        <div class="row" style="margin-bottom:8px">
+          <div class="field"><label>Purchase Closing (manual)</label><input id="purchaseClosing" type="text" placeholder="$3,000"></div>
+          <div class="field" style="align-self:end">
+            <label class="toggle-label">Manual only
+              <label class="switch"><input id="purchaseManualToggle" type="checkbox"><span class="slider"></span></label>
+            </label>
+            <div class="muted-small" style="margin-top:6px">When ON, itemized editor is ignored. Default: OFF.</div>
+          </div>
+        </div>
+
+        <button type="button" class="pencil" title="Edit breakdown" onclick="toggleEditor('purchase')">✏️ Edit itemized breakdown</button>
+
+        <div class="editor" id="editor-purchase" aria-hidden="true" style="display:none">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <strong>Purchase Cost Breakdown (one-time)</strong>
+            <span class="muted">Add fees or choose to roll into loan where appropriate.</span>
+          </div>
+          <div class="item">
+            <input class="item-label" value="Loan Points">
+            <input class="item-value small-input" data-kind="pct_loan" value="1" placeholder="1">
+            <select class="item-kind"><option value="fixed">$ (fixed)</option><option value="pct_price">% of Price</option><option value="pct_loan" selected>% of Loan</option></select>
+            <select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select>
+            <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+          </div>
+                  <!-- Funding link (text + Click Here button) -->
+        <div class="link-row">
+          <div style="font-weight:600;color:var(--muted)">Need a loan for your next project?</div>
+          <a class="click-here" href="https://retorocapitalinvestments.com/funding" target="_blank" rel="noopener">Click Here</a>
+        </div>
+
+          <div class="item">
+            <input class="item-label" value="Title & Escrow Fee">
+            <input class="item-value small-input" data-kind="fixed" value="400" placeholder="$400">
+            <select class="item-kind"><option value="fixed" selected>$ (fixed)</option><option value="pct_price">% of Price</option><option value="pct_loan">% of Loan</option></select>
+            <select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select>
+            <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+          </div>
+          <div class="item">
+            <input class="item-label" value="Doc Prep">
+            <input class="item-value small-input" data-kind="fixed" value="600" placeholder="$600">
+            <select class="item-kind"><option value="fixed" selected>$ (fixed)</option><option value="pct_price">% of Price</option><option value="pct_loan">% of Loan</option></select>
+            <select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select>
+            <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+          </div>
+          <div class="item">
+            <input class="item-label" value="Wholesaler Fee">
+            <input class="item-value small-input" data-kind="fixed" value="0" placeholder="0">
+            <select class="item-kind"><option value="fixed" selected>$ (fixed)</option><option value="pct_price">% of Price</option><option value="pct_loan">% of Loan</option></select>
+            <select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select>
+            <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+          </div>
+          <div class="item">
+            <input class="item-label" value="Home Inspection">
+            <input class="item-value small-input" data-kind="fixed" value="300" placeholder="$300">
+            <select class="item-kind"><option value="fixed" selected>$ (fixed)</option><option value="pct_price">% of Price</option><option value="pct_loan">% of Loan</option></select>
+            <select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select>
+            <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+          </div>
+          <div class="item">
+            <input class="item-label" value="Lender's Title Insurance">
+            <input class="item-value small-input" data-kind="pct_price" value="0.2" placeholder="0.2">
+            <select class="item-kind"><option value="fixed">$ (fixed)</option><option value="pct_price" selected>% of Price</option><option value="pct_loan">% of Loan</option></select>
+            <select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select>
+            <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+          </div>
+          <div class="item">
+            <input class="item-label" value="Appraisal Fee">
+            <input class="item-value small-input" data-kind="fixed" value="0" placeholder="0">
+            <select class="item-kind"><option value="fixed" selected>$ (fixed)</option><option value="pct_price">% of Price</option><option value="pct_loan">% of Loan</option></select>
+            <select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select>
+            <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+          </div>
+          <div class="item">
+            <input class="item-label" value="Title Endorsements">
+            <input class="item-value small-input" data-kind="fixed" value="75" placeholder="$75">
+            <select class="item-kind"><option value="fixed" selected>$ (fixed)</option><option value="pct_price">% of Price</option><option value="pct_loan">% of Loan</option></select>
+            <select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select>
+            <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+          </div>
+          <div class="item">
+            <input class="item-label" value="Recording Fees">
+            <input class="item-value small-input" data-kind="fixed" value="250" placeholder="$250">
+            <select class="item-kind"><option value="fixed">$ (fixed)</option><option value="pct_price">% of Price</option><option value="pct_loan">% of Loan</option></select>
+            <select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select>
+            <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+          </div>
+          <div class="item">
+            <input class="item-label" value="Sewer Scope">
+            <input class="item-value small-input" data-kind="fixed" value="100" placeholder="$100">
+            <select class="item-kind"><option value="fixed">$ (fixed)</option><option value="pct_price">% of Price</option><option value="pct_loan">% of Loan</option></select>
+            <select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select>
+            <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+          </div>
+          <div class="item">
+            <input class="item-label" value="Property Insurance">
+            <input class="item-value small-input" data-kind="pct_price" value="0.4" placeholder="0.4">
+            <select class="item-kind"><option value="fixed">$ (fixed)</option><option value="pct_price" selected>% of Price</option><option value="pct_loan">% of Loan</option></select>
+            <select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select>
+            <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+          </div>
+          <div class="item">
+            <input class="item-label" value="Meth Test">
+            <input class="item-value small-input" data-kind="fixed" value="100" placeholder="100">
+            <select class="item-kind"><option value="fixed">$ (fixed)</option><option value="pct_price">% of Price</option><option value="pct_loan">% of Loan</option></select>
+            <select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select>
+            <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+          </div>
+
+          <div id="purchase-add-area"></div>
+
+          <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+            <button type="button" class="btn" onclick="addItem('purchase')">+ Add line</button>
+          </div>
+
+          <div class="row-actions">
+            <div class="total-display">Upfront Items: <span id="purchaseEditorTotal">$0</span></div>
+            <div style="display:flex;gap:8px">
+              <button type="button" class="btn secondary" onclick="cancelEditor('purchase')">Cancel</button>
+              <button type="button" class="btn" onclick="saveEditor('purchase')">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 6: Holding -->
+      <div class="card step" data-step="6">
+        <div class="muted">Holding Costs</div>
+        <div class="row">
+  <div class="field">
+    <label>Base Monthly Holding Costs</label>
+    <input id="holdingMonthly" type="text" placeholder="$1,200">
+  </div>
+
+  <div class="field" style="align-self:end">
+    <label class="toggle-label">Manual only
+      <label class="switch">
+        <input id="holdingManualToggle" type="checkbox">
+        <span class="slider"></span>
+      </label>
+    </label>
+    <div class="muted-small" style="margin-top:6px">
+      When ON, itemized monthly editor is ignored. Default: OFF.
+    </div>
+  </div>
+</div>
+
+        <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+          <button type="button" class="pencil" onclick="toggleEditor('holding')">✏️ Edit Monthly Items</button>
+          <div class="muted" style="margin-left:auto">Add taxes, insurance, utilities</div>
+        </div>
+
+        <div class="editor" id="editor-holding" aria-hidden="true">
+          <div style="margin-bottom:8px">
+            <div class="subheading">Monthly Holding Items</div>
+            <div class="muted">Monthly extras are added to the monthly holding total.</div>
+          </div>
+
+          <div class="item">
+            <input class="item-label" value="Property Taxes">
+            <input class="item-value small-input" data-kind="fixed" value="790" placeholder="$790">
+            <select class="item-kind"><option value="fixed">$ (fixed)</option><option value="pct_price">% of Price</option></select>
+            <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+          </div>
+
+          <div class="item">
+            <input class="item-label" value="Insurance">
+            <input class="item-value small-input" data-kind="fixed" value="650" placeholder="$650">
+            <select class="item-kind"><option value="fixed">$ (fixed)</option><option value="pct_price">% of Price</option></select>
+            <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+          </div>
+          <div class="item">
+            <input class="item-label" value="Utilities">
+            <input class="item-value small-input" data-kind="fixed" value="75" placeholder="$75">
+            <select class="item-kind"><option value="fixed">$ (fixed)</option><option value="pct_price">% of Price</option></select>
+            <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+          </div>
+
+          <div id="holding-add-area"></div>
+
+          <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+            <button type="button" class="btn" onclick="addItem('holding')">+ Add monthly item</button>
+          </div>
+
+          <div class="row-actions">
+            <div class="total-display">Monthly Extras: <span id="holdingEditorTotal">$0</span></div>
+            <div style="display:flex;gap:8px">
+              <button type="button" class="btn secondary" onclick="cancelEditor('holding')">Cancel</button>
+              <button type="button" class="btn" onclick="saveEditor('holding')">Save</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px">
+          <div class="small-note">Loan Interest (simple) is calculated using Step 4 loans and the holding timeframe from Step 4.</div>
+          <div style="margin-top:6px" class="muted">
+            Interest Total: <strong id="holdingInterest">$0</strong>
+            Holding Total (including interest): <strong id="holdingTotalDisplay">$0</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 7: Sales Costs -->
+      <div class="card step" data-step="7">
+        <div class="muted">Sale Costs</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <button type="button" class="pencil" onclick="toggleEditor('sales')">✏️ Edit Sale Costs</button>
+          <div class="muted">Default items shown in editor; add more as needed.</div>
+        </div>
+
+        <div class="editor" id="editor-sales" aria-hidden="true">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <strong>Sales Cost Breakdown (one-time)</strong>
+            <span class="muted">Defaults: Agent Commissions, Title Insurance, Home Warranty.</span>
+          </div>
+
+          <div class="item">
+            <input class="item-label" value="Sales Agent Commission">
+            <input class="item-value small-input" data-kind="pct_price" value="3">
+            <select class="item-kind"><option value="pct_arv">% of ARV</option><option value="fixed">$ (fixed)</option></select>
+            <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+          </div>
+
+          <div class="item">
+            <input class="item-label" value="Buyer's Agent Commission">
+            <input class="item-value small-input" data-kind="pct_price" value="3">
+            <select class="item-kind"><option value="pct_arv">% of ARV</option><option value="fixed">$ (fixed)</option></select>
+            <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+          </div>
+
+          <div id="sales-add-area"></div>
+
+          <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+            <button type="button" class="btn" onclick="addItem('sales')">+ Add line</button>
+          </div>
+
+          <div class="row-actions">
+            <div class="total-display">Sales Editor Total: <span id="salesEditorTotal">$0</span></div>
+            <div style="display:flex;gap:8px">
+              <button type="button" class="btn secondary" onclick="cancelEditor('sales')">Cancel</button>
+              <button type="button" class="btn" onclick="saveEditor('sales')">Save</button>
+            </div>
+          </div>
+        </div>
+
+    <div id="saleSummary" style="margin-top:10px" class="muted">
+      Sale closing and commissions will be calculated from editor totals.
+    </div>
+</div>
+
+      <!-- STEP 8: Results & Summary Report -->
+      <div class="card step" data-step="8">
+        <div class="muted">Analysis Report</div>
+        <div id="reportContainer" style="min-height:200px;">
+          <p style="text-align:center;color:var(--muted);">Click "Finish Analysis" to generate your report.</p>
+        </div>
+      </div>
+
+    </div> <!-- stepsArea -->
+
+    <div class="nav">
+      <button id="prevBtn" type="button" class="btn secondary">← Back</button>
+      <div style="display:flex;gap:8px;">
+        <button id="nextBtn" type="button" class="btn">Next →</button>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:12px;color:var(--muted);font-size:13px">© 2025 UTAH REIA - Estimates are educational only.</div>
+  </div>
+
+  <!-- ---------- app.js (inlined) ---------- -->
+  <script>
+    /* ---------- Config ---------- */
+    const webhookUrl = 'YOUR_WEBHOOK_URL'; // optional
+
+    /* ---------- State ---------- */
+    const editorState = {
+      purchaseExtrasUpfront: 0,
+      purchaseManualBase: 0,
+      purchaseManualOnly: false, // default OFF
+      holdingMonthlyBase: 0,
+      holdingMonthlyExtras: 0,
+      holdingManualOnly: false, // default OFF
+      holdingFinanceExtras: 0,
+      salesExtras: 0,
+      financeExtras: 0
+    };
+    let loans = [];
+
+    /* ---------- Helpers ---------- */
+    const $ = id => document.getElementById(id);
+    function unformatCurrency(str){
+      if(str === undefined || str === null) return 0;
+      if(typeof str === 'number') return str;
+      str = String(str);
+      if(!str) return 0;
+      return Number(str.replace(/[^0-9.-]+/g,'')) || 0;
+    }
+    function formatCurrency(n){ if(isNaN(n)) n = 0; return '$' + Number(n).toLocaleString(); }
+
+    /*
+      Attach global listeners to inputs/selects so any change recalculates
+      the editors and, if the report is visible, recomputes the final report.
+    */
+
+    // debounce helper to throttle heavy operations (e.g. full report render)
+    function debounce(fn, wait){
+      let t = null;
+      return function(...args){
+        clearTimeout(t);
+        t = setTimeout(()=> fn.apply(this, args), wait);
+      };
+    }
+
+    // debounced computeAndRender to avoid excessive chart redraws while typing
+    const debouncedComputeAndRender = () => { if(typeof computeAndRender === 'function') computeAndRender(); };
+    const _debouncedComputeAndRender = debounce(debouncedComputeAndRender, 450);
+    function attachGlobalChangeListeners(){
+      const nodes = Array.from(document.querySelectorAll('#calcWrap input, #calcWrap select, #calcWrap textarea'));
+      nodes.forEach(el=>{
+        if(!el) return;
+        const ev = (el.tagName === 'SELECT' || el.type === 'checkbox' || el.type === 'radio') ? 'change' : 'input';
+        // keep handlers lightweight - just recalc and update visible totals
+        el.addEventListener(ev, ()=>{
+          try{
+            recalcAllEditors();
+            updateVisibleTotals();
+            updateAggregatedLoanAmountDisplay();
+            // if report already rendered, update it live
+            const report = document.getElementById('reportContainer');
+            if(report && report.innerHTML.trim() !== ''){
+              // use debounced render to avoid heavy work on every keystroke
+              try{ _debouncedComputeAndRender(); }catch(e){ computeAndRender(); }
+            }
+          }catch(e){ console.error('global change handler error', e); }
+        });
+      });
+    }
+
+    /* ---------- Autocomplete ---------- */
+    function initAutocomplete(){
+      try{
+        if(!window.google || !google.maps || !google.maps.places) throw new Error('places not available');
+        const input = $('street');
+        if(!input) return;
+        const ac = new google.maps.places.Autocomplete(input, { componentRestrictions: {country:'us'}, types:['address'] });
+        ac.addListener('place_changed', ()=> {
+          const place = ac.getPlace();
+          if(!place || !place.address_components) return;
+          const comps = place.address_components; let number='',route='',city='',state='',postal='';
+          comps.forEach(c=>{
+            if(c.types.includes('street_number')) number = c.long_name;
+            if(c.types.includes('route')) route = c.long_name;
+            if(c.types.includes('locality') || c.types.includes('sublocality') ) city = c.long_name;
+            if(c.types.includes('administrative_area_level_1')) state = c.short_name;
+            if(c.types.includes('postal_code')) postal = c.long_name;
+          });
+          if(number||route) $('street').value = (number + ' ' + route).trim();
+          if(city) $('city').value = city;
+          if(state) $('state').value = state;
+          if(postal) $('zip').value = postal;
+        });
+      }catch(e){ setTimeout(initAutocomplete, 1000); }
+    }
+    document.addEventListener('DOMContentLoaded', initAutocomplete);
+    setTimeout(initAutocomplete, 1200);
+
+    /* ---------- Steps navigation ---------- */
+    const steps = Array.from(document.querySelectorAll('.step')).filter(s => s.style.display !== 'none');
+    const totalSteps = 8; // 8-step flow including final report
+    let current = 1;
+    function showStep(n){
+      current = Math.max(1, Math.min(totalSteps, n));
+      // map step index to DOM .step (we used data-step attributes)
+      document.querySelectorAll('.step').forEach(el=>{
+        const ds = Number(el.getAttribute('data-step')) || 0;
+        el.classList.toggle('active', ds === current);
+      });
+      if($('stepIndicator')) $('stepIndicator').textContent = `Step ${current} of ${totalSteps}`;
+      if($('prevBtn')) $('prevBtn').style.display = current === 1 ? 'none' : 'inline-block';
+      if($('nextBtn')) {
+        if (current === totalSteps) { $('nextBtn').style.display = 'none'; }
+        else if (current === totalSteps - 1) { $('nextBtn').style.display = 'inline-block'; $('nextBtn').textContent = 'Finish Analysis →'; }
+        else { $('nextBtn').style.display = 'inline-block'; $('nextBtn').textContent = 'Next →'; }
+      }
+
+      // Always recalc when navigating so returning to earlier steps updates downstream values
+      try{ recalcAllEditors(); updateVisibleTotals(); updateAggregatedLoanAmountDisplay(); }catch(e){ console.error('recalc on showStep failed', e); }
+
+      try{ document.getElementById('calcWrap').scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
+    }
+    showStep(1);
+
+    if($('prevBtn')) $('prevBtn').addEventListener('click', ()=> showStep(current-1));
+    if($('nextBtn')) $('nextBtn').addEventListener('click', ()=> {
+      if(current < totalSteps){
+        if(!validateStep(current)) return;
+        if(current === totalSteps - 1){
+          // Moving from Step 7 to Step 8: compute and render
+          if(!validateStep(current)) return;
+          computeAndRender();
+        }
+        const next = current + 1;
+        showStep(next);
+      }
+    });
+
+
+    function validateStep(step){
+      try{
+        if(step === 1){
+          // basic address optional
+        }
+        if(step === 2){
+          if(unformatCurrency($('arv').value) <= 0){ alert('Please enter valid ARV'); return false; }
+        }
+        return true;
+      }catch(e){ console.error(e); return true; }
+    }
+
+    /* ---------- Generic editor row builder ---------- */
+    function addItem(section){
+      let editor, addArea;
+      if(section === 'purchase') { editor = $('editor-purchase'); addArea = $('purchase-add-area'); }
+      else if(section === 'holding') { editor = $('editor-holding'); addArea = $('holding-add-area'); }
+      else if(section === 'sales') { editor = $('editor-sales'); addArea = $('sales-add-area'); }
+      else return;
+      if(!editor || !addArea) return;
+      const row = document.createElement('div'); row.className = 'item';
+      const loanRollSelect = section === 'purchase' ? `<select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select>` : '';
+      row.innerHTML = `
+        <input class="item-label" placeholder="Label (eg. Title Fee)">
+        <input class="item-value small-input" data-kind="fixed" placeholder="0">
+        <select class="item-kind"><option value="fixed">$ (fixed)</option><option value="pct_price">% of Price</option><option value="pct_loan">% of Loan</option></select>
+        ${loanRollSelect}
+        <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
+      `;
+      const del = row.querySelector('.icon-btn');
+      del.addEventListener('click', ()=> { row.remove(); recalcEditor(section); updateVisibleTotals(); });
+      const valInp = row.querySelector('.item-value');
+      valInp.addEventListener('focus', function(){ this.value = this.value ? String(unformatCurrency(this.value)) : ''; });
+      valInp.addEventListener('input', ()=> { recalcEditor(section); });
+      valInp.addEventListener('blur', function(){ handleValueBlur(section,this); });
+      row.querySelector('.item-kind').addEventListener('change', ()=> handleKindChange(section,row));
+      const loanRoll = row.querySelector('.item-loan-roll');
+      if(loanRoll) loanRoll.addEventListener('change', ()=> recalcEditor(section));
+      addArea.appendChild(row);
+      recalcEditor(section);
+      return row;
+    }
+
+    /* ---------- Recalc functions ---------- */
+    function recalcEditor(section){ if(section === 'purchase') return recalcPurchaseEditor(); if(section === 'holding') return recalcHoldingEditor(); if(section === 'sales') return recalcSalesEditor(); return 0; }
+
+    function recalcPurchaseEditor(){
+      const price = unformatCurrency($('purchasePrice').value);
+      const loan = computeAggregatedFinancedAmount();
+      const editor = $('editor-purchase'); if(!editor) return 0;
+      let upfront = 0;
+      Array.from(editor.querySelectorAll('.item')).forEach(item=>{
+        const kind = item.querySelector('.item-kind')?.value || 'fixed';
+        const val = unformatCurrency(item.querySelector('.item-value')?.value);
+        const roll = item.querySelector('.item-loan-roll')?.value;
+        let add = 0;
+        if(kind==='pct_price') add = price*(val/100);
+        else if(kind==='pct_loan') add = loan*(val/100);
+        else add = val;
+        if(roll==='roll') add = 0;
+        upfront += add;
+      });
+      if($('purchaseEditorTotal')) $('purchaseEditorTotal').textContent = formatCurrency(upfront);
+      // keep editor state in sync so downstream calcs react without requiring explicit Save
+      editorState.purchaseExtrasUpfront = upfront || 0;
+      return upfront;
+    }
+
+    function recalcHoldingEditor(){
+      const price = unformatCurrency($('purchasePrice').value);
+      const months = Number($('holdingTime').value) || 0;
+      let extras = 0;
+      Array.from($('editor-holding')?.querySelectorAll('.item') || []).forEach(item=>{
+        const kind = item.querySelector('.item-kind')?.value || 'fixed';
+        const val = unformatCurrency(item.querySelector('.item-value')?.value);
+        extras += kind==='pct_price' ? price*(val/100) : val;
+      });
+      if($('holdingEditorTotal')) $('holdingEditorTotal').textContent = formatCurrency(extras);
+      // expose live extras so other code can use it without requiring Save
+      editorState.holdingMonthlyExtras = extras || 0;
+      const loan = computeAggregatedFinancedAmount();
+      // interest: use weighted/average? simple approach: use aggregated loan amount * average interest? We'll approximate by weighted average interest below in computeAndRender.
+      // Here just compute interest using aggregatedLoanAmount and average interest (calculated in computeAndRender).
+      // For now return extras; interest handled in final calc.
+      const manualMonthly = (editorState.holdingMonthlyBase !== undefined && editorState.holdingMonthlyBase !== null) ? editorState.holdingMonthlyBase : unformatCurrency($('holdingMonthly').value);
+      // If manual only mode is on, use manual; otherwise use itemized extras (which replaces manual)
+      const monthlyToUse = editorState.holdingManualOnly ? (manualMonthly || 0) : (editorState.holdingMonthlyExtras || extras);
+      const total = monthlyToUse * months;
+      if($('holdingTotalDisplay')) {
+        // interest will be appended later in computeAndRender; display total without interest for now
+        $('holdingTotalDisplay').textContent = formatCurrency(total);
+      }
+      return { monthlyExtras: extras, holdingTotalBeforeInterest: total };
+    }
+
+    function recalcSalesEditor() {
+  const arv = unformatCurrency($('arv').value) || 0;
+  const editor = $('editor-sales'); 
+  if (!editor) return 0;
+
+  let total = 0;
+
+  Array.from(editor.querySelectorAll('.item')).forEach(item => {
+    const kind = (item.querySelector('.item-kind') || {}).value || 'fixed';
+    const valRaw = unformatCurrency(item.querySelector('.item-value')?.value);
+
+    if (kind === 'pct_arv') {
+      total += arv * (valRaw / 100);
+    } else {
+      total += valRaw; // fixed amount
+    }
+  });
+
+  if ($('salesEditorTotal')) 
+    $('salesEditorTotal').textContent = formatCurrency(total);
+
+  // store live sales extras
+  editorState.salesExtras = total || 0;
+  return total;
+}
+
+
+    /* ---------- Open/Close Editors ---------- */
+    function toggleEditor(section){
+      const editorId = `editor-${section}`;
+      const editor = document.getElementById(editorId);
+      if(!editor) return;
+      const isHidden = editor.style.display === "none" || editor.getAttribute("aria-hidden") === "true";
+      editor.style.display = isHidden ? "block" : "none";
+      editor.setAttribute("aria-hidden", isHidden ? "false" : "true");
+      if(isHidden){ try { editor.scrollIntoView({ behavior: "smooth", block: "center" }); recalcEditor(section); } catch (e) { } }
+    }
+
+    /* ---------- Save / Cancel Editors ---------- */
+    function saveEditor(section){
+      if (section === 'purchase') {
+    const manualRaw = unformatCurrency($('purchaseClosing').value);
+    editorState.purchaseManualBase = manualRaw || editorState.purchaseManualBase || 0;
+
+    const upfront = recalcPurchaseEditor();
+    editorState.purchaseExtrasUpfront = upfront || 0;
+
+    const pm = $('purchaseManualToggle');
+    editorState.purchaseManualOnly = !!(pm && pm.checked);
+
+    // Determine what applies based on Manual Only toggle
+    const applied = editorState.purchaseManualOnly
+        ? editorState.purchaseManualBase          // manual only
+        : editorState.purchaseExtrasUpfront;      // itemized only
+
+    $('purchaseClosing').value = formatCurrency(applied);
+
+    // Summary box
+    let purchaseBreak = document.getElementById('purchaseBreakdown');
+    if (!purchaseBreak) {
+        const card = $('purchaseClosing').closest('.card') || $('purchaseClosing').parentElement;
+        purchaseBreak = document.createElement('div');
+        purchaseBreak.id = 'purchaseBreakdown';
+        purchaseBreak.style.fontSize = '13px';
+        purchaseBreak.style.color = '#666';
+        purchaseBreak.style.marginTop = '6px';
+        card.appendChild(purchaseBreak);
+    }
+
+    // What to display
+    const manualShown = editorState.purchaseManualOnly ? editorState.purchaseManualBase : 0;
+    const itemizedShown = editorState.purchaseManualOnly ? 0 : editorState.purchaseExtrasUpfront;
+    const visibleTotal = applied;
+
+    purchaseBreak.innerHTML =
+        `(Manual: ${formatCurrency(manualShown)} | ` +
+        `Itemized: ${formatCurrency(itemizedShown)} | ` +
+        `Visible Total: ${formatCurrency(visibleTotal)})`;
+}
+
+     
+      else if (section === 'holding') {
+
+    const res = recalcHoldingEditor();
+    editorState.holdingMonthlyExtras = res.monthlyExtras || 0;
+
+    const rawManual = unformatCurrency($('holdingMonthly').value);
+    if (rawManual) editorState.holdingMonthlyBase = rawManual;
+
+    const hm = $('holdingManualToggle');
+    editorState.holdingManualOnly = !!(hm && hm.checked);
+
+    // Determine what applies
+    const appliedMonthly = editorState.holdingManualOnly
+        ? editorState.holdingMonthlyBase                   // manual only
+        : editorState.holdingMonthlyExtras;                // itemized only (replaces manual)
+
+    $('holdingMonthly').value = formatCurrency(appliedMonthly);
+
+    const months = Number($('holdingTime').value) || 0;
+
+    // Compute interest separately
+    const loanAgg = computeAggregatedFinancedAmount();
+    const avgRate = computeWeightedAverageInterest();
+    const interest = (loanAgg * (avgRate / 100) * months) / 12;
+
+    // Build / Update the breakdown box
+    let holdBreak = document.getElementById('holdingBreakdown');
+    if (!holdBreak) {
+        const card = $('holdingMonthly').closest('.card') || $('holdingMonthly').parentElement;
+        holdBreak = document.createElement('div');
+        holdBreak.id = 'holdingBreakdown';
+        holdBreak.style.fontSize = '13px';
+        holdBreak.style.color = '#666';
+        holdBreak.style.marginTop = '6px';
+        card.appendChild(holdBreak);
+    }
+
+    // Display values (respecting manual only mode)
+    const manualTotal = editorState.holdingManualOnly ? (editorState.holdingMonthlyBase * months) : 0;
+    const extrasTotal = editorState.holdingManualOnly ? 0 : (editorState.holdingMonthlyExtras * months);
+
+    const holdingTotal = manualTotal + extrasTotal + (editorState.holdingFinanceExtras || 0) + interest;
+
+    holdBreak.innerHTML =
+      `(Manual total: ${formatCurrency(manualTotal)} | ` +
+      `Monthly extras total: ${formatCurrency(extrasTotal)} | ` +
+      `Interest: ${formatCurrency(interest)})`;
+
+    // Update displays on UI
+    if ($('holdingInterest')) $('holdingInterest').textContent = formatCurrency(interest);
+    if ($('holdingTotalDisplay')) $('holdingTotalDisplay').textContent = formatCurrency(holdingTotal);
+}
+
+      else if(section === 'sales'){
+        const total = recalcSalesEditor();
+        editorState.salesExtras = total || 0;
+        let saleBreak = document.getElementById('salesBreakdown');
+        if(!saleBreak){
+          const card = $('editor-sales').closest('.card') || $('editor-sales').parentElement;
+          saleBreak = document.createElement('div');
+          saleBreak.id = 'salesBreakdown';
+          saleBreak.style.fontSize = '13px';
+          saleBreak.style.color = '#666';
+          saleBreak.style.marginTop = '6px';
+          card.insertBefore(saleBreak, card.children[1] || null);
+        }
+        saleBreak.innerHTML = `(Itemized: ${formatCurrency(editorState.salesExtras || 0)})`;
+        if($('saleSummary')) $('saleSummary').textContent = `Sale Costs: ${formatCurrency(editorState.salesExtras || 0)}`;
+      }
+      cancelEditor(section);
+      recalcAllEditors();
+      updateVisibleTotals();
+    }
+
+    function cancelEditor(section){
+      const editor = $('editor-' + section);
+      if(!editor) return;
+      editor.style.display = 'none';
+      editor.setAttribute('aria-hidden','true');
+      updateVisibleTotals();
+    }
+
+    function attachEditorInit(editorId){
+      const editor = $(editorId); if(!editor) return;
+      Array.from(editor.querySelectorAll('.item')).forEach(item=>{
+        const val = item.querySelector('.item-value');
+        if(val){ 
+          val.addEventListener('focus', ()=> { val.value = val.value ? String(unformatCurrency(val.value)) : ''; }); 
+          val.addEventListener('input', ()=> { recalcEditor(editorId.replace('editor-','')); });
+          val.addEventListener('blur', ()=> { handleValueBlur(editorId.replace('editor-',''), val); }); 
+        }
+        const kind = item.querySelector('.item-kind');
+        if(kind) kind.addEventListener('change', ()=> handleKindChange(editorId.replace('editor-',''), item));
+        const loanRoll = item.querySelector('.item-loan-roll');
+        if(loanRoll) loanRoll.addEventListener('change', ()=> recalcEditor(editorId.replace('editor-','')));
+        const del = item.querySelector('.icon-btn');
+        if(del) del.addEventListener('click', ()=> { item.remove(); recalcEditor(editorId.replace('editor-','')); updateVisibleTotals(); });
+      });
+    }
+    // editor initialisation will be run on window load to ensure elements exist
+    
+    function recalcAllEditors(){ recalcPurchaseEditor(); recalcHoldingEditor(); recalcSalesEditor(); }
+
+    /* ---------- Loans ---------- */
+function addLoanFromInputs() {
+  const label = $('newLoanLabel').value || 'Loan';
+  const target = $('newLoanTarget').value;
+
+  const type = $('newLoanType').value;
+  const rate = Number($('newLoanRate').value) || 0;
+  const term = Number($('newLoanTerm').value) || 0;
+
+  const purchasePrice = unformatCurrency($('purchasePrice').value) || 0;
+  const repairs = unformatCurrency($('repairs').value) || 0;
+  const arv = unformatCurrency($('arv').value) || 0;
+
+  let financed = 0;
+
+  /* -----------------------------------------
+     NEW: Dual Down Payment for purchase_rehab
+     ----------------------------------------- */
+  if (target === 'purchase_rehab') {
+    const pctPriceDP = Number($('newLoanPriceDownPct').value) || 0;
+    const pctRehabDP = Number($('newLoanRehabDownPct').value) || 0;
+
+    const financedPurchase = purchasePrice * (1 - pctPriceDP / 100);
+    const financedRehab = repairs * (1 - pctRehabDP / 100);
+
+    financed = financedPurchase + financedRehab;
+  }
+
+  else if (target === 'purchase') {
+    const dp = Number($('newLoanDownPct').value) || 0;
+    financed = purchasePrice * (1 - dp / 100);
+  }
+
+  else if (target === 'rehab') {
+    const dp = Number($('newLoanDownPct').value) || 0;
+    financed = repairs * (1 - dp / 100);
+  }
+
+  else if (target === 'arv') {
+    const dp = Number($('newLoanDownPct').value) || 0;
+    financed = arv * (1 - dp / 100);
+  }
+
+  else if (target === 'custom') {
+    financed = unformatCurrency($('newLoanCustomAmount').value || 0);
+  }
+
+  // Save loan object
+  const loan = {
+    id: Date.now() + Math.random(),
+    label,
+    target,
+    type,
+    rate,
+    term,
+    financed
+  };
+
+  loans.push(loan);
+  renderLoanList();
+  clearLoanInputs();
+  updateAggregatedLoanAmountDisplay();
+}
+
+
+function clearLoanInputs() {
+  $('newLoanLabel').value = '';
+  $('newLoanCustomAmount').value = '';
+  $('newLoanDownPct').value = 10;
+  $('newLoanPriceDownPct').value = 10;
+  $('newLoanRehabDownPct').value = 10;
+  $('newLoanRate').value = 15;
+  $('newLoanTerm').value = '';
+
+  $('newLoanCustomAmountWrap').style.display = 'none';
+  $('dpPurchaseWrap').style.display = 'none';
+  $('dpRehabWrap').style.display = 'none';
+}
+
+
+function renderLoanList() {
+  const list = $('loanList');
+  if (!list) return;
+
+  list.innerHTML = '';
+
+  loans.forEach(l => {
+    const div = document.createElement('div');
+    div.className = 'loan-card';
+    div.innerHTML = `
+      <div class="loan-info">
+        <strong>${escapeHtml(l.label)}</strong>
+        <div style="font-size:12px">
+          ${formatCurrency(l.financed)} - ${escapeHtml(l.type)} @ ${l.rate}% - term ${l.term || 'N/A'} mo
+        </div>
+      </div>
+      <div class="loan-actions">
+        <button class="btn secondary" onclick="removeLoan('${l.id}')">Delete</button>
+      </div>`;
+    list.appendChild(div);
+  });
+
+  updateAggregatedLoanAmountDisplay();
+}
+
+function removeLoan(id) {
+  loans = loans.filter(l => String(l.id) !== String(id));
+  renderLoanList();
+  updateAggregatedLoanAmountDisplay();
+}
+
+function computeAggregatedFinancedAmount() {
+  let sum = 0;
+  loans.forEach(l => sum += Number(l.financed || 0));
+  return sum;
+}
+
+function computeWeightedAverageInterest() {
+  let total = 0, weight = 0;
+  loans.forEach(l => {
+    const amt = Number(l.financed || 0);
+    if (amt > 0) {
+      total += amt * (Number(l.rate || 0) / 100);
+      weight += amt;
+    }
+  });
+  return weight > 0 ? (total / weight) * 100 : 0;
+}
+
+function computeMaxHoldingMonthsFromLoans() {
+  let maxTerm = 0;
+  loans.forEach(l => {
+    if (Number(l.term || 0) > maxTerm)
+      maxTerm = Number(l.term || 0);
+  });
+  return maxTerm;
+}
+
+function updateAggregatedLoanAmountDisplay() {
+  const val = computeAggregatedFinancedAmount();
+  if ($('computedLoanAmount'))
+    $('computedLoanAmount').textContent = formatCurrency(val);
+}
+
+
+    /* ---------- Calculation & Charts ---------- */
+    let chartInvest=null, chartProfit=null;
+    function computeAndRender(){
+      const arv = unformatCurrency($('arv').value) || 0;
+      const desiredProfit = unformatCurrency($('desiredProfit').value) || 0;
+      const purchasePrice = unformatCurrency($('purchasePrice').value) || 0;
+      const repairs = unformatCurrency($('repairs').value) || 0;
+      const holdingMonths = Number($('holdingTime').value) || 0;
+
+      const aggregatedLoanAmount = computeAggregatedFinancedAmount();
+      const loanAmount = aggregatedLoanAmount;
+      const avgInterestRate = computeWeightedAverageInterest(); // percentage
+      // recalc editors
+      recalcAllEditors();
+      const purchaseExtras = editorState.purchaseExtrasUpfront || 0;
+      const holdingExtrasMonthly = editorState.holdingMonthlyExtras || recalcHoldingEditor().monthlyExtras || 0;
+      const salesExtras = editorState.salesExtras || 0;
+      const financeExtras = editorState.financeExtras || 0;
+
+      // interest total = aggregated loan amount * average interest * months / 12
+      const interestTotal = (loanAmount * (avgInterestRate/100) * (holdingMonths))/12;
+
+      // holding total
+      const holdingMonthlyManual = (editorState.holdingMonthlyBase !== undefined && editorState.holdingMonthlyBase !== null) ? editorState.holdingMonthlyBase : unformatCurrency($('holdingMonthly').value);
+      // Use only manual if manual-only mode is on, otherwise use only extras
+      const monthlyHoldingToUse = editorState.holdingManualOnly ? (holdingMonthlyManual || 0) : (holdingExtrasMonthly || 0);
+      const holdingTotal = ( monthlyHoldingToUse * holdingMonths ) + interestTotal + (editorState.holdingFinanceExtras || 0);
+
+      // purchase closing applied
+      const purchaseClosingApplied = editorState.purchaseManualOnly ? (editorState.purchaseManualBase || 0) : (purchaseExtras || 0);
+
+      // sale closing manual (user could add a manual sale closing input in future; not present now)
+      const saleClosingManual = 0;
+
+      // total investment
+      const totalInvestment = purchasePrice + purchaseClosingApplied + repairs + holdingTotal + salesExtras + saleClosingManual + financeExtras;
+      const profit = arv - totalInvestment;
+      const roi = totalInvestment > 0 ? (profit / totalInvestment)*100 : 0;
+      const mao = (arv * 0.7) - repairs - desiredProfit;
+
+      // Render results into step 7 area (below finish)
+      const resultsContainer = document.createElement('div');
+      resultsContainer.className = 'results';
+      
+      // Get property information
+      const propAddress = ($('street') && $('street').value) || '';
+      const propCity = ($('city') && $('city').value) || '';
+      const propState = ($('state') && $('state').value) || '';
+      const propZip = ($('zip') && $('zip').value) || '';
+      const propFeatures = ($('features') && $('features').value) || '';
+      
+      let propertySection = '';
+      if (propAddress || propCity || propState || propZip || propFeatures) {
+        propertySection = `
+          <div style="margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.2)">
+            <h4 style="margin:0 0 6px">Property Information</h4>
+            ${propAddress ? `<div class="line"><div>Address</div><div>${escapeHtml(propAddress)}</div></div>` : ''}
+            ${propCity || propState || propZip ? `<div class="line"><div>Location</div><div>${escapeHtml(propCity)}${propCity && (propState || propZip) ? ', ' : ''}${escapeHtml(propState)}${(propCity || propState) && propZip ? ' ' : ''}${escapeHtml(propZip)}</div></div>` : ''}
+            ${propFeatures ? `<div class="line"><div>Features</div><div>${escapeHtml(propFeatures)}</div></div>` : ''}
+          </div>
+        `;
+      }
+      
+      resultsContainer.innerHTML = `
+        <h3 style="margin:0 0 8px">Analysis Summary</h3>
+        ${propertySection}
+        <div class="line"><div>After Repair Value (ARV)</div><div>${formatCurrency(arv)}</div></div>
+        <div class="line"><div>Total Investment</div><div>${formatCurrency(totalInvestment)}</div></div>
+        <div class="line"><div>Estimated Profit</div><div>${formatCurrency(profit)}</div></div>
+        <div class="line"><div>ROI</div><div>${roi.toFixed(1)}%</div></div>
+        <div class="line"><div>Interest Paid</div><div>${formatCurrency(interestTotal)}</div></div>
+        <div class="line" style="font-weight:700;color:var(--gold)"><div>Maximum Allowable Offer (MAO)</div><div>${formatCurrency(mao)}</div></div>
+        <div style="padding-top:8px;color:#fff;" class="muted">
+          ${purchasePrice <= mao ? '✅ Your offer is within the MAO range.' : '⚠️ Offer exceeds the MAO limit, reconsider or adjust terms.'}
+        </div>
+      `;
+
+      // numeric breakdown card
+      const numeric = document.createElement('div');
+      numeric.className = 'card';
+      numeric.innerHTML = `
+        <div style="font-weight:700;margin-bottom:8px">Cost Breakdown</div>
+        <div style="display:flex;justify-content:space-between;"><div>Purchase Price</div><div>${formatCurrency(purchasePrice)}</div></div>
+        <div style="display:flex;justify-content:space-between;"><div>Purchase Closing (applied)</div><div>${formatCurrency(purchaseClosingApplied)}</div></div>
+        <div style="display:flex;justify-content:space-between;"><div>Purchase Editor Extra (upfront)</div><div>${formatCurrency((editorState.purchaseManualOnly?0:purchaseExtras))}</div></div>
+        <div style="display:flex;justify-content:space-between;"><div>Repairs</div><div>${formatCurrency(repairs)}</div></div>
+        <div style="display:flex;justify-content:space-between;"><div>Holding (incl interest & one-time finance)</div><div>${formatCurrency(holdingTotal)}</div></div>
+        <div style="display:flex;justify-content:space-between;"><div>Sales Costs (editor)</div><div>${formatCurrency(salesExtras)}</div></div>
+        <div style="display:flex;justify-content:space-between;"><div>Other Financing Extras</div><div>${formatCurrency(financeExtras)}</div></div>
+      `;
+
+      // place results into Step 8 (reportContainer)
+      const reportContainer = $('reportContainer');
+      if(reportContainer){
+        reportContainer.innerHTML = '';
+        reportContainer.appendChild(resultsContainer);
+        reportContainer.appendChild(numeric);
+      }
+
+      // charts area
+      const chartsArea = $('chartsArea') || document.createElement('div');
+      chartsArea.id = 'chartsArea';
+      chartsArea.className = 'charts';
+      chartsArea.style.marginTop = '12px';
+      chartsArea.innerHTML = `
+        <div class="chart-card"><h4 style="margin:0 0 6px">Investment Breakdown</h4><canvas id="chartInvest" height="260"></canvas></div>
+        <div class="chart-card"><h4 style="margin:0 0 6px">Profit vs Target</h4><canvas id="chartProfit" height="260"></canvas></div>
+      `;
+
+      // clean previous charts if any
+      try{ const existingCharts = document.getElementById('chartsArea'); if(existingCharts) existingCharts.remove(); }catch(e){}
+      if(reportContainer) reportContainer.appendChild(chartsArea);
+
+      // data for charts
+      const investLabels = ['Purchase','Closing & Fees','Repairs','Holding','Sales & Other'];
+      const investData = [purchasePrice, (purchaseClosingApplied), repairs, holdingTotal, (salesExtras + financeExtras)];
+
+      if(chartInvest) try{ chartInvest.destroy(); }catch(e){}
+      if(chartProfit) try{ chartProfit.destroy(); }catch(e){}
+
+      try{
+        chartInvest = new Chart($('chartInvest').getContext('2d'), {
+          type:'doughnut',
+          data:{ labels: investLabels, datasets:[{ data:investData }]},
+          options:{
+            plugins:{
+              datalabels:{
+                formatter: (value, ctx) => {
+                  const total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                  const pct = total ? (value/total*100).toFixed(1) : 0;
+                  return `${pct}%\n${formatCurrency(value)}`;
+                },
+                color:'#fff',
+                font:{weight:'700',size:11},
+                anchor:'center',
+                clamp:true
+              },
+              legend:{position:'bottom'}
+            },
+            responsive:true,
+          },
+          plugins: [ChartDataLabels]
+        });
+
+        const actualProfit = Math.max(0, profit);
+        const remaining = Math.max(0, desiredProfit - actualProfit);
+        chartProfit = new Chart($('chartProfit').getContext('2d'), {
+          type:'doughnut',
+          data:{ labels:['Actual Profit','Remaining to Target'], datasets:[{ data:[actualProfit, remaining] }]},
+          options:{
+            plugins:{
+              datalabels:{
+                formatter: (value) => `${((value/(actualProfit+remaining||1))*100).toFixed(1)}%\n${formatCurrency(value)}`,
+                color:'#fff',
+                font:{weight:'700',size:11}
+              },
+              legend:{position:'bottom'}
+            },
+            responsive:true
+          },
+          plugins:[ChartDataLabels]
+        });
+
+      }catch(e){ console.warn('chart render issue', e); }
+
+      // update holding interest & total displays
+      if($('holdingInterest')) $('holdingInterest').textContent = formatCurrency(interestTotal);
+      if($('holdingTotalDisplay')) $('holdingTotalDisplay').textContent = formatCurrency(holdingTotal);
+
+      // show download button in Step 8 if not present
+      if(!$('downloadPDF')){
+        const btn = document.createElement('button');
+        btn.id = 'downloadPDF';
+        btn.className = 'btn secondary';
+        btn.style.marginTop = '12px';
+        btn.textContent = 'Download Report (PDF)';
+        btn.addEventListener('click', downloadPdfHandler);
+        const reportContainer = $('reportContainer');
+        if(reportContainer) reportContainer.appendChild(btn);
+      }
+
+      // scroll into view
+      try{ $('reportContainer').scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
+    }
+
+    /* ---------- PDF download (includes charts) ---------- */
+    async function downloadPdfHandler(){
+      const { jsPDF } = window.jspdf || {};
+      if(!window.html2canvas||!jsPDF){alert('PDF libs missing');return;}
+      const reportContainer = $('reportContainer');
+      const charts = document.getElementById('chartsArea');
+      if(!reportContainer || !charts){ alert('Run analysis first (Finish Analysis)'); return; }
+
+      // clone charts area and replace canvases with images from chart instances
+      const cloneCharts = charts.cloneNode(true);
+      Array.from(cloneCharts.querySelectorAll('canvas')).forEach((canvasNode, idx)=>{
+        let src = '';
+        try{
+          if(idx === 0 && chartInvest) src = chartInvest.canvas.toDataURL();
+          else if(idx === 1 && chartProfit) src = chartProfit.canvas.toDataURL();
+          else src = canvasNode.toDataURL();
+        }catch(e){
+          try{ src = canvasNode.toDataURL(); }catch(err){ src = ''; }
+        }
+        const img = document.createElement('img');
+        img.style.maxWidth = '100%';
+        img.style.display = 'block';
+        img.src = src || '';
+        canvasNode.parentNode.replaceChild(img, canvasNode);
+      });
+
+      const container = document.createElement('div');
+      container.style.width = '1100px';
+      container.style.background = '#fff';
+      container.style.padding = '18px';
+      container.innerHTML = `<h2 style="color:#1a2a4f;margin-bottom:8px">UTAH REIA Fix & Flip Report</h2>`;
+      container.appendChild(reportContainer.cloneNode(true));
+      container.appendChild(document.createElement('hr'));
+      container.appendChild(cloneCharts);
+
+      document.body.appendChild(container);
+      try{
+        const canvas = await html2canvas(container, { scale:2, useCORS:true, backgroundColor:'#fff' });
+        const img = canvas.toDataURL('image/jpeg', 0.98);
+        const pdf = new jspdf.jsPDF('p','pt','a4');
+        const pdfW = pdf.internal.pageSize.getWidth();
+        const imgW = pdfW - 40;
+        const imgH = canvas.height * imgW / canvas.width;
+        pdf.addImage(img, 'JPEG', 20, 20, imgW, imgH);
+        pdf.save('UTAHREIA_FixFlip_Report.pdf');
+      }catch(e){ console.error(e); alert('PDF generation failed - try hosting the page (some environments block canvas).'); }
+      finally{ container.remove(); }
+    }
+    
+
+    /* ---------- Input helpers + initialization ---------- */
+    window.addEventListener('load', ()=> {
+      // set default states
+      const pm = $('purchaseManualToggle');
+      if(pm){
+        pm.checked = false; // default OFF
+        pm.addEventListener('change', ()=>{
+          editorState.purchaseManualOnly = !!pm.checked;
+          updateVisibleTotals();
+        });
+        editorState.purchaseManualOnly = !!pm.checked;
+      }
+
+      const uf = $('useFinancing');
+      if(uf){
+        uf.checked = true; // DEFAULT ON
+        uf.addEventListener('change', ()=>{
+          const area = $('financingArea');
+          if(uf.checked){ area.style.display = 'block'; } else { area.style.display = 'none'; }
+          updateAggregatedLoanAmountDisplay();
+          recalcAllEditors();
+          updateVisibleTotals();
+        });
+        // show financing area initially
+        if(uf.checked) $('financingArea').style.display = 'block';
+      }
+      // Holding Manual toggle init
+const hm = $('holdingManualToggle');
+if (hm) {
+  hm.checked = false; // default OFF
+  // ensure editorState property exists
+  editorState.holdingManualOnly = !!hm.checked;
+  hm.addEventListener('change', () => {
+    editorState.holdingManualOnly = !!hm.checked;
+    // If user switches to manual-only, we should recalc and update UI
+    recalcHoldingEditor();
+    updateVisibleTotals();
+    // If the editor is open we may want to close it to reflect new behavior:
+    const ed = $('editor-holding');
+    if (ed && ed.style.display === 'block') {
+      // optional: keep it open — here we just recalc while open.
+      recalcHoldingEditor();
+    }
+  });
+}
+
+
+      /* ---------- Loan Target Change UI Logic ---------- */
+document.getElementById("newLoanTarget").addEventListener("change", function () {
+    const target = this.value;
+
+    const dpPurchase = document.getElementById("dpPurchaseWrap");
+    const dpRehab = document.getElementById("dpRehabWrap");
+    const dpSingle = document.getElementById("newLoanDownPct").parentElement;
+    const customWrap = document.getElementById("newLoanCustomAmountWrap");
+
+    // Hide everything first
+    dpPurchase.style.display = "none";
+    dpRehab.style.display = "none";
+    dpSingle.style.display = "none";
+    customWrap.style.display = "none";
+
+    // Show based on target
+    if (target === "purchase_rehab") {
+        // Dual down-payment fields
+        dpPurchase.style.display = "block";
+        dpRehab.style.display = "block";
+    }
+    else if (target === "custom") {
+        customWrap.style.display = "block";
+    }
+    else {
+        // Normal single Down Payment
+        dpSingle.style.display = "block";
+    }
+});
+
+
+      if($('addLoanBtn')) $('addLoanBtn').addEventListener('click', addLoanFromInputs);
+
+      renderLoanList();
+
+      // attach editor init handlers
+      attachEditorInit('editor-purchase');
+      attachEditorInit('editor-holding');
+      attachEditorInit('editor-sales');
+
+      // input format helpers
+      ['arv','desiredProfit','purchasePrice','purchaseClosing','repairs','holdingMonthly','newLoanCustomAmount'].forEach(id=>{
+        const el = document.getElementById(id);
+        if(el && el.value) el.value = formatCurrency(unformatCurrency(el.value));
+        if(el){
+          el.addEventListener('focus', ()=> { el.value = el.value ? String(unformatCurrency(el.value)) : ''; });
+          el.addEventListener('blur', ()=> {
+            const raw = unformatCurrency(el.value);
+            if(id === 'purchaseClosing' && editorState.purchaseManualOnly){
+    editorState.purchaseManualBase = raw;
+}
+
+            else if(id === 'holdingMonthly'){ if(raw) editorState.holdingMonthlyBase = raw; }
+            else if(id === 'newLoanCustomAmount'){ el.value = el.value ? formatCurrency(unformatCurrency(el.value)) : ''; }
+            el.value = (id === 'newLoanCustomAmount' || id === 'arv' || id === 'desiredProfit' || id === 'purchasePrice' || id === 'purchaseClosing' || id === 'repairs' || id === 'holdingMonthly') ? (el.value ? formatCurrency(unformatCurrency(el.value)) : el.value) : el.value;
+            recalcAllEditors();
+            updateVisibleTotals();
+          });
+        }
+      });
+
+      // attach finish analysis button
+      if ($('finishBtn')) $('finishBtn').addEventListener('click', () => {
+
+    if (unformatCurrency($('arv').value) <= 0) {
+        alert('Please enter a valid ARV');
+        showStep(2);
+        return;
+    }
+
+    recalcAllEditors();
+    computeAndRender();
+});
+
+      // navigation: when in Step 6 (holding) nothing else needed
+      // initial recalc and attach global listeners for live updates
+      try{ attachGlobalChangeListeners(); }catch(e){/* ignore if attach fails */}
+      recalcAllEditors();
+      updateVisibleTotals();
+    });
+
+    /* ---------- Visible totals summary update (no doubling) ---------- */
+    function updateVisibleTotals(){
+      const manualBase = editorState.purchaseManualBase || 0;
+      const itemized = editorState.purchaseExtrasUpfront || 0;
+      if ($('purchaseClosing')) {
+    if (editorState.purchaseManualOnly) {
+        // show ONLY manual input
+        $('purchaseClosing').value = formatCurrency(manualBase);
+    } else {
+        // show ONLY itemized total
+        $('purchaseClosing').value = formatCurrency(itemized);
+    }
+}
+
+      // Update purchase breakdown summary
+      let purchaseBreak = document.getElementById('purchaseBreakdown');
+      if (!purchaseBreak) {
+        const card = $('purchaseClosing').closest('.card') || $('purchaseClosing').parentElement;
+        purchaseBreak = document.createElement('div');
+        purchaseBreak.id = 'purchaseBreakdown';
+        purchaseBreak.style.fontSize = '13px';
+        purchaseBreak.style.color = '#666';
+        purchaseBreak.style.marginTop = '6px';
+        card.appendChild(purchaseBreak);
+      }
+      const manualShown = editorState.purchaseManualOnly ? manualBase : 0;
+      const itemizedShown = editorState.purchaseManualOnly ? 0 : itemized;
+      const visibleTotal = editorState.purchaseManualOnly ? manualBase : itemized;
+      purchaseBreak.innerHTML =
+        `(Manual: ${formatCurrency(manualShown)} | ` +
+        `Itemized: ${formatCurrency(itemizedShown)} | ` +
+        `Visible Total: ${formatCurrency(visibleTotal)})`;
+
+
+      /* ---------- HOLDING COSTS (safe, no doubling) ---------- */
+const months = Number($('holdingTime').value) || 0;
+
+const holdManualMonthly = editorState.holdingMonthlyBase || 0;
+const holdExtrasMonthly = editorState.holdingMonthlyExtras || 0;
+
+// what the user should see in the holdingMonthly input
+let displayedMonthly;
+
+if (editorState.holdingManualOnly) {
+    // Only manual value should show
+    displayedMonthly = holdManualMonthly;
+} else {
+    // Only itemized extras (replaces manual)
+    displayedMonthly = holdExtrasMonthly;
+}
+
+// Update field safely (NO RECALC)
+if ($('holdingMonthly')) {
+    $('holdingMonthly').value = formatCurrency(displayedMonthly);
+}
+
+// totals
+const holdManualTotal = editorState.holdingManualOnly ? (holdManualMonthly * months) : 0;
+const holdExtrasTotal = editorState.holdingManualOnly 
+    ? 0 
+    : (holdExtrasMonthly * months);
+
+// interest
+const loanAgg = computeAggregatedFinancedAmount();
+const avgRate = computeWeightedAverageInterest();
+const interest = (loanAgg * (avgRate / 100) * months) / 12;
+
+// Interest display
+if ($('holdingInterest'))
+    $('holdingInterest').textContent = formatCurrency(interest);
+
+// final holding total
+const holdingTotal = holdManualTotal + holdExtrasTotal + interest + (editorState.holdingFinanceExtras || 0);
+
+if ($('holdingTotalDisplay'))
+    $('holdingTotalDisplay').textContent = formatCurrency(holdingTotal);
+
+// breakdown panel
+let holdBreak = document.getElementById('holdingBreakdown');
+if (!holdBreak) {
+    const el = $('holdingMonthly').closest('.card') || $('holdingMonthly').parentElement;
+    holdBreak = document.createElement('div');
+    holdBreak.id = 'holdingBreakdown';
+    holdBreak.style.fontSize = '13px';
+    holdBreak.style.color = '#666';
+    holdBreak.style.marginTop = '6px';
+    el.appendChild(holdBreak);
+}
+
+holdBreak.innerHTML =
+    `(Manual total: ${formatCurrency(holdManualTotal)} | ` +
+    `Monthly extras total: ${formatCurrency(holdExtrasTotal)} | ` +
+    `Interest: ${formatCurrency(interest)})`;
+
+
+
+
+      // SALES
+      const saleManual = 0;
+      const salesExtra = editorState.salesExtras || 0;
+      let saleBreak = document.getElementById('salesBreakdown');
+      if(!saleBreak){
+        const card = $('editor-sales').closest('.card') || $('editor-sales').parentElement;
+        saleBreak = document.createElement('div');
+        saleBreak.id = 'salesBreakdown';
+        saleBreak.style.fontSize = '13px';
+        saleBreak.style.color = '#666';
+        saleBreak.style.marginTop = '6px';
+        card.insertBefore(saleBreak, card.children[1] || null);
+      }
+      saleBreak.innerHTML = `(Manual: ${formatCurrency(saleManual)} | Itemized: ${formatCurrency(salesExtra)} | Total: ${formatCurrency(saleManual + salesExtra)})`;
+      if($('saleSummary')) $('saleSummary').textContent = `Sale Costs: ${formatCurrency(saleManual + salesExtra)}`;
+
+      updateAggregatedLoanAmountDisplay();
+    }
+
+    function handleValueBlur(section, input){
+      const kindSel = input.parentNode.querySelector('.item-kind');
+      const kind = kindSel ? kindSel.value : 'fixed';
+      let val = unformatCurrency(input.value || '');
+      if(kind === 'fixed'){ input.value = val ? formatCurrency(val) : ''; }
+      else { input.value = val || ''; }
+      recalcEditor(section);
+      if(section === 'purchase') { editorState.purchaseExtrasUpfront = recalcPurchaseEditor(); }
+    }
+
+    function handleKindChange(section, row){
+      const input = row.querySelector('.item-value');
+      const kind = row.querySelector('.item-kind').value;
+      const val = unformatCurrency(input.value);
+      if(kind === 'pct_price' || kind === 'pct_loan'){ input.value = val || ''; }
+      else { input.value = formatCurrency(val); }
+      recalcEditor(section);
+    }
+
+    /* ---------- Utilities ---------- */
+    function escapeHtml(unsafe) {
+      return String(unsafe).replace(/[&<"'>]/g, function(m) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[m]; });
+    }
+
+  </script>
+</body>
+</html>

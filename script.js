@@ -157,8 +157,9 @@ function recalcHoldingEditor(){
   const rate = Number($('interestRate').value) || 0;
   const interestTotal = (loanAmount * (rate/100) * months) / 12;
   $('holdingInterest').textContent = formatCurrency(interestTotal);
+  // Use the manual input value (which is set by save) for total calculation
   const holdingMonthlyManual = unformatCurrency($('holdingMonthly').value);
-  const holdingTotal = (holdingMonthlyManual * months) + (monthlyExtras * months) + interestTotal;
+  const holdingTotal = (holdingMonthlyManual * months) + interestTotal;
   $('holdingTotalDisplay').textContent = formatCurrency(holdingTotal);
 }
 
@@ -189,11 +190,9 @@ function saveEditor(section){
     cancelEditor('purchase');
   } else if(section === 'holding'){
     recalcHoldingEditor();
-    // get monthly extras & add to holdingMonthly value
+    // get monthly extras - itemized breakdown REPLACES the manual value
     const extras = unformatCurrency($('holdingEditorTotal').textContent);
-    const manual = unformatCurrency($('holdingMonthly').value);
-    const newMonthly = manual + extras;
-    $('holdingMonthly').value = formatCurrency(newMonthly);
+    $('holdingMonthly').value = formatCurrency(extras);
     // ensure interest & total recalc after updating monthly
     recalcHoldingEditor();
     cancelEditor('holding');
@@ -431,7 +430,12 @@ window.addEventListener('load', ()=>{
     if(el && el.value) el.value = formatCurrency(unformatCurrency(el.value));
     if(el) {
       el.addEventListener('focus', ()=> { el.value = el.value ? String(unformatCurrency(el.value)) : ''; });
-      el.addEventListener('blur', ()=> { el.value = el.value ? formatCurrency(unformatCurrency(el.value)) : el.value; recalcAllEditors(); });
+      // Special handling for holdingMonthly: don't recalc on blur, only format
+      if(id === 'holdingMonthly'){
+        el.addEventListener('blur', ()=> { el.value = el.value ? formatCurrency(unformatCurrency(el.value)) : el.value; });
+      } else {
+        el.addEventListener('blur', ()=> { el.value = el.value ? formatCurrency(unformatCurrency(el.value)) : el.value; recalcAllEditors(); });
+      }
     }
   });
 
