@@ -1943,9 +1943,7 @@ holdBreak.innerHTML =
         throw new Error('Please enter a valid 10-digit phone number.');
       }
 
-      // TODO: Replace '/api/check-phone' with your actual backend endpoint
-      // Options: GoHighLevel webhook, Airtable API via serverless function, or your own server
-      const res = await fetch('/api/check-phone', {
+      const res = await fetch('https://fix-flip-calculator-delta.vercel.app/api/check-phone', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: normalized })
