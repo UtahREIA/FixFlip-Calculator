@@ -1943,24 +1943,36 @@ holdBreak.innerHTML =
         throw new Error('Please enter a valid 10-digit phone number.');
       }
 
-      const res = await fetch('https://fix-flip-calculator-delta.vercel.app/api/check-phone', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: normalized })
-      });
+      try {
+        console.log('Attempting to verify phone:', normalized);
+        
+        const res = await fetch('https://fix-flip-calculator-delta.vercel.app/api/check-phone', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: normalized })
+        });
 
-      if (!res.ok) {
-        throw new Error('Unable to verify phone number. Please try again or contact support.');
+        console.log('Response status:', res.status);
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('API error:', res.status, errorText);
+          throw new Error('Unable to verify phone number. Please try again or contact support.');
+        }
+
+        const data = await res.json();
+        console.log('API response:', data);
+
+        // Expecting: { valid: true } or { valid: false }
+        if (!data.valid) {
+          throw new Error('This phone number is not recognized. Please contact UTAH REIA for access.');
+        }
+
+        return true;
+      } catch (error) {
+        console.error('Verification error:', error);
+        throw error;
       }
-
-      const data = await res.json();
-
-      // Expecting: { valid: true } or { valid: false }
-      if (!data.valid) {
-        throw new Error('This phone number is not recognized. Please contact UTAH REIA for access.');
-      }
-
-      return true;
     }
 
     function unlockCalculatorUI() {
