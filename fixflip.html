@@ -85,7 +85,48 @@
 </head>
 
 <body>
-  <div class="wrap" id="calcWrap">
+  <!-- Phone Gate (shown first) -->
+  <div class="wrap" id="gateWrap">
+    <div class="top"><img src="https://assets.cdn.filesafe.space/DNirEjy0ejVwbHsaBYrn/media/682f680ec314718407baed82.png" alt="UTAH REIA logo"></div>
+    <h1 style="text-align:center;color:var(--blue);margin-top:12px;">Fix & Flip Calculator Access</h1>
+    <div class="subtitle" style="margin-bottom:16px;">Enter your phone number to unlock the calculator.</div>
+
+    <div class="card">
+      <div class="field">
+        <label>Phone Number</label>
+        <input 
+          id="gatePhone" 
+          type="tel" 
+          placeholder="(801) 555-1234"
+          inputmode="tel"
+          style="font-size:16px;padding:12px"
+        >
+      </div>
+
+      <div class="field">
+        <button 
+          type="button" 
+          class="btn" 
+          id="gateSubmitBtn"
+          style="width:100%;margin-top:8px;">
+          Unlock Calculator
+        </button>
+      </div>
+
+      <div 
+        id="gateMessage" 
+        class="muted-small" 
+        style="margin-top:8px;min-height:18px;color:#b00020;text-align:center;">
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:12px;color:var(--muted);font-size:13px">
+      For UTAH REIA members only. Need access? Contact us.
+    </div>
+  </div>
+
+  <!-- Calculator (hidden until phone verified) -->
+  <div class="wrap" id="calcWrap" style="display:none">
     <div class="top"><img src="https://assets.cdn.filesafe.space/DNirEjy0ejVwbHsaBYrn/media/682f680ec314718407baed82.png" alt="UTAH REIA logo"></div>
     <h1>UTAH REIA Fix & Flip Calculator</h1>
     <div class="subtitle">Step-by-step analysis to estimate profit, ROI, and investment - includes itemized editing and visual summaries.</div>
@@ -311,7 +352,7 @@
           <div class="item">
             <input class="item-label" value="Lender's Title Insurance">
             <input class="item-value small-input" data-kind="pct_price" value="0.2" placeholder="0.2">
-            <select class="item-kind"><option value="fixed">$ (fixed)</option><option value="pct_price" selected>% of Price</option><option value="pct_loan">% of Loan</option></select>
+            <select class="item-kind"><option value="fixed">$ (fixed)</option><option value="pct_price" selected>% of Price</option><option value="pct_loan" selected>% of Loan</option></select>
             <select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select>
             <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
           </div>
@@ -678,7 +719,9 @@
       else return;
       if(!editor || !addArea) return;
       const row = document.createElement('div'); row.className = 'item';
-      const loanRollSelect = section === 'purchase' ? `<select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select>` : '';
+      // unique id for this item row so we can reference it later
+      row.dataset.itemId = String(Date.now() + Math.random());
+      const loanRollSelect = section === 'purchase' ? `<select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select><select class="item-loan-target" style="display:none;margin-left:6px"></select>` : '';
       row.innerHTML = `
         <input class="item-label" placeholder="Label (eg. Title Fee)">
         <input class="item-value small-input" data-kind="fixed" placeholder="0">
@@ -694,7 +737,20 @@
       valInp.addEventListener('blur', function(){ handleValueBlur(section,this); });
       row.querySelector('.item-kind').addEventListener('change', ()=> handleKindChange(section,row));
       const loanRoll = row.querySelector('.item-loan-roll');
-      if(loanRoll) loanRoll.addEventListener('change', ()=> recalcEditor(section));
+      if(loanRoll) loanRoll.addEventListener('change', ()=> { handleLoanRollChange(row); recalcEditor(section); });
+      // ensure loan target select exists and is populated
+      const loanTarget = row.querySelector('.item-loan-target');
+      if(loanTarget){
+        // mark which item this select belongs to so we can persist selection
+        loanTarget.dataset.forItem = row.dataset.itemId;
+        populateLoanTargetOptions(loanTarget);
+        // persist selection when user changes target
+        loanTarget.addEventListener('change', ()=>{
+          editorState.purchaseItemLoanMap = editorState.purchaseItemLoanMap || {};
+          editorState.purchaseItemLoanMap[row.dataset.itemId] = loanTarget.value || '';
+          recalcEditor(section);
+        });
+      }
       addArea.appendChild(row);
       recalcEditor(section);
       return row;
@@ -708,20 +764,80 @@
       const loan = computeAggregatedFinancedAmount();
       const editor = $('editor-purchase'); if(!editor) return 0;
       let upfront = 0;
+      let rolled = 0;
+      // reset per-loan rolled mapping and item lists before recomputing
+      editorState.purchaseRolledByLoan = {};
+      editorState.purchaseRolledItems = {};
+      editorState.financeExtrasUnassigned = 0;
+
       Array.from(editor.querySelectorAll('.item')).forEach(item=>{
         const kind = item.querySelector('.item-kind')?.value || 'fixed';
         const val = unformatCurrency(item.querySelector('.item-value')?.value);
         const roll = item.querySelector('.item-loan-roll')?.value;
+        const loanTargetSelect = item.querySelector('.item-loan-target');
+        // prefer the DOM value, but fall back to a persisted selection for this item
+        let loanTarget = '';
+        try{
+          loanTarget = loanTargetSelect ? (loanTargetSelect.value || (editorState.purchaseItemLoanMap && editorState.purchaseItemLoanMap[item.dataset.itemId]) || '') : '';
+          // ensure the DOM select shows the persisted value if applicable
+          if(loanTargetSelect && loanTarget && String(loanTargetSelect.value) !== String(loanTarget)){
+            const opt = Array.from(loanTargetSelect.options).find(o => String(o.value) === String(loanTarget));
+            if(opt) loanTargetSelect.value = loanTarget;
+          }
+        }catch(e){ loanTarget = loanTargetSelect ? loanTargetSelect.value : ''; }
+        const itemLabel = (item.querySelector('.item-label')?.value) || '';
+        const itemId = item.dataset.itemId || String(Math.random());
         let add = 0;
-        if(kind==='pct_price') add = price*(val/100);
-        else if(kind==='pct_loan') add = loan*(val/100);
+        if(kind === 'pct_price') add = price * (val/100);
+        else if(kind === 'pct_loan'){
+          // If this item selected a specific loan, use that loan's baseFinanced amount
+          if(loanTarget){
+            const targetLoan = loans.find(ll => String(ll.id) === String(loanTarget));
+            const baseAmt = targetLoan ? (Number(targetLoan.baseFinanced || targetLoan.financed || 0)) : loan;
+            add = baseAmt * (val/100);
+          } else {
+            // fall back to aggregated loan amount
+            add = loan * (val/100);
+          }
+        }
         else add = val;
-        if(roll==='roll') add = 0;
+            if(roll==='roll'){
+              // mark this amount as rolled into loan (not paid upfront)
+              rolled += add;
+              // attribute to specific loan if user chose one
+              if(loanTarget){
+                editorState.purchaseRolledByLoan[loanTarget] = (editorState.purchaseRolledByLoan[loanTarget] || 0) + add;
+                // record detailed item for the loan
+                editorState.purchaseRolledItems[loanTarget] = editorState.purchaseRolledItems[loanTarget] || [];
+                editorState.purchaseRolledItems[loanTarget].push({ id: itemId, label: itemLabel, amount: add });
+              } else {
+                // if no loan selected, keep as unassigned finance extras
+                editorState.financeExtrasUnassigned = (editorState.financeExtrasUnassigned || 0) + add;
+                editorState.purchaseRolledItems['__unassigned__'] = editorState.purchaseRolledItems['__unassigned__'] || [];
+                editorState.purchaseRolledItems['__unassigned__'].push({ id: itemId, label: itemLabel, amount: add });
+              }
+              add = 0;
+            }
         upfront += add;
       });
       if($('purchaseEditorTotal')) $('purchaseEditorTotal').textContent = formatCurrency(upfront);
       // keep editor state in sync so downstream calcs react without requiring explicit Save
       editorState.purchaseExtrasUpfront = upfront || 0;
+      // any fees marked to roll into loan should be tracked as finance extras
+      editorState.purchaseExtrasRolled = rolled || 0;
+      // financeExtras is total rolled (assigned + unassigned)
+      const assignedTotal = Object.values(editorState.purchaseRolledByLoan || {}).reduce((a,b)=>a+Number(b||0),0);
+      editorState.financeExtras = (assignedTotal + (editorState.financeExtrasUnassigned||0)) || 0;
+
+      // mutate loan.financed to include attached rolled amounts (but preserve baseFinanced)
+      loans.forEach(l => {
+        l.baseFinanced = (l.baseFinanced !== undefined) ? Number(l.baseFinanced) : Number(l.financed || 0);
+        const add = Number(editorState.purchaseRolledByLoan[String(l.id)] || 0);
+        l.financed = Number(l.baseFinanced) + Number(add);
+      });
+
+      // update loan list display to reflect rolled attachments
+      try{ renderLoanList(); }catch(e){}
       return upfront;
     }
 
@@ -826,10 +942,12 @@
     const itemizedShown = editorState.purchaseManualOnly ? 0 : editorState.purchaseExtrasUpfront;
     const visibleTotal = applied;
 
+    const rolledShown = editorState.purchaseExtrasRolled || 0;
     purchaseBreak.innerHTML =
-        `(Manual: ${formatCurrency(manualShown)} | ` +
-        `Itemized: ${formatCurrency(itemizedShown)} | ` +
-        `Visible Total: ${formatCurrency(visibleTotal)})`;
+      `(Manual: ${formatCurrency(manualShown)} | ` +
+      `Itemized: ${formatCurrency(itemizedShown)} | ` +
+      `Rolled into loan: ${formatCurrency(rolledShown)} | ` +
+      `Visible Total: ${formatCurrency(visibleTotal)})`;
 }
 
      
@@ -918,6 +1036,8 @@
     function attachEditorInit(editorId){
       const editor = $(editorId); if(!editor) return;
       Array.from(editor.querySelectorAll('.item')).forEach(item=>{
+        // ensure each existing item row has a stable id for tracking selections
+        if(!item.dataset.itemId) item.dataset.itemId = String(Date.now() + Math.random());
         const val = item.querySelector('.item-value');
         if(val){ 
           val.addEventListener('focus', ()=> { val.value = val.value ? String(unformatCurrency(val.value)) : ''; }); 
@@ -927,7 +1047,27 @@
         const kind = item.querySelector('.item-kind');
         if(kind) kind.addEventListener('change', ()=> handleKindChange(editorId.replace('editor-',''), item));
         const loanRoll = item.querySelector('.item-loan-roll');
-        if(loanRoll) loanRoll.addEventListener('change', ()=> recalcEditor(editorId.replace('editor-','')));
+        if(loanRoll) loanRoll.addEventListener('change', ()=> { handleLoanRollChange(item); recalcEditor(editorId.replace('editor-','')); });
+        // create / populate loan target select if missing
+        let loanTarget = item.querySelector('.item-loan-target');
+        if(!loanTarget && editorId === 'editor-purchase'){
+          loanTarget = document.createElement('select');
+          loanTarget.className = 'item-loan-target';
+          loanTarget.style.display = 'none';
+          loanTarget.style.marginLeft = '6px';
+          loanRoll && loanRoll.parentNode && loanRoll.parentNode.insertBefore(loanTarget, loanRoll.nextSibling);
+          // associate with the row's item id
+          loanTarget.dataset.forItem = item.dataset.itemId || '';
+        }
+        if(loanTarget){
+          populateLoanTargetOptions(loanTarget);
+          // persist selection when user changes target
+          loanTarget.addEventListener('change', ()=>{
+            editorState.purchaseItemLoanMap = editorState.purchaseItemLoanMap || {};
+            editorState.purchaseItemLoanMap[item.dataset.itemId] = loanTarget.value || '';
+            recalcEditor(editorId.replace('editor-',''));
+          });
+        }
         const del = item.querySelector('.icon-btn');
         if(del) del.addEventListener('click', ()=> { item.remove(); recalcEditor(editorId.replace('editor-','')); updateVisibleTotals(); });
       });
@@ -991,7 +1131,8 @@ function addLoanFromInputs() {
     type,
     rate,
     term,
-    financed
+    financed,
+    baseFinanced: financed
   };
 
   loans.push(loan);
@@ -1073,12 +1214,23 @@ function renderLoanList() {
   loans.forEach(l => {
     const div = document.createElement('div');
     div.className = 'loan-card';
+
+    // build attached items list for this loan
+    const attached = (editorState.purchaseRolledItems && editorState.purchaseRolledItems[String(l.id)]) || [];
+    let attachedHtml = '';
+    if(attached && attached.length){
+      attachedHtml = '<div style="margin-top:6px;color:#444;font-size:12px">';
+      attached.forEach(it => { attachedHtml += `<div>${escapeHtml(it.label || '')}: ${formatCurrency(it.amount || 0)}</div>`; });
+      attachedHtml += '</div>';
+    }
+
     div.innerHTML = `
       <div class="loan-info">
         <strong>${escapeHtml(l.label)}</strong>
         <div style="font-size:12px">
-          ${formatCurrency(l.financed)} - ${escapeHtml(l.type)} @ ${l.rate}% - term ${l.term || 'N/A'} mo
+          ${formatCurrency(Number(l.financed || 0))} - ${escapeHtml(l.type)} @ ${l.rate}% - term ${l.term || 'N/A'} mo
         </div>
+        ${attachedHtml}
       </div>
       <div class="loan-actions">
         <button class="btn secondary" onclick="removeLoan('${l.id}')">Delete</button>
@@ -1086,11 +1238,28 @@ function renderLoanList() {
     list.appendChild(div);
   });
 
+  // refresh purchase editor loan option selects when loan list changes
+  refreshPurchaseLoanOptions();
   updateAggregatedLoanAmountDisplay();
 }
 
 function removeLoan(id) {
+  // If there are rolled attachments for this loan, move them to unassigned so totals remain accurate
+  try{
+    const key = String(id);
+    if(editorState.purchaseRolledByLoan && editorState.purchaseRolledByLoan[key]){
+      editorState.financeExtrasUnassigned = (editorState.financeExtrasUnassigned || 0) + Number(editorState.purchaseRolledByLoan[key] || 0);
+      delete editorState.purchaseRolledByLoan[key];
+    }
+    if(editorState.purchaseRolledItems && editorState.purchaseRolledItems[key]){
+      editorState.purchaseRolledItems['__unassigned__'] = (editorState.purchaseRolledItems['__unassigned__']||[]).concat(editorState.purchaseRolledItems[key]||[]);
+      delete editorState.purchaseRolledItems[key];
+    }
+  }catch(e){}
+
   loans = loans.filter(l => String(l.id) !== String(id));
+  // ensure loan base/financed values reset for remaining loans
+  loans.forEach(l=>{ l.baseFinanced = (l.baseFinanced !== undefined) ? Number(l.baseFinanced) : Number(l.financed||0); });
   renderLoanList();
   updateAggregatedLoanAmountDisplay();
 }
@@ -1098,6 +1267,8 @@ function removeLoan(id) {
 function computeAggregatedFinancedAmount() {
   let sum = 0;
   loans.forEach(l => sum += Number(l.financed || 0));
+  // include any unassigned rolled amount (attachments to deleted loans or unassigned items)
+  if (editorState && Number(editorState.financeExtrasUnassigned || 0) > 0) sum += Number(editorState.financeExtrasUnassigned || 0);
   return sum;
 }
 
@@ -1127,6 +1298,75 @@ function updateAggregatedLoanAmountDisplay() {
   if ($('computedLoanAmount'))
     $('computedLoanAmount').textContent = formatCurrency(val);
 }
+
+
+    /* ---------- Purchase editor loan selectors ---------- */
+    function populateLoanTargetOptions(select){
+      if(!select) return;
+      // clear
+      select.innerHTML = '';
+      const noneOpt = document.createElement('option');
+      noneOpt.value = '';
+      noneOpt.textContent = 'Select loan...';
+      select.appendChild(noneOpt);
+      if(loans && loans.length){
+        loans.forEach(l=>{
+          const opt = document.createElement('option');
+          opt.value = l.id;
+          opt.textContent = `${l.label} (${formatCurrency(l.financed)})`;
+          select.appendChild(opt);
+        });
+      } else {
+        const empty = document.createElement('option');
+        empty.value = '';
+        empty.textContent = 'No loans added';
+        select.appendChild(empty);
+      }
+      // restore previously chosen value for this item (if any)
+      try{
+        const forItem = select.dataset.forItem;
+        if(forItem && editorState.purchaseItemLoanMap && editorState.purchaseItemLoanMap[forItem]){
+          const val = editorState.purchaseItemLoanMap[forItem];
+          // set only if option exists
+          const opt = Array.from(select.options).find(o => String(o.value) === String(val));
+          if(opt) select.value = val;
+        }
+      }catch(e){}
+    }
+
+    function refreshPurchaseLoanOptions(){
+      Array.from(document.querySelectorAll('#editor-purchase .item')).forEach(item=>{
+        const loanRoll = item.querySelector('.item-loan-roll');
+        let loanTarget = item.querySelector('.item-loan-target');
+        if(!loanTarget){
+          loanTarget = document.createElement('select');
+          loanTarget.className = 'item-loan-target';
+          loanTarget.style.display = 'none';
+          loanTarget.style.marginLeft = '6px';
+          loanRoll && loanRoll.parentNode && loanRoll.parentNode.insertBefore(loanTarget, loanRoll.nextSibling);
+        }
+        populateLoanTargetOptions(loanTarget);
+        // show/hide based on roll selection
+        if(loanRoll && loanRoll.value === 'roll'){
+          loanTarget.style.display = 'inline-block';
+        } else {
+          loanTarget.style.display = 'none';
+        }
+      });
+    }
+
+    function handleLoanRollChange(item){
+      const loanRoll = item.querySelector('.item-loan-roll');
+      const loanTarget = item.querySelector('.item-loan-target');
+      if(!loanRoll) return;
+      if(loanRoll.value === 'roll'){
+        if(loanTarget) loanTarget.style.display = 'inline-block';
+      } else {
+        if(loanTarget) loanTarget.style.display = 'none';
+      }
+      // when loan list changes, repopulate targets
+      refreshPurchaseLoanOptions();
+    }
 
 
     /* ---------- Calculation & Charts ---------- */
@@ -1164,10 +1404,17 @@ function updateAggregatedLoanAmountDisplay() {
       const saleClosingManual = 0;
 
       // total investment
-      const totalInvestment = purchasePrice + purchaseClosingApplied + repairs + holdingTotal + salesExtras + saleClosingManual + financeExtras;
+      // NOTE: financeExtras (rolled fees) should NOT be added here because they're already included in loanAmount
+      // The rolled fees increase the loan balance (tracked in loan.financed), so they affect holding interest, not upfront cash
+      const totalInvestment = purchasePrice + purchaseClosingApplied + repairs + holdingTotal + salesExtras + saleClosingManual;
       const profit = arv - totalInvestment;
       const roi = totalInvestment > 0 ? (profit / totalInvestment)*100 : 0;
-      const mao = (arv * 0.7) - repairs - desiredProfit;
+      // Maximum Allowable Offer (MAO) = ARV - All Costs (excluding purchase price)
+      // All Costs here consist of: purchase closing applied, repairs, holding total,
+      // salesExtras, plus desiredProfit (user's profit target)
+      // NOTE: financeExtras are rolled into loans and already reflected in holding interest
+      const allCostsExcludingPurchase = purchaseClosingApplied + repairs + holdingTotal + salesExtras + desiredProfit;
+      const mao = arv - allCostsExcludingPurchase;
 
       // Render results into step 7 area (below finish)
       const resultsContainer = document.createElement('div');
@@ -1200,8 +1447,8 @@ function updateAggregatedLoanAmountDisplay() {
         <div class="line"><div>Estimated Profit</div><div>${formatCurrency(profit)}</div></div>
         <div class="line"><div>ROI</div><div>${roi.toFixed(1)}%</div></div>
         <div class="line"><div>Interest Paid</div><div>${formatCurrency(interestTotal)}</div></div>
-        <div class="line" style="font-weight:700;color:var(--gold)"><div>Maximum Allowable Offer (MAO)</div><div>${formatCurrency(mao)}</div></div>
-        <div style="padding-top:8px;color:#fff;" class="muted">
+        <div class="line" style="font-weight:700;color:var(--gold)"><div>Maximum Allowable Offer (MAO)</div><div style="color:${purchasePrice <= mao ? 'var(--green)' : '#d9534f'}">${formatCurrency(mao)}</div></div>
+        <div style="padding-top:8px;color:${purchasePrice <= mao ? 'var(--green)' : '#d9534f'};font-weight:700;" class="muted">
           ${purchasePrice <= mao ? '✅ Your offer is within the MAO range.' : '⚠️ Offer exceeds the MAO limit, reconsider or adjust terms.'}
         </div>
       `;
@@ -1212,12 +1459,13 @@ function updateAggregatedLoanAmountDisplay() {
       numeric.innerHTML = `
         <div style="font-weight:700;margin-bottom:8px">Cost Breakdown</div>
         <div style="display:flex;justify-content:space-between;"><div>Purchase Price</div><div>${formatCurrency(purchasePrice)}</div></div>
-        <div style="display:flex;justify-content:space-between;"><div>Purchase Closing (applied)</div><div>${formatCurrency(purchaseClosingApplied)}</div></div>
-        <div style="display:flex;justify-content:space-between;"><div>Purchase Editor Extra (upfront)</div><div>${formatCurrency((editorState.purchaseManualOnly?0:purchaseExtras))}</div></div>
+        <div style="display:flex;justify-content:space-between;"><div>Purchase Closing (upfront paid)</div><div>${formatCurrency(purchaseClosingApplied)}</div></div>
+        ${editorState.purchaseExtrasRolled ? `<div style="display:flex;justify-content:space-between;color:#888;font-size:13px"><div>└─ Fees Rolled Into Loan</div><div>${formatCurrency(editorState.purchaseExtrasRolled || 0)}</div></div>` : ''}
         <div style="display:flex;justify-content:space-between;"><div>Repairs</div><div>${formatCurrency(repairs)}</div></div>
         <div style="display:flex;justify-content:space-between;"><div>Holding (incl interest & one-time finance)</div><div>${formatCurrency(holdingTotal)}</div></div>
         <div style="display:flex;justify-content:space-between;"><div>Sales Costs (editor)</div><div>${formatCurrency(salesExtras)}</div></div>
-        <div style="display:flex;justify-content:space-between;"><div>Other Financing Extras</div><div>${formatCurrency(financeExtras)}</div></div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid #eee"><div>Total Financed (Loans)</div><div>${formatCurrency(loanAmount)}</div></div>
+        ${editorState.purchaseExtrasRolled ? `<div style="font-size:12px;color:#666;margin-top:4px">Note: Rolled fees (${formatCurrency(editorState.purchaseExtrasRolled)}) are included in loan balance and affect interest, not upfront cash.</div>` : ''}
       `;
 
       // place results into Step 8 (reportContainer)
@@ -1249,8 +1497,9 @@ function updateAggregatedLoanAmountDisplay() {
       }
 
       // data for charts
+      // NOTE: financeExtras (rolled fees) are not shown separately as they're already in the loan balance
       const investLabels = ['Purchase','Closing & Fees','Repairs','Holding','Sales & Other'];
-      const investData = [purchasePrice, (purchaseClosingApplied), repairs, holdingTotal, (salesExtras + financeExtras)];
+      const investData = [purchasePrice, (purchaseClosingApplied), repairs, holdingTotal, salesExtras];
 
       if(chartInvest) try{ chartInvest.destroy(); }catch(e){}
       if(chartProfit) try{ chartProfit.destroy(); }catch(e){}
@@ -1562,10 +1811,12 @@ document.getElementById("newLoanTarget").addEventListener("change", function () 
       }
       const manualShown = editorState.purchaseManualOnly ? manualBase : 0;
       const itemizedShown = editorState.purchaseManualOnly ? 0 : itemized;
+      const rolledShown = editorState.purchaseExtrasRolled || 0;
       const visibleTotal = editorState.purchaseManualOnly ? manualBase : itemized;
       purchaseBreak.innerHTML =
         `(Manual: ${formatCurrency(manualShown)} | ` +
         `Itemized: ${formatCurrency(itemizedShown)} | ` +
+        `Rolled into loan: ${formatCurrency(rolledShown)} | ` +
         `Visible Total: ${formatCurrency(visibleTotal)})`;
 
 
@@ -1676,6 +1927,100 @@ holdBreak.innerHTML =
     function escapeHtml(unsafe) {
       return String(unsafe).replace(/[&<"'>]/g, function(m) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[m]; });
     }
+
+    /* ---------- PHONE GATE LOGIC ---------- */
+    function normalizePhone(raw) {
+      // Normalize phone: strip non-digits, remove leading 1 (US country code)
+      return String(raw || '')
+        .replace(/[^\d]/g, '')
+        .replace(/^1/, '');
+    }
+
+    async function verifyPhoneOnServer(phone) {
+      const normalized = normalizePhone(phone);
+
+      if (!normalized || normalized.length < 10) {
+        throw new Error('Please enter a valid 10-digit phone number.');
+      }
+
+      // TODO: Replace '/api/check-phone' with your actual backend endpoint
+      // Options: GoHighLevel webhook, Airtable API via serverless function, or your own server
+      const res = await fetch('/api/check-phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: normalized })
+      });
+
+      if (!res.ok) {
+        throw new Error('Unable to verify phone number. Please try again or contact support.');
+      }
+
+      const data = await res.json();
+
+      // Expecting: { valid: true } or { valid: false }
+      if (!data.valid) {
+        throw new Error('This phone number is not recognized. Please contact UTAH REIA for access.');
+      }
+
+      return true;
+    }
+
+    function unlockCalculatorUI() {
+      const gateWrap = $('gateWrap');
+      const calcWrap = $('calcWrap');
+      if (gateWrap) gateWrap.style.display = 'none';
+      if (calcWrap) {
+        calcWrap.style.display = 'block';
+        try {
+          calcWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (e) {}
+      }
+      // Store verification in sessionStorage so user doesn't have to re-enter during session
+      try {
+        sessionStorage.setItem('utahreia_calc_verified', 'true');
+      } catch (e) {}
+    }
+
+    // Initialize phone gate
+    window.addEventListener('load', () => {
+      // Check if already verified in this session
+      try {
+        if (sessionStorage.getItem('utahreia_calc_verified') === 'true') {
+          unlockCalculatorUI();
+          return;
+        }
+      } catch (e) {}
+
+      const btn = $('gateSubmitBtn');
+      const phoneInput = $('gatePhone');
+      const msg = $('gateMessage');
+
+      if (!btn || !phoneInput) return;
+
+      btn.addEventListener('click', async () => {
+        if (msg) msg.textContent = '';
+        btn.disabled = true;
+        btn.textContent = 'Verifying...';
+
+        try {
+          await verifyPhoneOnServer(phoneInput.value);
+          unlockCalculatorUI();
+        } catch (err) {
+          if (msg) msg.textContent = err.message || 'Unable to verify phone.';
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Unlock Calculator';
+        }
+      });
+
+      // Submit on Enter key
+      phoneInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          btn.click();
+        }
+      });
+    });
 
   </script>
 </body>
