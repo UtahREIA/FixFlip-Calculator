@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     }
 
     // Search for phone number in database
-    const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?filterByFormula={phone}="${phone}"`;
+    const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?filterByFormula={Phone Number}="${phone}"`;
     
     const response = await fetch(searchUrl, {
       headers: {
@@ -50,11 +50,11 @@ export default async function handler(req, res) {
     if (data.records && data.records.length > 0) {
       const record = data.records[0].fields;
       
-      console.log(`✅ Found record: approved=${record.approved}, processed=${record.processed}`);
+      console.log(`✅ Found record: approved=${record['Approval Status']}, processed=${record['Processed']}`);
 
       return res.status(200).json({
-        processed: record.processed || false,
-        approved: record.approved || false
+        processed: record['Processed'] || false,
+        approved: record['Approval Status'] || false
       });
     }
 

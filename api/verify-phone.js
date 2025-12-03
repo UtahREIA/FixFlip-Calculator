@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     }
 
     // Check if record exists (search by phone)
-    const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?filterByFormula={phone}="${phone}"`;
+    const searchUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?filterByFormula={Phone Number}="${phone}"`;
     
     const searchRes = await fetch(searchUrl, {
       headers: {
@@ -59,11 +59,11 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           fields: {
-            approved,
-            processed,
-            name: name || '',
-            contact_id: contact_id || '',
-            timestamp: new Date().toISOString()
+            'Approval Status': approved,
+            'Processed': processed,
+            'Name': name || '',
+            'Contact ID': contact_id || '',
+            'Timestamp': new Date().toISOString()
           }
         })
       });
@@ -81,12 +81,12 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           fields: {
-            phone,
-            approved,
-            processed,
-            name: name || '',
-            contact_id: contact_id || '',
-            timestamp: new Date().toISOString()
+            'Phone Number': phone,
+            'Approval Status': approved,
+            'Processed': processed,
+            'Name': name || '',
+            'Contact ID': contact_id || '',
+            'Timestamp': new Date().toISOString()
           }
         })
       });
