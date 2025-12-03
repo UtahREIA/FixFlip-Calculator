@@ -1975,7 +1975,7 @@ holdBreak.innerHTML =
       }
     }
 
-    function unlockCalculatorUI() {
+    function unlockCalculatorUI(phone) {
       const gateWrap = $('gateWrap');
       const calcWrap = $('calcWrap');
       if (gateWrap) gateWrap.style.display = 'none';
@@ -1989,6 +1989,27 @@ holdBreak.innerHTML =
       try {
         sessionStorage.setItem('utahreia_calc_verified', 'true');
       } catch (e) {}
+      
+      // Track calculator usage in GHL for marketing automation
+      trackCalculatorUsage(phone);
+    }
+
+    async function trackCalculatorUsage(phone) {
+      try {
+        await fetch('https://services.leadconnectorhq.com/hooks/DNirEjy0ejVwbHsaBYrn/webhook-trigger/c3f4e727-33d4-4beb-b67d-16eb039d9578', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            phone: phone,
+            timestamp: new Date().toISOString(),
+            action: 'calculator_accessed'
+          })
+        });
+        console.log('✅ Calculator usage tracked in GHL');
+      } catch (error) {
+        console.log('⚠️ Could not track usage (non-critical):', error);
+        // Don't block calculator access if tracking fails
+      }
     }
 
     // Initialize phone gate
@@ -2014,7 +2035,9 @@ holdBreak.innerHTML =
 
         try {
           await verifyPhoneOnServer(phoneInput.value);
-          unlockCalculatorUI();
+          // Pass the normalized phone to tracking
+          const normalized = normalizePhone(phoneInput.value);
+          unlockCalculatorUI(normalized);
         } catch (err) {
           if (msg) msg.textContent = err.message || 'Unable to verify phone.';
         } finally {
