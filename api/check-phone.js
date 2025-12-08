@@ -44,6 +44,12 @@ async function isGHLMember(phone) {
 
     const contact = data.contacts[0];
 
+    // Debug: Log the entire contact object to see structure
+    console.log('🔍 Full contact object:', JSON.stringify(contact, null, 2));
+    console.log('🔍 customField:', contact.customField);
+    console.log('🔍 customFields:', contact.customFields);
+    console.log('🔍 status:', contact.status);
+
     // Check if contact has Status = "Is Active"
     // GHL format: "Status": "Is > Active"
     const status = contact.customField?.Status || contact.status || contact.customFields?.find(f => f.name === 'Status' || f.key === 'Status')?.value;
