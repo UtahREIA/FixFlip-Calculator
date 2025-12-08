@@ -13,10 +13,6 @@ function normalizePhone(raw) {
 async function isGHLMember(phone) {
   const GHL_API_KEY = process.env.GHL_API_KEY;
   const GHL_LOCATION_ID = process.env.GHL_LOCATION_ID;
-  // Support multiple tags separated by commas: "new member,premium member,vip"
-  const ALLOWED_TAGS = (process.env.ALLOWED_TAGS || 'new member')
-    .split(',')
-    .map(tag => tag.trim().toLowerCase());
   const GHL_API_BASE = 'https://services.leadconnectorhq.com';
 
   const normalized = normalizePhone(phone);
@@ -48,18 +44,16 @@ async function isGHLMember(phone) {
 
     const contact = data.contacts[0];
 
-    // Check if contact has ANY of the allowed tags
-    const hasAllowedTag = contact.tags && contact.tags.some(tag => 
-      ALLOWED_TAGS.includes(tag.toLowerCase())
-    );
-
-    if (hasAllowedTag) {
-      const matchedTag = contact.tags.find(tag => ALLOWED_TAGS.includes(tag.toLowerCase()));
-      console.log(`✅ Member found with tag "${matchedTag}": ${contact.firstName || ''} ${contact.lastName || ''} (${normalized})`);
+    // Check if contact has Status = "Is Active"
+    // Status could be in customFields or a direct property
+    const status = contact.customField?.Status || contact.status || contact.customFields?.find(f => f.name === 'Status')?.value;
+    
+    if (status && status.toLowerCase() === 'is active') {
+      console.log(`✅ Active member found: ${contact.firstName || ''} ${contact.lastName || ''} (${normalized}) - Status: ${status}`);
       return true;
     }
 
-    console.log(`❌ Contact found but doesn't have allowed tags. Has: ${contact.tags?.join(', ') || 'none'}`);
+    console.log(`❌ Contact found but status is not "Is Active". Status: ${status || 'none'}, Tags: ${contact.tags?.join(', ') || 'none'}`);
     return false;
 
   } catch (error) {
