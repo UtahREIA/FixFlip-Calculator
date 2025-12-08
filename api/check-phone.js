@@ -65,12 +65,6 @@ async function isGHLMember(phone) {
     const contactDetail = await detailResponse.json();
     const contact = contactDetail.contact || contactDetail;
 
-    // Debug: Log the entire contact object to see structure
-    console.log('🔍 Full contact object:', JSON.stringify(contact, null, 2));
-    console.log('🔍 customField:', contact.customField);
-    console.log('🔍 customFields:', contact.customFields);
-    console.log('🔍 status:', contact.status);
-
     // Check if contact has Status = "Active" in customFields
     // Status custom field ID is pVjzZbTLHlgbSX5IVbhc
     const statusField = contact.customFields?.find(f => f.id === 'pVjzZbTLHlgbSX5IVbhc');
