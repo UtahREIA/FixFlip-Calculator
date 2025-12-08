@@ -71,15 +71,13 @@ async function isGHLMember(phone) {
     console.log('🔍 customFields:', contact.customFields);
     console.log('🔍 status:', contact.status);
 
-    // Check if contact has Status = "Active"
-    const status = contact.customField?.Status || contact.status || contact.customFields?.find(f => f.name === 'Status' || f.key === 'Status')?.value;
+    // Check if contact has Status = "Active" in customFields
+    // Status custom field ID is pVjzZbTLHlgbSX5IVbhc
+    const statusField = contact.customFields?.find(f => f.id === 'pVjzZbTLHlgbSX5IVbhc');
+    const status = statusField?.value;
     
-    // Match "Active" or "Is > Active" or contains "active"
-    const isActive = status && (
-      status === 'Active' || 
-      status === 'Is > Active' || 
-      status.toLowerCase().includes('active')
-    );
+    // Check if status is "Active"
+    const isActive = status && status.toLowerCase() === 'active';
     
     if (isActive) {
       console.log(`✅ Active member found: ${contact.firstName || ''} ${contact.lastName || ''} (${normalized}) - Status: ${status}`);
