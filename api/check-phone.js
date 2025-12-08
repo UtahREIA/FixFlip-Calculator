@@ -42,7 +42,28 @@ async function isGHLMember(phone) {
       return false;
     }
 
-    const contact = data.contacts[0];
+    const contactSummary = data.contacts[0];
+    
+    // Fetch full contact details to get custom fields
+    const contactId = contactSummary.id;
+    const detailUrl = `${GHL_API_BASE}/contacts/${contactId}`;
+    
+    const detailResponse = await fetch(detailUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${GHL_API_KEY}`,
+        'Version': '2021-07-28',
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!detailResponse.ok) {
+      console.error('GHL contact detail error:', detailResponse.status);
+      return false;
+    }
+
+    const contactDetail = await detailResponse.json();
+    const contact = contactDetail.contact || contactDetail;
 
     // Debug: Log the entire contact object to see structure
     console.log('🔍 Full contact object:', JSON.stringify(contact, null, 2));
