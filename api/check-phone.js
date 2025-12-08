@@ -45,10 +45,17 @@ async function isGHLMember(phone) {
     const contact = data.contacts[0];
 
     // Check if contact has Status = "Is Active"
-    // Status could be in customFields or a direct property
-    const status = contact.customField?.Status || contact.status || contact.customFields?.find(f => f.name === 'Status')?.value;
+    // GHL format: "Status": "Is > Active"
+    const status = contact.customField?.Status || contact.status || contact.customFields?.find(f => f.name === 'Status' || f.key === 'Status')?.value;
     
-    if (status && status.toLowerCase() === 'is active') {
+    // Match "Is > Active" or "Is Active" (flexible matching)
+    const isActive = status && (
+      status === 'Is > Active' || 
+      status === 'Is Active' ||
+      status.toLowerCase().includes('is') && status.toLowerCase().includes('active')
+    );
+    
+    if (isActive) {
       console.log(`✅ Active member found: ${contact.firstName || ''} ${contact.lastName || ''} (${normalized}) - Status: ${status}`);
       return true;
     }
