@@ -1,0 +1,14 @@
+# Ignore environment files
+.env
+phone-api/.env
+
+# Ignore node_modules
+node_modules/
+phone-api/node_modules/
+
+# Ignore logs
+*.log
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
