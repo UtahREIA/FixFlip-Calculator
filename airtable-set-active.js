@@ -17,17 +17,23 @@ const AIRTABLE_URL = `https://api.airtable.com/v0/${AIRTABLE_ID}/${encodeURIComp
 
 function readActivePhonesFromCSV() {
   return new Promise((resolve, reject) => {
-    const phones = new Set();
+    const activeContacts = [];
     fs.createReadStream('ghl_contacts.csv')
       .pipe(csv())
       .on('data', (row) => {
-        if (row.Phone) {
+        // Only process rows where Status is 'Active' (case-insensitive)
+        if (row.Phone && row.Status && row.Status.trim().toLowerCase() === 'active') {
           const cleaned = row.Phone.replace(/[^\d]/g, '');
-          if (cleaned) phones.add(cleaned);
+          if (cleaned) {
+            // Capitalize name
+            let name = row.Name || '';
+            name = name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+            activeContacts.push({ phone: cleaned, name });
+          }
         }
       })
       .on('end', () => {
-        resolve(Array.from(phones)); // Return unique phone numbers as array
+        resolve(activeContacts); // Return array of {phone, name}
       })
       .on('error', reject);
   });
@@ -70,17 +76,30 @@ async function updateMemberStatus(recordId) {
 
 (async () => {
   try {
-    const activePhones = await readActivePhonesFromCSV();
-    console.log(`Loaded ${activePhones.length} unique active phone numbers from CSV.`);
+    const activeContacts = await readActivePhonesFromCSV();
+    console.log(`Loaded ${activeContacts.length} truly active contacts from CSV.`);
     const records = await getAirtableRecords();
     let updated = 0;
-    const phoneSet = new Set(activePhones);
+    const phoneMap = new Map(activeContacts.map(c => [c.phone, c.name]));
     for (const record of records) {
       const airtablePhone = record.fields['Phone Number'] ? record.fields['Phone Number'].replace(/[^\d]/g, '') : '';
-      if (phoneSet.has(airtablePhone)) {
-        await updateMemberStatus(record.id);
+      if (phoneMap.has(airtablePhone)) {
+        // Update both Member Status and Name (capitalized)
+        await axios.patch(`${AIRTABLE_URL}/${record.id}`, {
+          fields: {
+            'Member Status': 'Active',
+            'Name': phoneMap.get(airtablePhone),
+          },
+        }, {
+          headers: {
+            Authorization: `Bearer ${AIRTABLE_KEY}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        // Add a delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 300));
         updated++;
-        console.log(`Updated Member Status to Active for: ${record.fields.Name || airtablePhone}`);
+        console.log(`Updated Member Status to Active and Name for: ${phoneMap.get(airtablePhone)}`);
       }
     }
     console.log(`Bulk update complete. ${updated} records updated.`);
