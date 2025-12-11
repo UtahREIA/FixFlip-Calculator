@@ -180,23 +180,23 @@
           </label>
           <div class="muted-small">Default: Financing ON. Add loans to model interest and financed amounts.</div>
           <!-- Get a Loan Button (TOP of Step 3) -->
-<div style="margin-top:10px; margin-bottom:15px;">
-  <a href="https://retorocapitalinvestments.com/funding" 
-     target="_blank" 
-     rel="noopener"
-     class="btn"
-     style="
-       background:#001F3F;
-       color:#fff;
-       text-decoration:none;
-       padding:10px 18px;
-       border-radius:8px;
-       font-weight:600;
-       display:inline-block;
-     ">
-     Get a Loan
-  </a>
-</div>
+          <div style="margin-top:10px; margin-bottom:15px;">
+            <a href="https://retorocapitalinvestments.com/funding" 
+               target="_blank" 
+               rel="noopener"
+               class="btn"
+               style="
+                 background:#001F3F;
+                 color:#fff;
+                 text-decoration:none;
+                 padding:10px 18px;
+                 border-radius:8px;
+                 font-weight:600;
+                 display:inline-block;
+               ">
+               Get a Loan
+            </a>
+          </div>
 
         </div>
 
@@ -208,31 +208,29 @@
             <div class="field">
               <label>Loan Based On</label>
               <select id="newLoanTarget">
-
                 <option value="purchase">% of Purchase Price</option>
                 <option value="rehab">% of Repair Cost</option>
                 <option value="arv">% of ARV</option>
                 <option value="purchase_rehab">% of Purchase + Repair Cost</option>
                 <option value="custom">Custom Amount</option>
               </select>
-
             </div>
 
             <div class="field" id="newLoanCustomAmountWrap" style="display:none">
               <label>Custom Loan Amount</label>
               <input id="newLoanCustomAmount" type="text" placeholder="$50,000">
             </div>
+
             <!-- SHOW WHEN % of Purchase + Repair is selected -->
-<div class="field" id="dpPurchaseWrap" style="display:none">
-  <label>Purchase Down Payment (%)</label>
-  <input id="newLoanPriceDownPct" type="number" min="0" max="100" step="0.1" value="10">
-</div>
+            <div class="field" id="dpPurchaseWrap" style="display:none">
+              <label>Purchase Down Payment (%)</label>
+              <input id="newLoanPriceDownPct" type="number" min="0" max="100" step="0.1" value="10">
+            </div>
 
-<div class="field" id="dpRehabWrap" style="display:none">
-  <label>Rehab Down Payment (%)</label>
-  <input id="newLoanRehabDownPct" type="number" min="0" max="100" step="0.1" value="10">
-</div>
-
+            <div class="field" id="dpRehabWrap" style="display:none">
+              <label>Rehab Down Payment (%)</label>
+              <input id="newLoanRehabDownPct" type="number" min="0" max="100" step="0.1" value="10">
+            </div>
 
             <div class="field"><label>Down Payment (%)</label><input id="newLoanDownPct" type="number" min="0" max="100" value="10" step="0.1"></div>
 
@@ -248,6 +246,7 @@
             <button type="button" class="btn" id="addLoanBtn">Add a Loan</button>
             <div class="muted-small">Click Save to calculate financed amount, then Add a Loan to confirm.</div>
           </div>
+
           <div id="loanPreview" style="margin-top:10px;padding:12px;border-radius:8px;background:#f0f8ff;border:1px solid #d0e8ff;display:none">
             <strong>Loan Preview:</strong>
             <div id="loanPreviewContent" style="margin-top:6px;font-size:13px;color:#333"></div>
@@ -308,6 +307,7 @@
             <strong>Purchase Cost Breakdown (one-time)</strong>
             <span class="muted">Add fees or choose to roll into loan where appropriate.</span>
           </div>
+
           <div class="item">
             <input class="item-label" value="Loan Points">
             <input class="item-value small-input" data-kind="pct_loan" value="1" placeholder="1">
@@ -315,11 +315,12 @@
             <select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select>
             <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
           </div>
-                  <!-- Funding link (text + Click Here button) -->
-        <div class="link-row">
-          <div style="font-weight:600;color:var(--muted)">Need a loan for your next project?</div>
-          <a class="click-here" href="https://retorocapitalinvestments.com/funding" target="_blank" rel="noopener">Click Here</a>
-        </div>
+
+          <!-- Funding link (text + Click Here button) -->
+          <div class="link-row">
+            <div style="font-weight:600;color:var(--muted)">Need a loan for your next project?</div>
+            <a class="click-here" href="https://retorocapitalinvestments.com/funding" target="_blank" rel="noopener">Click Here</a>
+          </div>
 
           <div class="item">
             <input class="item-label" value="Title & Escrow Fee">
@@ -352,7 +353,7 @@
           <div class="item">
             <input class="item-label" value="Lender's Title Insurance">
             <input class="item-value small-input" data-kind="pct_price" value="0.2" placeholder="0.2">
-            <select class="item-kind"><option value="fixed">$ (fixed)</option><option value="pct_price" selected>% of Price</option><option value="pct_loan" selected>% of Loan</option></select>
+            <select class="item-kind"><option value="fixed">$ (fixed)</option><option value="pct_price" selected>% of Price</option><option value="pct_loan">% of Loan</option></select>
             <select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select>
             <button type="button" class="icon-btn" aria-label="delete">🗑️</button>
           </div>
@@ -419,23 +420,23 @@
       <div class="card step" data-step="6">
         <div class="muted">Holding Costs</div>
         <div class="row">
-  <div class="field">
-    <label>Base Monthly Holding Costs</label>
-    <input id="holdingMonthly" type="text" placeholder="$1,200">
-  </div>
+          <div class="field">
+            <label>Base Monthly Holding Costs</label>
+            <input id="holdingMonthly" type="text" placeholder="$1,200">
+          </div>
 
-  <div class="field" style="align-self:end">
-    <label class="toggle-label">Manual only
-      <label class="switch">
-        <input id="holdingManualToggle" type="checkbox">
-        <span class="slider"></span>
-      </label>
-    </label>
-    <div class="muted-small" style="margin-top:6px">
-      When ON, itemized monthly editor is ignored. Default: OFF.
-    </div>
-  </div>
-</div>
+          <div class="field" style="align-self:end">
+            <label class="toggle-label">Manual only
+              <label class="switch">
+                <input id="holdingManualToggle" type="checkbox">
+                <span class="slider"></span>
+              </label>
+            </label>
+            <div class="muted-small" style="margin-top:6px">
+              When ON, itemized monthly editor is ignored. Default: OFF.
+            </div>
+          </div>
+        </div>
 
         <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
           <button type="button" class="pencil" onclick="toggleEditor('holding')">✏️ Edit Monthly Items</button>
@@ -535,10 +536,10 @@
           </div>
         </div>
 
-    <div id="saleSummary" style="margin-top:10px" class="muted">
-      Sale closing and commissions will be calculated from editor totals.
-    </div>
-</div>
+        <div id="saleSummary" style="margin-top:10px" class="muted">
+          Sale closing and commissions will be calculated from editor totals.
+        </div>
+      </div>
 
       <!-- STEP 8: Results & Summary Report -->
       <div class="card step" data-step="8">
@@ -590,11 +591,6 @@
     }
     function formatCurrency(n){ if(isNaN(n)) n = 0; return '$' + Number(n).toLocaleString(); }
 
-    /*
-      Attach global listeners to inputs/selects so any change recalculates
-      the editors and, if the report is visible, recomputes the final report.
-    */
-
     // debounce helper to throttle heavy operations (e.g. full report render)
     function debounce(fn, wait){
       let t = null;
@@ -604,24 +600,21 @@
       };
     }
 
-    // debounced computeAndRender to avoid excessive chart redraws while typing
     const debouncedComputeAndRender = () => { if(typeof computeAndRender === 'function') computeAndRender(); };
     const _debouncedComputeAndRender = debounce(debouncedComputeAndRender, 450);
+
     function attachGlobalChangeListeners(){
       const nodes = Array.from(document.querySelectorAll('#calcWrap input, #calcWrap select, #calcWrap textarea'));
       nodes.forEach(el=>{
         if(!el) return;
         const ev = (el.tagName === 'SELECT' || el.type === 'checkbox' || el.type === 'radio') ? 'change' : 'input';
-        // keep handlers lightweight - just recalc and update visible totals
         el.addEventListener(ev, ()=>{
           try{
             recalcAllEditors();
             updateVisibleTotals();
             updateAggregatedLoanAmountDisplay();
-            // if report already rendered, update it live
             const report = document.getElementById('reportContainer');
             if(report && report.innerHTML.trim() !== ''){
-              // use debounced render to avoid heavy work on every keystroke
               try{ _debouncedComputeAndRender(); }catch(e){ computeAndRender(); }
             }
           }catch(e){ console.error('global change handler error', e); }
@@ -663,7 +656,6 @@
     let current = 1;
     function showStep(n){
       current = Math.max(1, Math.min(totalSteps, n));
-      // map step index to DOM .step (we used data-step attributes)
       document.querySelectorAll('.step').forEach(el=>{
         const ds = Number(el.getAttribute('data-step')) || 0;
         el.classList.toggle('active', ds === current);
@@ -676,7 +668,6 @@
         else { $('nextBtn').style.display = 'inline-block'; $('nextBtn').textContent = 'Next →'; }
       }
 
-      // Always recalc when navigating so returning to earlier steps updates downstream values
       try{ recalcAllEditors(); updateVisibleTotals(); updateAggregatedLoanAmountDisplay(); }catch(e){ console.error('recalc on showStep failed', e); }
 
       try{ document.getElementById('calcWrap').scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
@@ -688,7 +679,6 @@
       if(current < totalSteps){
         if(!validateStep(current)) return;
         if(current === totalSteps - 1){
-          // Moving from Step 7 to Step 8: compute and render
           if(!validateStep(current)) return;
           computeAndRender();
         }
@@ -697,12 +687,8 @@
       }
     });
 
-
     function validateStep(step){
       try{
-        if(step === 1){
-          // basic address optional
-        }
         if(step === 2){
           if(unformatCurrency($('arv').value) <= 0){ alert('Please enter valid ARV'); return false; }
         }
@@ -719,7 +705,6 @@
       else return;
       if(!editor || !addArea) return;
       const row = document.createElement('div'); row.className = 'item';
-      // unique id for this item row so we can reference it later
       row.dataset.itemId = String(Date.now() + Math.random());
       const loanRollSelect = section === 'purchase' ? `<select class="item-loan-roll"><option value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select><select class="item-loan-target" style="display:none;margin-left:6px"></select>` : '';
       row.innerHTML = `
@@ -738,13 +723,10 @@
       row.querySelector('.item-kind').addEventListener('change', ()=> handleKindChange(section,row));
       const loanRoll = row.querySelector('.item-loan-roll');
       if(loanRoll) loanRoll.addEventListener('change', ()=> { handleLoanRollChange(row); recalcEditor(section); });
-      // ensure loan target select exists and is populated
       const loanTarget = row.querySelector('.item-loan-target');
       if(loanTarget){
-        // mark which item this select belongs to so we can persist selection
         loanTarget.dataset.forItem = row.dataset.itemId;
         populateLoanTargetOptions(loanTarget);
-        // persist selection when user changes target
         loanTarget.addEventListener('change', ()=>{
           editorState.purchaseItemLoanMap = editorState.purchaseItemLoanMap || {};
           editorState.purchaseItemLoanMap[row.dataset.itemId] = loanTarget.value || '';
@@ -765,7 +747,6 @@
       const editor = $('editor-purchase'); if(!editor) return 0;
       let upfront = 0;
       let rolled = 0;
-      // reset per-loan rolled mapping and item lists before recomputing
       editorState.purchaseRolledByLoan = {};
       editorState.purchaseRolledItems = {};
       editorState.financeExtrasUnassigned = 0;
@@ -775,11 +756,9 @@
         const val = unformatCurrency(item.querySelector('.item-value')?.value);
         const roll = item.querySelector('.item-loan-roll')?.value;
         const loanTargetSelect = item.querySelector('.item-loan-target');
-        // prefer the DOM value, but fall back to a persisted selection for this item
         let loanTarget = '';
         try{
           loanTarget = loanTargetSelect ? (loanTargetSelect.value || (editorState.purchaseItemLoanMap && editorState.purchaseItemLoanMap[item.dataset.itemId]) || '') : '';
-          // ensure the DOM select shows the persisted value if applicable
           if(loanTargetSelect && loanTarget && String(loanTargetSelect.value) !== String(loanTarget)){
             const opt = Array.from(loanTargetSelect.options).find(o => String(o.value) === String(loanTarget));
             if(opt) loanTargetSelect.value = loanTarget;
@@ -790,53 +769,42 @@
         let add = 0;
         if(kind === 'pct_price') add = price * (val/100);
         else if(kind === 'pct_loan'){
-          // If this item selected a specific loan, use that loan's baseFinanced amount
           if(loanTarget){
             const targetLoan = loans.find(ll => String(ll.id) === String(loanTarget));
             const baseAmt = targetLoan ? (Number(targetLoan.baseFinanced || targetLoan.financed || 0)) : loan;
             add = baseAmt * (val/100);
           } else {
-            // fall back to aggregated loan amount
             add = loan * (val/100);
           }
         }
         else add = val;
-            if(roll==='roll'){
-              // mark this amount as rolled into loan (not paid upfront)
-              rolled += add;
-              // attribute to specific loan if user chose one
-              if(loanTarget){
-                editorState.purchaseRolledByLoan[loanTarget] = (editorState.purchaseRolledByLoan[loanTarget] || 0) + add;
-                // record detailed item for the loan
-                editorState.purchaseRolledItems[loanTarget] = editorState.purchaseRolledItems[loanTarget] || [];
-                editorState.purchaseRolledItems[loanTarget].push({ id: itemId, label: itemLabel, amount: add });
-              } else {
-                // if no loan selected, keep as unassigned finance extras
-                editorState.financeExtrasUnassigned = (editorState.financeExtrasUnassigned || 0) + add;
-                editorState.purchaseRolledItems['__unassigned__'] = editorState.purchaseRolledItems['__unassigned__'] || [];
-                editorState.purchaseRolledItems['__unassigned__'].push({ id: itemId, label: itemLabel, amount: add });
-              }
-              add = 0;
-            }
+        if(roll==='roll'){
+          rolled += add;
+          if(loanTarget){
+            editorState.purchaseRolledByLoan[loanTarget] = (editorState.purchaseRolledByLoan[loanTarget] || 0) + add;
+            editorState.purchaseRolledItems[loanTarget] = editorState.purchaseRolledItems[loanTarget] || [];
+            editorState.purchaseRolledItems[loanTarget].push({ id: itemId, label: itemLabel, amount: add });
+          } else {
+            editorState.financeExtrasUnassigned = (editorState.financeExtrasUnassigned || 0) + add;
+            editorState.purchaseRolledItems['__unassigned__'] = editorState.purchaseRolledItems['__unassigned__'] || [];
+            editorState.purchaseRolledItems['__unassigned__'].push({ id: itemId, label: itemLabel, amount: add });
+          }
+          add = 0;
+        }
         upfront += add;
       });
       if($('purchaseEditorTotal')) $('purchaseEditorTotal').textContent = formatCurrency(upfront);
-      // keep editor state in sync so downstream calcs react without requiring explicit Save
       editorState.purchaseExtrasUpfront = upfront || 0;
-      // any fees marked to roll into loan should be tracked as finance extras
       editorState.purchaseExtrasRolled = rolled || 0;
-      // financeExtras is total rolled (assigned + unassigned)
       const assignedTotal = Object.values(editorState.purchaseRolledByLoan || {}).reduce((a,b)=>a+Number(b||0),0);
       editorState.financeExtras = (assignedTotal + (editorState.financeExtrasUnassigned||0)) || 0;
 
-      // mutate loan.financed to include attached rolled amounts (but preserve baseFinanced)
       loans.forEach(l => {
         l.baseFinanced = (l.baseFinanced !== undefined) ? Number(l.baseFinanced) : Number(l.financed || 0);
         const add = Number(editorState.purchaseRolledByLoan[String(l.id)] || 0);
         l.financed = Number(l.baseFinanced) + Number(add);
       });
 
-      // update loan list display to reflect rolled attachments
       try{ renderLoanList(); }catch(e){}
       return upfront;
     }
@@ -851,49 +819,41 @@
         extras += kind==='pct_price' ? price*(val/100) : val;
       });
       if($('holdingEditorTotal')) $('holdingEditorTotal').textContent = formatCurrency(extras);
-      // expose live extras so other code can use it without requiring Save
       editorState.holdingMonthlyExtras = extras || 0;
       const loan = computeAggregatedFinancedAmount();
-      // interest: use weighted/average? simple approach: use aggregated loan amount * average interest? We'll approximate by weighted average interest below in computeAndRender.
-      // Here just compute interest using aggregatedLoanAmount and average interest (calculated in computeAndRender).
-      // For now return extras; interest handled in final calc.
       const manualMonthly = (editorState.holdingMonthlyBase !== undefined && editorState.holdingMonthlyBase !== null) ? editorState.holdingMonthlyBase : unformatCurrency($('holdingMonthly').value);
-      // If manual only mode is on, use manual; otherwise use itemized extras (which replaces manual)
       const monthlyToUse = editorState.holdingManualOnly ? (manualMonthly || 0) : (editorState.holdingMonthlyExtras || extras);
       const total = monthlyToUse * months;
       if($('holdingTotalDisplay')) {
-        // interest will be appended later in computeAndRender; display total without interest for now
         $('holdingTotalDisplay').textContent = formatCurrency(total);
       }
       return { monthlyExtras: extras, holdingTotalBeforeInterest: total };
     }
 
     function recalcSalesEditor() {
-  const arv = unformatCurrency($('arv').value) || 0;
-  const editor = $('editor-sales'); 
-  if (!editor) return 0;
+      const arv = unformatCurrency($('arv').value) || 0;
+      const editor = $('editor-sales'); 
+      if (!editor) return 0;
 
-  let total = 0;
+      let total = 0;
 
-  Array.from(editor.querySelectorAll('.item')).forEach(item => {
-    const kind = (item.querySelector('.item-kind') || {}).value || 'fixed';
-    const valRaw = unformatCurrency(item.querySelector('.item-value')?.value);
+      Array.from(editor.querySelectorAll('.item')).forEach(item => {
+        const kind = (item.querySelector('.item-kind') || {}).value || 'fixed';
+        const valRaw = unformatCurrency(item.querySelector('.item-value')?.value);
 
-    if (kind === 'pct_arv') {
-      total += arv * (valRaw / 100);
-    } else {
-      total += valRaw; // fixed amount
+        if (kind === 'pct_arv') {
+          total += arv * (valRaw / 100);
+        } else {
+          total += valRaw;
+        }
+      });
+
+      if ($('salesEditorTotal')) 
+        $('salesEditorTotal').textContent = formatCurrency(total);
+
+      editorState.salesExtras = total || 0;
+      return total;
     }
-  });
-
-  if ($('salesEditorTotal')) 
-    $('salesEditorTotal').textContent = formatCurrency(total);
-
-  // store live sales extras
-  editorState.salesExtras = total || 0;
-  return total;
-}
-
 
     /* ---------- Open/Close Editors ---------- */
     function toggleEditor(section){
@@ -909,101 +869,89 @@
     /* ---------- Save / Cancel Editors ---------- */
     function saveEditor(section){
       if (section === 'purchase') {
-    const manualRaw = unformatCurrency($('purchaseClosing').value);
-    editorState.purchaseManualBase = manualRaw || editorState.purchaseManualBase || 0;
+        const manualRaw = unformatCurrency($('purchaseClosing').value);
+        editorState.purchaseManualBase = manualRaw || editorState.purchaseManualBase || 0;
 
-    const upfront = recalcPurchaseEditor();
-    editorState.purchaseExtrasUpfront = upfront || 0;
+        const upfront = recalcPurchaseEditor();
+        editorState.purchaseExtrasUpfront = upfront || 0;
 
-    const pm = $('purchaseManualToggle');
-    editorState.purchaseManualOnly = !!(pm && pm.checked);
+        const pm = $('purchaseManualToggle');
+        editorState.purchaseManualOnly = !!(pm && pm.checked);
 
-    // Determine what applies based on Manual Only toggle
-    const applied = editorState.purchaseManualOnly
-        ? editorState.purchaseManualBase          // manual only
-        : editorState.purchaseExtrasUpfront;      // itemized only
+        const applied = editorState.purchaseManualOnly
+          ? editorState.purchaseManualBase
+          : editorState.purchaseExtrasUpfront;
 
-    $('purchaseClosing').value = formatCurrency(applied);
+        $('purchaseClosing').value = formatCurrency(applied);
 
-    // Summary box
-    let purchaseBreak = document.getElementById('purchaseBreakdown');
-    if (!purchaseBreak) {
-        const card = $('purchaseClosing').closest('.card') || $('purchaseClosing').parentElement;
-        purchaseBreak = document.createElement('div');
-        purchaseBreak.id = 'purchaseBreakdown';
-        purchaseBreak.style.fontSize = '13px';
-        purchaseBreak.style.color = '#666';
-        purchaseBreak.style.marginTop = '6px';
-        card.appendChild(purchaseBreak);
-    }
+        let purchaseBreak = document.getElementById('purchaseBreakdown');
+        if (!purchaseBreak) {
+          const card = $('purchaseClosing').closest('.card') || $('purchaseClosing').parentElement;
+          purchaseBreak = document.createElement('div');
+          purchaseBreak.id = 'purchaseBreakdown';
+          purchaseBreak.style.fontSize = '13px';
+          purchaseBreak.style.color = '#666';
+          purchaseBreak.style.marginTop = '6px';
+          card.appendChild(purchaseBreak);
+        }
 
-    // What to display
-    const manualShown = editorState.purchaseManualOnly ? editorState.purchaseManualBase : 0;
-    const itemizedShown = editorState.purchaseManualOnly ? 0 : editorState.purchaseExtrasUpfront;
-    const visibleTotal = applied;
+        const manualShown = editorState.purchaseManualOnly ? editorState.purchaseManualBase : 0;
+        const itemizedShown = editorState.purchaseManualOnly ? 0 : editorState.purchaseExtrasUpfront;
+        const visibleTotal = applied;
 
-    const rolledShown = editorState.purchaseExtrasRolled || 0;
-    purchaseBreak.innerHTML =
-      `(Manual: ${formatCurrency(manualShown)} | ` +
-      `Itemized: ${formatCurrency(itemizedShown)} | ` +
-      `Rolled into loan: ${formatCurrency(rolledShown)} | ` +
-      `Visible Total: ${formatCurrency(visibleTotal)})`;
-}
-
-     
+        const rolledShown = editorState.purchaseExtrasRolled || 0;
+        purchaseBreak.innerHTML =
+          `(Manual: ${formatCurrency(manualShown)} | ` +
+          `Itemized: ${formatCurrency(itemizedShown)} | ` +
+          `Rolled into loan: ${formatCurrency(rolledShown)} | ` +
+          `Visible Total: ${formatCurrency(visibleTotal)})`;
+      }
       else if (section === 'holding') {
+        const res = recalcHoldingEditor();
+        editorState.holdingMonthlyExtras = res.monthlyExtras || 0;
 
-    const res = recalcHoldingEditor();
-    editorState.holdingMonthlyExtras = res.monthlyExtras || 0;
+        const rawManual = unformatCurrency($('holdingMonthly').value);
+        if (rawManual) editorState.holdingMonthlyBase = rawManual;
 
-    const rawManual = unformatCurrency($('holdingMonthly').value);
-    if (rawManual) editorState.holdingMonthlyBase = rawManual;
+        const hm = $('holdingManualToggle');
+        editorState.holdingManualOnly = !!(hm && hm.checked);
 
-    const hm = $('holdingManualToggle');
-    editorState.holdingManualOnly = !!(hm && hm.checked);
+        const appliedMonthly = editorState.holdingManualOnly
+          ? editorState.holdingMonthlyBase
+          : editorState.holdingMonthlyExtras;
 
-    // Determine what applies
-    const appliedMonthly = editorState.holdingManualOnly
-        ? editorState.holdingMonthlyBase                   // manual only
-        : editorState.holdingMonthlyExtras;                // itemized only (replaces manual)
+        $('holdingMonthly').value = formatCurrency(appliedMonthly);
 
-    $('holdingMonthly').value = formatCurrency(appliedMonthly);
+        const months = Number($('holdingTime').value) || 0;
 
-    const months = Number($('holdingTime').value) || 0;
+        const loanAgg = computeAggregatedFinancedAmount();
+        const avgRate = computeWeightedAverageInterest();
+        const interest = (loanAgg * (avgRate / 100) * months) / 12;
 
-    // Compute interest separately
-    const loanAgg = computeAggregatedFinancedAmount();
-    const avgRate = computeWeightedAverageInterest();
-    const interest = (loanAgg * (avgRate / 100) * months) / 12;
+        let holdBreak = document.getElementById('holdingBreakdown');
+        if (!holdBreak) {
+          const card = $('holdingMonthly').closest('.card') || $('holdingMonthly').parentElement;
+          holdBreak = document.createElement('div');
+          holdBreak.id = 'holdingBreakdown';
+          holdBreak.style.fontSize = '13px';
+          holdBreak.style.color = '#666';
+          holdBreak.style.marginTop = '6px';
+          card.appendChild(holdBreak);
+        }
 
-    // Build / Update the breakdown box
-    let holdBreak = document.getElementById('holdingBreakdown');
-    if (!holdBreak) {
-        const card = $('holdingMonthly').closest('.card') || $('holdingMonthly').parentElement;
-        holdBreak = document.createElement('div');
-        holdBreak.id = 'holdingBreakdown';
-        holdBreak.style.fontSize = '13px';
-        holdBreak.style.color = '#666';
-        holdBreak.style.marginTop = '6px';
-        card.appendChild(holdBreak);
-    }
+        const manualTotal = editorState.holdingManualOnly ? (editorState.holdingMonthlyBase * months) : 0;
+        const extrasTotal = editorState.holdingManualOnly ? 0 : (editorState.holdingMonthlyExtras * months);
 
-    // Display values (respecting manual only mode)
-    const manualTotal = editorState.holdingManualOnly ? (editorState.holdingMonthlyBase * months) : 0;
-    const extrasTotal = editorState.holdingManualOnly ? 0 : (editorState.holdingMonthlyExtras * months);
+        const holdingTotal = manualTotal + extrasTotal + (editorState.holdingFinanceExtras || 0) + interest;
 
-    const holdingTotal = manualTotal + extrasTotal + (editorState.holdingFinanceExtras || 0) + interest;
+        holdBreak.innerHTML =
+          `(Manual total: ${formatCurrency(manualTotal)} | ` +
+          `Monthly extras total: ${formatCurrency(extrasTotal)} | ` +
+          `Interest: ${formatCurrency(interest)})`;
 
-    holdBreak.innerHTML =
-      `(Manual total: ${formatCurrency(manualTotal)} | ` +
-      `Monthly extras total: ${formatCurrency(extrasTotal)} | ` +
-      `Interest: ${formatCurrency(interest)})`;
-
-    // Update displays on UI
-    if ($('holdingInterest')) $('holdingInterest').textContent = formatCurrency(interest);
-    if ($('holdingTotalDisplay')) $('holdingTotalDisplay').textContent = formatCurrency(holdingTotal);
-}
-
+        if ($('holdingInterest')) $('holdingInterest').textContent = formatCurrency(interest);
+        if ($('holdingTotalDisplay')) $('holdingTotalDisplay').textContent = formatCurrency(holdingTotal);
+      }
       else if(section === 'sales'){
         const total = recalcSalesEditor();
         editorState.salesExtras = total || 0;
@@ -1036,7 +984,6 @@
     function attachEditorInit(editorId){
       const editor = $(editorId); if(!editor) return;
       Array.from(editor.querySelectorAll('.item')).forEach(item=>{
-        // ensure each existing item row has a stable id for tracking selections
         if(!item.dataset.itemId) item.dataset.itemId = String(Date.now() + Math.random());
         const val = item.querySelector('.item-value');
         if(val){ 
@@ -1048,7 +995,6 @@
         if(kind) kind.addEventListener('change', ()=> handleKindChange(editorId.replace('editor-',''), item));
         const loanRoll = item.querySelector('.item-loan-roll');
         if(loanRoll) loanRoll.addEventListener('change', ()=> { handleLoanRollChange(item); recalcEditor(editorId.replace('editor-','')); });
-        // create / populate loan target select if missing
         let loanTarget = item.querySelector('.item-loan-target');
         if(!loanTarget && editorId === 'editor-purchase'){
           loanTarget = document.createElement('select');
@@ -1056,12 +1002,10 @@
           loanTarget.style.display = 'none';
           loanTarget.style.marginLeft = '6px';
           loanRoll && loanRoll.parentNode && loanRoll.parentNode.insertBefore(loanTarget, loanRoll.nextSibling);
-          // associate with the row's item id
           loanTarget.dataset.forItem = item.dataset.itemId || '';
         }
         if(loanTarget){
           populateLoanTargetOptions(loanTarget);
-          // persist selection when user changes target
           loanTarget.addEventListener('change', ()=>{
             editorState.purchaseItemLoanMap = editorState.purchaseItemLoanMap || {};
             editorState.purchaseItemLoanMap[item.dataset.itemId] = loanTarget.value || '';
@@ -1072,238 +1016,218 @@
         if(del) del.addEventListener('click', ()=> { item.remove(); recalcEditor(editorId.replace('editor-','')); updateVisibleTotals(); });
       });
     }
-    // editor initialisation will be run on window load to ensure elements exist
-    
+
     function recalcAllEditors(){ recalcPurchaseEditor(); recalcHoldingEditor(); recalcSalesEditor(); }
 
     /* ---------- Loans ---------- */
-function addLoanFromInputs() {
-  const label = $('newLoanLabel').value || 'Loan';
-  const target = $('newLoanTarget').value;
+    function addLoanFromInputs() {
+      const label = $('newLoanLabel').value || 'Loan';
+      const target = $('newLoanTarget').value;
 
-  const type = $('newLoanType').value;
-  const rate = Number($('newLoanRate').value) || 0;
-  const term = Number($('newLoanTerm').value) || 0;
+      const type = $('newLoanType').value;
+      const rate = Number($('newLoanRate').value) || 0;
+      const term = Number($('newLoanTerm').value) || 0;
 
-  const purchasePrice = unformatCurrency($('purchasePrice').value) || 0;
-  const repairs = unformatCurrency($('repairs').value) || 0;
-  const arv = unformatCurrency($('arv').value) || 0;
+      const purchasePrice = unformatCurrency($('purchasePrice').value) || 0;
+      const repairs = unformatCurrency($('repairs').value) || 0;
+      const arv = unformatCurrency($('arv').value) || 0;
 
-  let financed = 0;
+      let financed = 0;
 
-  /* -----------------------------------------
-     NEW: Dual Down Payment for purchase_rehab
-     ----------------------------------------- */
-  if (target === 'purchase_rehab') {
-    const pctPriceDP = Number($('newLoanPriceDownPct').value) || 0;
-    const pctRehabDP = Number($('newLoanRehabDownPct').value) || 0;
+      if (target === 'purchase_rehab') {
+        const pctPriceDP = Number($('newLoanPriceDownPct').value) || 0;
+        const pctRehabDP = Number($('newLoanRehabDownPct').value) || 0;
 
-    const financedPurchase = purchasePrice * (1 - pctPriceDP / 100);
-    const financedRehab = repairs * (1 - pctRehabDP / 100);
+        const financedPurchase = purchasePrice * (1 - pctPriceDP / 100);
+        const financedRehab = repairs * (1 - pctRehabDP / 100);
 
-    financed = financedPurchase + financedRehab;
-  }
+        financed = financedPurchase + financedRehab;
+      }
+      else if (target === 'purchase') {
+        const dp = Number($('newLoanDownPct').value) || 0;
+        financed = purchasePrice * (1 - dp / 100);
+      }
+      else if (target === 'rehab') {
+        const dp = Number($('newLoanDownPct').value) || 0;
+        financed = repairs * (1 - dp / 100);
+      }
+      else if (target === 'arv') {
+        const dp = Number($('newLoanDownPct').value) || 0;
+        financed = arv * (1 - dp / 100);
+      }
+      else if (target === 'custom') {
+        financed = unformatCurrency($('newLoanCustomAmount').value || 0);
+      }
 
-  else if (target === 'purchase') {
-    const dp = Number($('newLoanDownPct').value) || 0;
-    financed = purchasePrice * (1 - dp / 100);
-  }
+      const loan = {
+        id: Date.now() + Math.random(),
+        label,
+        target,
+        type,
+        rate,
+        term,
+        financed,
+        baseFinanced: financed
+      };
 
-  else if (target === 'rehab') {
-    const dp = Number($('newLoanDownPct').value) || 0;
-    financed = repairs * (1 - dp / 100);
-  }
-
-  else if (target === 'arv') {
-    const dp = Number($('newLoanDownPct').value) || 0;
-    financed = arv * (1 - dp / 100);
-  }
-
-  else if (target === 'custom') {
-    financed = unformatCurrency($('newLoanCustomAmount').value || 0);
-  }
-
-  // Save loan object
-  const loan = {
-    id: Date.now() + Math.random(),
-    label,
-    target,
-    type,
-    rate,
-    term,
-    financed,
-    baseFinanced: financed
-  };
-
-  loans.push(loan);
-  renderLoanList();
-  clearLoanInputs();
-  // hide preview after adding
-  const preview = $('loanPreview');
-  if(preview) preview.style.display = 'none';
-  updateAggregatedLoanAmountDisplay();
-}
-
-
-function clearLoanInputs() {
-  $('newLoanLabel').value = '';
-  $('newLoanCustomAmount').value = '';
-  $('newLoanDownPct').value = 10;
-  $('newLoanPriceDownPct').value = 10;
-  $('newLoanRehabDownPct').value = 10;
-  $('newLoanRate').value = 15;
-  $('newLoanTerm').value = '';
-
-  $('newLoanCustomAmountWrap').style.display = 'none';
-  $('dpPurchaseWrap').style.display = 'none';
-  $('dpRehabWrap').style.display = 'none';
-}
-
-function calculateLoanPreview() {
-  const label = $('newLoanLabel').value || 'Loan';
-  const target = $('newLoanTarget').value;
-  const type = $('newLoanType').value;
-  const rate = Number($('newLoanRate').value) || 0;
-  const term = Number($('newLoanTerm').value) || 0;
-
-  const purchasePrice = unformatCurrency($('purchasePrice').value) || 0;
-  const repairs = unformatCurrency($('repairs').value) || 0;
-  const arv = unformatCurrency($('arv').value) || 0;
-
-  let financed = 0;
-
-  if (target === 'purchase_rehab') {
-    const pctPriceDP = Number($('newLoanPriceDownPct').value) || 0;
-    const pctRehabDP = Number($('newLoanRehabDownPct').value) || 0;
-    financed = purchasePrice * (1 - pctPriceDP / 100) + repairs * (1 - pctRehabDP / 100);
-  } else if (target === 'purchase') {
-    const dp = Number($('newLoanDownPct').value) || 0;
-    financed = purchasePrice * (1 - dp / 100);
-  } else if (target === 'rehab') {
-    const dp = Number($('newLoanDownPct').value) || 0;
-    financed = repairs * (1 - dp / 100);
-  } else if (target === 'arv') {
-    const dp = Number($('newLoanDownPct').value) || 0;
-    financed = arv * (1 - dp / 100);
-  } else if (target === 'custom') {
-    financed = unformatCurrency($('newLoanCustomAmount').value || 0);
-  }
-
-  // Display preview
-  const preview = $('loanPreview');
-  const content = $('loanPreviewContent');
-  if (preview && content) {
-    content.innerHTML = `
-      <div><strong>${escapeHtml(label)}</strong></div>
-      <div>Target: ${target === 'purchase_rehab' ? 'Purchase + Repair' : target.charAt(0).toUpperCase() + target.slice(1)}</div>
-      <div>Financed Amount: ${formatCurrency(financed)}</div>
-      <div>Type: ${type}</div>
-      <div>Rate: ${rate}% | Term: ${term ? term + ' months' : 'Not Set'}</div>
-    `;
-    preview.style.display = 'block';
-  }
-}
-
-
-function renderLoanList() {
-  const list = $('loanList');
-  if (!list) return;
-
-  list.innerHTML = '';
-
-  loans.forEach(l => {
-    const div = document.createElement('div');
-    div.className = 'loan-card';
-
-    // build attached items list for this loan
-    const attached = (editorState.purchaseRolledItems && editorState.purchaseRolledItems[String(l.id)]) || [];
-    let attachedHtml = '';
-    if(attached && attached.length){
-      attachedHtml = '<div style="margin-top:6px;color:#444;font-size:12px">';
-      attached.forEach(it => { attachedHtml += `<div>${escapeHtml(it.label || '')}: ${formatCurrency(it.amount || 0)}</div>`; });
-      attachedHtml += '</div>';
+      loans.push(loan);
+      renderLoanList();
+      clearLoanInputs();
+      const preview = $('loanPreview');
+      if(preview) preview.style.display = 'none';
+      updateAggregatedLoanAmountDisplay();
     }
 
-    div.innerHTML = `
-      <div class="loan-info">
-        <strong>${escapeHtml(l.label)}</strong>
-        <div style="font-size:12px">
-          ${formatCurrency(Number(l.financed || 0))} - ${escapeHtml(l.type)} @ ${l.rate}% - term ${l.term || 'N/A'} mo
-        </div>
-        ${attachedHtml}
-      </div>
-      <div class="loan-actions">
-        <button class="btn secondary" onclick="removeLoan('${l.id}')">Delete</button>
-      </div>`;
-    list.appendChild(div);
-  });
+    function clearLoanInputs() {
+      $('newLoanLabel').value = '';
+      $('newLoanCustomAmount').value = '';
+      $('newLoanDownPct').value = 10;
+      $('newLoanPriceDownPct').value = 10;
+      $('newLoanRehabDownPct').value = 10;
+      $('newLoanRate').value = 15;
+      $('newLoanTerm').value = '';
 
-  // refresh purchase editor loan option selects when loan list changes
-  refreshPurchaseLoanOptions();
-  updateAggregatedLoanAmountDisplay();
-}
-
-function removeLoan(id) {
-  // If there are rolled attachments for this loan, move them to unassigned so totals remain accurate
-  try{
-    const key = String(id);
-    if(editorState.purchaseRolledByLoan && editorState.purchaseRolledByLoan[key]){
-      editorState.financeExtrasUnassigned = (editorState.financeExtrasUnassigned || 0) + Number(editorState.purchaseRolledByLoan[key] || 0);
-      delete editorState.purchaseRolledByLoan[key];
+      $('newLoanCustomAmountWrap').style.display = 'none';
+      $('dpPurchaseWrap').style.display = 'none';
+      $('dpRehabWrap').style.display = 'none';
     }
-    if(editorState.purchaseRolledItems && editorState.purchaseRolledItems[key]){
-      editorState.purchaseRolledItems['__unassigned__'] = (editorState.purchaseRolledItems['__unassigned__']||[]).concat(editorState.purchaseRolledItems[key]||[]);
-      delete editorState.purchaseRolledItems[key];
+
+    function calculateLoanPreview() {
+      const label = $('newLoanLabel').value || 'Loan';
+      const target = $('newLoanTarget').value;
+      const type = $('newLoanType').value;
+      const rate = Number($('newLoanRate').value) || 0;
+      const term = Number($('newLoanTerm').value) || 0;
+
+      const purchasePrice = unformatCurrency($('purchasePrice').value) || 0;
+      const repairs = unformatCurrency($('repairs').value) || 0;
+      const arv = unformatCurrency($('arv').value) || 0;
+
+      let financed = 0;
+
+      if (target === 'purchase_rehab') {
+        const pctPriceDP = Number($('newLoanPriceDownPct').value) || 0;
+        const pctRehabDP = Number($('newLoanRehabDownPct').value) || 0;
+        financed = purchasePrice * (1 - pctPriceDP / 100) + repairs * (1 - pctRehabDP / 100);
+      } else if (target === 'purchase') {
+        const dp = Number($('newLoanDownPct').value) || 0;
+        financed = purchasePrice * (1 - dp / 100);
+      } else if (target === 'rehab') {
+        const dp = Number($('newLoanDownPct').value) || 0;
+        financed = repairs * (1 - dp / 100);
+      } else if (target === 'arv') {
+        const dp = Number($('newLoanDownPct').value) || 0;
+        financed = arv * (1 - dp / 100);
+      } else if (target === 'custom') {
+        financed = unformatCurrency($('newLoanCustomAmount').value || 0);
+      }
+
+      const preview = $('loanPreview');
+      const content = $('loanPreviewContent');
+      if (preview && content) {
+        content.innerHTML = `
+          <div><strong>${escapeHtml(label)}</strong></div>
+          <div>Target: ${target === 'purchase_rehab' ? 'Purchase + Repair' : target.charAt(0).toUpperCase() + target.slice(1)}</div>
+          <div>Financed Amount: ${formatCurrency(financed)}</div>
+          <div>Type: ${type}</div>
+          <div>Rate: ${rate}% | Term: ${term ? term + ' months' : 'Not Set'}</div>
+        `;
+        preview.style.display = 'block';
+      }
     }
-  }catch(e){}
 
-  loans = loans.filter(l => String(l.id) !== String(id));
-  // ensure loan base/financed values reset for remaining loans
-  loans.forEach(l=>{ l.baseFinanced = (l.baseFinanced !== undefined) ? Number(l.baseFinanced) : Number(l.financed||0); });
-  renderLoanList();
-  updateAggregatedLoanAmountDisplay();
-}
+    function renderLoanList() {
+      const list = $('loanList');
+      if (!list) return;
 
-function computeAggregatedFinancedAmount() {
-  let sum = 0;
-  loans.forEach(l => sum += Number(l.financed || 0));
-  // include any unassigned rolled amount (attachments to deleted loans or unassigned items)
-  if (editorState && Number(editorState.financeExtrasUnassigned || 0) > 0) sum += Number(editorState.financeExtrasUnassigned || 0);
-  return sum;
-}
+      list.innerHTML = '';
 
-function computeWeightedAverageInterest() {
-  let total = 0, weight = 0;
-  loans.forEach(l => {
-    const amt = Number(l.financed || 0);
-    if (amt > 0) {
-      total += amt * (Number(l.rate || 0) / 100);
-      weight += amt;
+      loans.forEach(l => {
+        const div = document.createElement('div');
+        div.className = 'loan-card';
+
+        const attached = (editorState.purchaseRolledItems && editorState.purchaseRolledItems[String(l.id)]) || [];
+        let attachedHtml = '';
+        if(attached && attached.length){
+          attachedHtml = '<div style="margin-top:6px;color:#444;font-size:12px">';
+          attached.forEach(it => { attachedHtml += `<div>${escapeHtml(it.label || '')}: ${formatCurrency(it.amount || 0)}</div>`; });
+          attachedHtml += '</div>';
+        }
+
+        div.innerHTML = `
+          <div class="loan-info">
+            <strong>${escapeHtml(l.label)}</strong>
+            <div style="font-size:12px">
+              ${formatCurrency(Number(l.financed || 0))} - ${escapeHtml(l.type)} @ ${l.rate}% - term ${l.term || 'N/A'} mo
+            </div>
+            ${attachedHtml}
+          </div>
+          <div class="loan-actions">
+            <button class="btn secondary" onclick="removeLoan('${l.id}')">Delete</button>
+          </div>`;
+        list.appendChild(div);
+      });
+
+      refreshPurchaseLoanOptions();
+      updateAggregatedLoanAmountDisplay();
     }
-  });
-  return weight > 0 ? (total / weight) * 100 : 0;
-}
 
-function computeMaxHoldingMonthsFromLoans() {
-  let maxTerm = 0;
-  loans.forEach(l => {
-    if (Number(l.term || 0) > maxTerm)
-      maxTerm = Number(l.term || 0);
-  });
-  return maxTerm;
-}
+    function removeLoan(id) {
+      try{
+        const key = String(id);
+        if(editorState.purchaseRolledByLoan && editorState.purchaseRolledByLoan[key]){
+          editorState.financeExtrasUnassigned = (editorState.financeExtrasUnassigned || 0) + Number(editorState.purchaseRolledByLoan[key] || 0);
+          delete editorState.purchaseRolledByLoan[key];
+        }
+        if(editorState.purchaseRolledItems && editorState.purchaseRolledItems[key]){
+          editorState.purchaseRolledItems['__unassigned__'] = (editorState.purchaseRolledItems['__unassigned__']||[]).concat(editorState.purchaseRolledItems[key]||[]);
+          delete editorState.purchaseRolledItems[key];
+        }
+      }catch(e){}
 
-function updateAggregatedLoanAmountDisplay() {
-  const val = computeAggregatedFinancedAmount();
-  if ($('computedLoanAmount'))
-    $('computedLoanAmount').textContent = formatCurrency(val);
-}
+      loans = loans.filter(l => String(l.id) !== String(id));
+      loans.forEach(l=>{ l.baseFinanced = (l.baseFinanced !== undefined) ? Number(l.baseFinanced) : Number(l.financed||0); });
+      renderLoanList();
+      updateAggregatedLoanAmountDisplay();
+    }
 
+    function computeAggregatedFinancedAmount() {
+      let sum = 0;
+      loans.forEach(l => sum += Number(l.financed || 0));
+      if (editorState && Number(editorState.financeExtrasUnassigned || 0) > 0) sum += Number(editorState.financeExtrasUnassigned || 0);
+      return sum;
+    }
+
+    function computeWeightedAverageInterest() {
+      let total = 0, weight = 0;
+      loans.forEach(l => {
+        const amt = Number(l.financed || 0);
+        if (amt > 0) {
+          total += amt * (Number(l.rate || 0) / 100);
+          weight += amt;
+        }
+      });
+      return weight > 0 ? (total / weight) * 100 : 0;
+    }
+
+    function computeMaxHoldingMonthsFromLoans() {
+      let maxTerm = 0;
+      loans.forEach(l => {
+        if (Number(l.term || 0) > maxTerm)
+          maxTerm = Number(l.term || 0);
+      });
+      return maxTerm;
+    }
+
+    function updateAggregatedLoanAmountDisplay() {
+      const val = computeAggregatedFinancedAmount();
+      if ($('computedLoanAmount'))
+        $('computedLoanAmount').textContent = formatCurrency(val);
+    }
 
     /* ---------- Purchase editor loan selectors ---------- */
     function populateLoanTargetOptions(select){
       if(!select) return;
-      // clear
       select.innerHTML = '';
       const noneOpt = document.createElement('option');
       noneOpt.value = '';
@@ -1322,12 +1246,10 @@ function updateAggregatedLoanAmountDisplay() {
         empty.textContent = 'No loans added';
         select.appendChild(empty);
       }
-      // restore previously chosen value for this item (if any)
       try{
         const forItem = select.dataset.forItem;
         if(forItem && editorState.purchaseItemLoanMap && editorState.purchaseItemLoanMap[forItem]){
           const val = editorState.purchaseItemLoanMap[forItem];
-          // set only if option exists
           const opt = Array.from(select.options).find(o => String(o.value) === String(val));
           if(opt) select.value = val;
         }
@@ -1346,7 +1268,6 @@ function updateAggregatedLoanAmountDisplay() {
           loanRoll && loanRoll.parentNode && loanRoll.parentNode.insertBefore(loanTarget, loanRoll.nextSibling);
         }
         populateLoanTargetOptions(loanTarget);
-        // show/hide based on roll selection
         if(loanRoll && loanRoll.value === 'roll'){
           loanTarget.style.display = 'inline-block';
         } else {
@@ -1364,10 +1285,8 @@ function updateAggregatedLoanAmountDisplay() {
       } else {
         if(loanTarget) loanTarget.style.display = 'none';
       }
-      // when loan list changes, repopulate targets
       refreshPurchaseLoanOptions();
     }
-
 
     /* ---------- Calculation & Charts ---------- */
     let chartInvest=null, chartProfit=null;
@@ -1380,47 +1299,32 @@ function updateAggregatedLoanAmountDisplay() {
 
       const aggregatedLoanAmount = computeAggregatedFinancedAmount();
       const loanAmount = aggregatedLoanAmount;
-      const avgInterestRate = computeWeightedAverageInterest(); // percentage
-      // recalc editors
+      const avgInterestRate = computeWeightedAverageInterest();
       recalcAllEditors();
       const purchaseExtras = editorState.purchaseExtrasUpfront || 0;
       const holdingExtrasMonthly = editorState.holdingMonthlyExtras || recalcHoldingEditor().monthlyExtras || 0;
       const salesExtras = editorState.salesExtras || 0;
       const financeExtras = editorState.financeExtras || 0;
 
-      // interest total = aggregated loan amount * average interest * months / 12
       const interestTotal = (loanAmount * (avgInterestRate/100) * (holdingMonths))/12;
 
-      // holding total
       const holdingMonthlyManual = (editorState.holdingMonthlyBase !== undefined && editorState.holdingMonthlyBase !== null) ? editorState.holdingMonthlyBase : unformatCurrency($('holdingMonthly').value);
-      // Use only manual if manual-only mode is on, otherwise use only extras
       const monthlyHoldingToUse = editorState.holdingManualOnly ? (holdingMonthlyManual || 0) : (holdingExtrasMonthly || 0);
       const holdingTotal = ( monthlyHoldingToUse * holdingMonths ) + interestTotal + (editorState.holdingFinanceExtras || 0);
 
-      // purchase closing applied
       const purchaseClosingApplied = editorState.purchaseManualOnly ? (editorState.purchaseManualBase || 0) : (purchaseExtras || 0);
 
-      // sale closing manual (user could add a manual sale closing input in future; not present now)
       const saleClosingManual = 0;
 
-      // total investment
-      // NOTE: financeExtras (rolled fees) should NOT be added here because they're already included in loanAmount
-      // The rolled fees increase the loan balance (tracked in loan.financed), so they affect holding interest, not upfront cash
       const totalInvestment = purchasePrice + purchaseClosingApplied + repairs + holdingTotal + salesExtras + saleClosingManual;
       const profit = arv - totalInvestment;
       const roi = totalInvestment > 0 ? (profit / totalInvestment)*100 : 0;
-      // Maximum Allowable Offer (MAO) = ARV - All Costs (excluding purchase price)
-      // All Costs here consist of: purchase closing applied, repairs, holding total,
-      // salesExtras, plus desiredProfit (user's profit target)
-      // NOTE: financeExtras are rolled into loans and already reflected in holding interest
       const allCostsExcludingPurchase = purchaseClosingApplied + repairs + holdingTotal + salesExtras + desiredProfit;
       const mao = arv - allCostsExcludingPurchase;
 
-      // Render results into step 7 area (below finish)
       const resultsContainer = document.createElement('div');
       resultsContainer.className = 'results';
-      
-      // Get property information
+
       const propAddress = ($('street') && $('street').value) || '';
       const propCity = ($('city') && $('city').value) || '';
       const propState = ($('state') && $('state').value) || '';
@@ -1453,7 +1357,6 @@ function updateAggregatedLoanAmountDisplay() {
         </div>
       `;
 
-      // numeric breakdown card
       const numeric = document.createElement('div');
       numeric.className = 'card';
       numeric.innerHTML = `
@@ -1468,7 +1371,6 @@ function updateAggregatedLoanAmountDisplay() {
         ${editorState.purchaseExtrasRolled ? `<div style="font-size:12px;color:#666;margin-top:4px">Note: Rolled fees (${formatCurrency(editorState.purchaseExtrasRolled)}) are included in loan balance and affect interest, not upfront cash.</div>` : ''}
       `;
 
-      // place results into Step 8 (reportContainer)
       const reportContainer = $('reportContainer');
       if(reportContainer){
         reportContainer.innerHTML = '';
@@ -1476,14 +1378,12 @@ function updateAggregatedLoanAmountDisplay() {
         reportContainer.appendChild(numeric);
       }
 
-      // charts area - update existing area in-place when possible to avoid duplicate canvases
       const chartsHtml = `
         <div class="chart-card"><h4 style="margin:0 0 6px">Investment Breakdown</h4><canvas id="chartInvest" height="260"></canvas></div>
         <div class="chart-card"><h4 style="margin:0 0 6px">Profit vs Target</h4><canvas id="chartProfit" height="260"></canvas></div>
       `;
       let chartsArea = document.getElementById('chartsArea');
       if (chartsArea) {
-        // replace innerHTML of existing container (preserve DOM node)
         chartsArea.className = 'charts';
         chartsArea.style.marginTop = '12px';
         chartsArea.innerHTML = chartsHtml;
@@ -1496,14 +1396,11 @@ function updateAggregatedLoanAmountDisplay() {
         if(reportContainer) reportContainer.appendChild(chartsArea);
       }
 
-      // data for charts
-      // NOTE: financeExtras (rolled fees) are not shown separately as they're already in the loan balance
       const investLabels = ['Purchase','Closing & Fees','Repairs','Holding','Sales & Other'];
       const investData = [purchasePrice, (purchaseClosingApplied), repairs, holdingTotal, salesExtras];
 
       if(chartInvest) try{ chartInvest.destroy(); }catch(e){}
       if(chartProfit) try{ chartProfit.destroy(); }catch(e){}
-      // ensure we don't keep references to destroyed charts
       chartInvest = null; chartProfit = null;
 
       try{
@@ -1551,11 +1448,9 @@ function updateAggregatedLoanAmountDisplay() {
 
       }catch(e){ console.warn('chart render issue', e); }
 
-      // update holding interest & total displays
       if($('holdingInterest')) $('holdingInterest').textContent = formatCurrency(interestTotal);
       if($('holdingTotalDisplay')) $('holdingTotalDisplay').textContent = formatCurrency(holdingTotal);
 
-      // show download button in Step 8 if not present
       if(!$('downloadPDF')){
         const btn = document.createElement('button');
         btn.id = 'downloadPDF';
@@ -1567,11 +1462,10 @@ function updateAggregatedLoanAmountDisplay() {
         if(reportContainer) reportContainer.appendChild(btn);
       }
 
-      // scroll into view
       try{ $('reportContainer').scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
     }
 
-    /* ---------- PDF download (includes charts) ---------- */
+    /* ---------- PDF download ---------- */
     async function downloadPdfHandler(){
       const { jsPDF } = window.jspdf || {};
       if(!window.html2canvas||!jsPDF){alert('PDF libs missing');return;}
@@ -1579,10 +1473,7 @@ function updateAggregatedLoanAmountDisplay() {
       const charts = document.getElementById('chartsArea');
       if(!reportContainer || !charts){ alert('Run analysis first (Finish Analysis)'); return; }
 
-      // clone charts area and replace canvases with images from chart instances
-      // Only include the charts with actual rendered canvases (not the first empty block)
       let chartsToExport = charts;
-      // If chartsArea contains duplicate blocks, use only the second one (with canvases rendered)
       if (charts && charts.parentNode) {
         const allChartsAreas = charts.parentNode.querySelectorAll('#chartsArea');
         if (allChartsAreas.length > 1) {
@@ -1602,25 +1493,21 @@ function updateAggregatedLoanAmountDisplay() {
         const img = document.createElement('img');
         img.style.maxWidth = '100%';
         img.style.display = 'block';
-        img.style.margin = '12px auto 0 auto'; // reduce top margin
+        img.style.margin = '12px auto 0 auto';
         img.src = src || '';
         canvasNode.parentNode.replaceChild(img, canvasNode);
       });
 
       const container = document.createElement('div');
-      container.style.width = '900px'; // slightly narrower for better fit
+      container.style.width = '900px';
       container.style.background = '#fff';
       container.style.padding = '12px';
       container.style.boxSizing = 'border-box';
       container.innerHTML = `<h2 style="color:#1a2a4f;margin-bottom:8px">UTAH REIA Fix & Flip Report</h2>`;
-      // summary/report first
-      // Clone the report summary, but remove any chartsArea blocks inside it
       const summaryClone = reportContainer.cloneNode(true);
       Array.from(summaryClone.querySelectorAll('#chartsArea')).forEach(el => el.remove());
-      // Remove the download PDF button from the summary clone
       Array.from(summaryClone.querySelectorAll('#downloadPDF')).forEach(el => el.remove());
       container.appendChild(summaryClone);
-      // charts directly below, no extra <hr>
       container.appendChild(cloneCharts);
 
       document.body.appendChild(container);
@@ -1630,32 +1517,28 @@ function updateAggregatedLoanAmountDisplay() {
         const pdf = new jspdf.jsPDF('p','pt','a4');
         const pdfW = pdf.internal.pageSize.getWidth();
         const pdfH = pdf.internal.pageSize.getHeight();
-        const margin = 20; // points
+        const margin = 20;
         const maxW = pdfW - margin * 2;
         const maxH = pdfH - margin * 2;
-        // compute image size to fit within A4 page while preserving aspect ratio
         let imgW = maxW;
         let imgH = (canvas.height * imgW) / canvas.width;
         if(imgH > maxH){
           imgH = maxH;
           imgW = (canvas.width * imgH) / canvas.height;
         }
-        // center the image within the page margins
         const x = (pdfW - imgW) / 2;
         const y = margin + Math.max(0, (maxH - imgH) / 2);
         pdf.addImage(img, 'JPEG', x, y, imgW, imgH);
         pdf.save('UTAHREIA_FixFlip_Report.pdf');
-      }catch(e){ console.error(e); alert('PDF generation failed - try hosting the page (some environments block canvas).'); }
+      }catch(e){ console.error(e); alert('PDF generation failed - try hosting the page.'); }
       finally{ container.remove(); }
     }
-    
 
     /* ---------- Input helpers + initialization ---------- */
     window.addEventListener('load', ()=> {
-      // set default states
       const pm = $('purchaseManualToggle');
       if(pm){
-        pm.checked = false; // default OFF
+        pm.checked = false;
         pm.addEventListener('change', ()=>{
           editorState.purchaseManualOnly = !!pm.checked;
           updateVisibleTotals();
@@ -1665,7 +1548,7 @@ function updateAggregatedLoanAmountDisplay() {
 
       const uf = $('useFinancing');
       if(uf){
-        uf.checked = true; // DEFAULT ON
+        uf.checked = true;
         uf.addEventListener('change', ()=>{
           const area = $('financingArea');
           if(uf.checked){ area.style.display = 'block'; } else { area.style.display = 'none'; }
@@ -1673,72 +1556,58 @@ function updateAggregatedLoanAmountDisplay() {
           recalcAllEditors();
           updateVisibleTotals();
         });
-        // show financing area initially
         if(uf.checked) $('financingArea').style.display = 'block';
       }
-      // Holding Manual toggle init
-const hm = $('holdingManualToggle');
-if (hm) {
-  hm.checked = false; // default OFF
-  // ensure editorState property exists
-  editorState.holdingManualOnly = !!hm.checked;
-  hm.addEventListener('change', () => {
-    editorState.holdingManualOnly = !!hm.checked;
-    // If user switches to manual-only, we should recalc and update UI
-    recalcHoldingEditor();
-    updateVisibleTotals();
-    // If the editor is open we may want to close it to reflect new behavior:
-    const ed = $('editor-holding');
-    if (ed && ed.style.display === 'block') {
-      // optional: keep it open — here we just recalc while open.
-      recalcHoldingEditor();
-    }
-  });
-}
 
+      const hm = $('holdingManualToggle');
+      if (hm) {
+        hm.checked = false;
+        editorState.holdingManualOnly = !!hm.checked;
+        hm.addEventListener('change', () => {
+          editorState.holdingManualOnly = !!hm.checked;
+          recalcHoldingEditor();
+          updateVisibleTotals();
+          const ed = $('editor-holding');
+          if (ed && ed.style.display === 'block') {
+            recalcHoldingEditor();
+          }
+        });
+      }
 
-      /* ---------- Loan Target Change UI Logic ---------- */
-document.getElementById("newLoanTarget").addEventListener("change", function () {
-    const target = this.value;
+      document.getElementById("newLoanTarget").addEventListener("change", function () {
+        const target = this.value;
 
-    const dpPurchase = document.getElementById("dpPurchaseWrap");
-    const dpRehab = document.getElementById("dpRehabWrap");
-    const dpSingle = document.getElementById("newLoanDownPct").parentElement;
-    const customWrap = document.getElementById("newLoanCustomAmountWrap");
+        const dpPurchase = document.getElementById("dpPurchaseWrap");
+        const dpRehab = document.getElementById("dpRehabWrap");
+        const dpSingle = document.getElementById("newLoanDownPct").parentElement;
+        const customWrap = document.getElementById("newLoanCustomAmountWrap");
 
-    // Hide everything first
-    dpPurchase.style.display = "none";
-    dpRehab.style.display = "none";
-    dpSingle.style.display = "none";
-    customWrap.style.display = "none";
+        dpPurchase.style.display = "none";
+        dpRehab.style.display = "none";
+        dpSingle.style.display = "none";
+        customWrap.style.display = "none";
 
-    // Show based on target
-    if (target === "purchase_rehab") {
-        // Dual down-payment fields
-        dpPurchase.style.display = "block";
-        dpRehab.style.display = "block";
-    }
-    else if (target === "custom") {
-        customWrap.style.display = "block";
-    }
-    else {
-        // Normal single Down Payment
-        dpSingle.style.display = "block";
-    }
-});
-
+        if (target === "purchase_rehab") {
+          dpPurchase.style.display = "block";
+          dpRehab.style.display = "block";
+        }
+        else if (target === "custom") {
+          customWrap.style.display = "block";
+        }
+        else {
+          dpSingle.style.display = "block";
+        }
+      });
 
       if($('addLoanBtn')) $('addLoanBtn').addEventListener('click', addLoanFromInputs);
       if($('calculateLoanBtn')) $('calculateLoanBtn').addEventListener('click', calculateLoanPreview);
 
       renderLoanList();
 
-      // attach editor init handlers
       attachEditorInit('editor-purchase');
       attachEditorInit('editor-holding');
       attachEditorInit('editor-sales');
 
-      // input format helpers
       ['arv','desiredProfit','purchasePrice','purchaseClosing','repairs','holdingMonthly','newLoanCustomAmount'].forEach(id=>{
         const el = document.getElementById(id);
         if(el && el.value) el.value = formatCurrency(unformatCurrency(el.value));
@@ -1747,9 +1616,8 @@ document.getElementById("newLoanTarget").addEventListener("change", function () 
           el.addEventListener('blur', ()=> {
             const raw = unformatCurrency(el.value);
             if(id === 'purchaseClosing' && editorState.purchaseManualOnly){
-    editorState.purchaseManualBase = raw;
-}
-
+              editorState.purchaseManualBase = raw;
+            }
             else if(id === 'holdingMonthly'){ if(raw) editorState.holdingMonthlyBase = raw; }
             else if(id === 'newLoanCustomAmount'){ el.value = el.value ? formatCurrency(unformatCurrency(el.value)) : ''; }
             el.value = (id === 'newLoanCustomAmount' || id === 'arv' || id === 'desiredProfit' || id === 'purchasePrice' || id === 'purchaseClosing' || id === 'repairs' || id === 'holdingMonthly') ? (el.value ? formatCurrency(unformatCurrency(el.value)) : el.value) : el.value;
@@ -1759,46 +1627,37 @@ document.getElementById("newLoanTarget").addEventListener("change", function () 
         }
       });
 
-      // attach finish analysis button
       if ($('finishBtn')) $('finishBtn').addEventListener('click', () => {
+        if (unformatCurrency($('arv').value) <= 0) {
+          alert('Please enter a valid ARV');
+          showStep(2);
+          return;
+        }
+        recalcAllEditors();
+        computeAndRender();
+      });
 
-    if (unformatCurrency($('arv').value) <= 0) {
-        alert('Please enter a valid ARV');
-        showStep(2);
-        return;
-    }
-
-    recalcAllEditors();
-    computeAndRender();
-});
-
-      // navigation: when in Step 6 (holding) nothing else needed
-      // initial recalc and attach global listeners for live updates
-      try{ attachGlobalChangeListeners(); }catch(e){/* ignore if attach fails */}
+      try{ attachGlobalChangeListeners(); }catch(e){}
       recalcAllEditors();
       updateVisibleTotals();
     });
 
-    /* ---------- Visible totals summary update (no doubling) ---------- */
+    /* ---------- Visible totals summary update ---------- */
     function updateVisibleTotals(){
       const manualBase = editorState.purchaseManualBase || 0;
       const itemized = editorState.purchaseExtrasUpfront || 0;
       if ($('purchaseClosing')) {
-        // don't overwrite the purchaseClosing input while the user is actively editing it
         const pc = $('purchaseClosing');
         const focused = document.activeElement === pc;
         if (!focused) {
           if (editorState.purchaseManualOnly) {
-            // show ONLY manual input
             pc.value = formatCurrency(manualBase);
           } else {
-            // show ONLY itemized total
             pc.value = formatCurrency(itemized);
           }
         }
       }
 
-      // Update purchase breakdown summary
       let purchaseBreak = document.getElementById('purchaseBreakdown');
       if (!purchaseBreak) {
         const card = $('purchaseClosing').closest('.card') || $('purchaseClosing').parentElement;
@@ -1819,73 +1678,58 @@ document.getElementById("newLoanTarget").addEventListener("change", function () 
         `Rolled into loan: ${formatCurrency(rolledShown)} | ` +
         `Visible Total: ${formatCurrency(visibleTotal)})`;
 
+      const months = Number($('holdingTime').value) || 0;
 
-      /* ---------- HOLDING COSTS (safe, no doubling) ---------- */
-const months = Number($('holdingTime').value) || 0;
+      const holdManualMonthly = editorState.holdingMonthlyBase || 0;
+      const holdExtrasMonthly = editorState.holdingMonthlyExtras || 0;
 
-const holdManualMonthly = editorState.holdingMonthlyBase || 0;
-const holdExtrasMonthly = editorState.holdingMonthlyExtras || 0;
+      let displayedMonthly;
 
-// what the user should see in the holdingMonthly input
-let displayedMonthly;
+      if (editorState.holdingManualOnly) {
+        displayedMonthly = holdManualMonthly;
+      } else {
+        displayedMonthly = holdExtrasMonthly;
+      }
 
-if (editorState.holdingManualOnly) {
-    // Only manual value should show
-    displayedMonthly = holdManualMonthly;
-} else {
-    // Only itemized extras (replaces manual)
-    displayedMonthly = holdExtrasMonthly;
-}
+      if ($('holdingMonthly')) {
+        const hm = $('holdingMonthly');
+        const hmFocused = document.activeElement === hm;
+        if(!hmFocused){ hm.value = formatCurrency(displayedMonthly); }
+      }
 
-// Update field safely (NO RECALC) — but don't overwrite while user is typing in the field
-if ($('holdingMonthly')) {
-  const hm = $('holdingMonthly');
-  const hmFocused = document.activeElement === hm;
-  if(!hmFocused){ hm.value = formatCurrency(displayedMonthly); }
-}
+      const holdManualTotal = editorState.holdingManualOnly ? (holdManualMonthly * months) : 0;
+      const holdExtrasTotal = editorState.holdingManualOnly 
+          ? 0 
+          : (holdExtrasMonthly * months);
 
-// totals
-const holdManualTotal = editorState.holdingManualOnly ? (holdManualMonthly * months) : 0;
-const holdExtrasTotal = editorState.holdingManualOnly 
-    ? 0 
-    : (holdExtrasMonthly * months);
+      const loanAgg = computeAggregatedFinancedAmount();
+      const avgRate = computeWeightedAverageInterest();
+      const interest = (loanAgg * (avgRate / 100) * months) / 12;
 
-// interest
-const loanAgg = computeAggregatedFinancedAmount();
-const avgRate = computeWeightedAverageInterest();
-const interest = (loanAgg * (avgRate / 100) * months) / 12;
+      if ($('holdingInterest'))
+          $('holdingInterest').textContent = formatCurrency(interest);
 
-// Interest display
-if ($('holdingInterest'))
-    $('holdingInterest').textContent = formatCurrency(interest);
+      const holdingTotal = holdManualTotal + holdExtrasTotal + interest + (editorState.holdingFinanceExtras || 0);
 
-// final holding total
-const holdingTotal = holdManualTotal + holdExtrasTotal + interest + (editorState.holdingFinanceExtras || 0);
+      if ($('holdingTotalDisplay'))
+          $('holdingTotalDisplay').textContent = formatCurrency(holdingTotal);
 
-if ($('holdingTotalDisplay'))
-    $('holdingTotalDisplay').textContent = formatCurrency(holdingTotal);
+      let holdBreak = document.getElementById('holdingBreakdown');
+      if (!holdBreak) {
+          const el = $('holdingMonthly').closest('.card') || $('holdingMonthly').parentElement;
+          holdBreak = document.createElement('div');
+          holdBreak.id = 'holdingBreakdown';
+          holdBreak.style.fontSize = '13px';
+          holdBreak.style.color = '#666';
+          holdBreak.style.marginTop = '6px';
+          el.appendChild(holdBreak);
+      }
 
-// breakdown panel
-let holdBreak = document.getElementById('holdingBreakdown');
-if (!holdBreak) {
-    const el = $('holdingMonthly').closest('.card') || $('holdingMonthly').parentElement;
-    holdBreak = document.createElement('div');
-    holdBreak.id = 'holdingBreakdown';
-    holdBreak.style.fontSize = '13px';
-    holdBreak.style.color = '#666';
-    holdBreak.style.marginTop = '6px';
-    el.appendChild(holdBreak);
-}
+      holdBreak.innerHTML =
+          `(Manual total: ${formatCurrency(holdManualTotal)} | ` +
+          `Monthly extras total: ${formatCurrency(holdExtrasTotal)} | ` +
+          `Interest: ${formatCurrency(interest)})`;
 
-holdBreak.innerHTML =
-    `(Manual total: ${formatCurrency(holdManualTotal)} | ` +
-    `Monthly extras total: ${formatCurrency(holdExtrasTotal)} | ` +
-    `Interest: ${formatCurrency(interest)})`;
-
-
-
-
-      // SALES
       const saleManual = 0;
       const salesExtra = editorState.salesExtras || 0;
       let saleBreak = document.getElementById('salesBreakdown');
@@ -1929,80 +1773,43 @@ holdBreak.innerHTML =
     }
 
     /* ---------- PHONE GATE LOGIC (GHL WORKFLOW + DATABASE) ---------- */
-    
+
+    // GHL Inbound Webhook URL
     const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/DNirEjy0ejVwbHsaBYrn/webhook-trigger/499932b5-2208-4131-b5a0-e1d5696c5b31';
+
+    // Vercel/Next.js endpoint that checks Airtable "Verifications" table
     const DATABASE_CHECK_URL = 'https://fix-flip-calculator-delta.vercel.app/api/check-approval';
-    
+
     function normalizePhone(raw) {
-      // Normalize phone: strip non-digits, remove leading 1 (US country code)
-      return String(raw || '')
-        .replace(/[^\d]/g, '')
-        .replace(/^1/, '');
+      const digits = String(raw || '').replace(/[^\d]/g, '');
+      const normalized = digits.length === 11 && digits.startsWith('1')
+        ? digits.slice(1)
+        : digits;
+      return normalized;
     }
 
-    async function verifyPhoneViaWorkflow(phone) {
-      const normalized = normalizePhone(phone);
+    async function verifyPhoneViaWorkflow(phoneInputValue) {
+      const normalized = normalizePhone(phoneInputValue);
 
-      if (!normalized || normalized.length < 10) {
+      if (!normalized || normalized.length !== 10) {
         throw new Error('Please enter a valid 10-digit phone number.');
       }
 
       try {
         console.log('Submitting phone to GHL workflow:', normalized);
-        
-        // Step 1: Submit phone to GHL webhook (triggers automation workflow)
-        const webhookRes = await fetch(GHL_WEBHOOK_URL, {
+
+        // Airtable phone verification
+        const response = await fetch('http://localhost:3000/api/check-phone-airtable', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            phone: normalized,
-            timestamp: Date.now()
-          })
+          body: JSON.stringify({ phone: normalized })
         });
-
-        if (!webhookRes.ok) {
-          throw new Error('Unable to submit verification request. Please try again.');
+        const data = await response.json();
+        if (data.valid) {
+          return true;
+        } else {
+          throw new Error('This phone number is not recognized as an active member. Please contact UTAH REIA for access.');
         }
-
-        console.log('Webhook submitted. Waiting for workflow to process...');
-
-        // Step 2: Poll database for approval (workflow writes result to database)
-        // Wait for GHL workflow to check contact, update database with approval status
-        const maxAttempts = 10; // 10 attempts
-        const pollInterval = 1000; // 1 second between checks
-
-        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-          console.log(`Checking approval status (attempt ${attempt}/${maxAttempts})...`);
-          
-          // Wait before checking
-          await new Promise(resolve => setTimeout(resolve, pollInterval));
-
-          // Check database for approval
-          const checkRes = await fetch(`${DATABASE_CHECK_URL}?phone=${encodeURIComponent(normalized)}`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-          });
-
-          if (checkRes.ok) {
-            const data = await checkRes.json();
-            
-            // Database should return: { approved: true/false, processed: true/false }
-            if (data.processed) {
-              if (data.approved) {
-                console.log('✅ Phone verified via workflow');
-                return true;
-              } else {
-                throw new Error('This phone number is not recognized. Please contact UTAH REIA for access.');
-              }
-            }
-          }
-
-          // If last attempt and still not processed
-          if (attempt === maxAttempts) {
-            throw new Error('Verification is taking longer than expected. Please try again or contact support.');
-          }
-        }
-
       } catch (error) {
         console.error('Verification error:', error);
         throw error;
@@ -2012,6 +1819,7 @@ holdBreak.innerHTML =
     function unlockCalculatorUI() {
       const gateWrap = $('gateWrap');
       const calcWrap = $('calcWrap');
+
       if (gateWrap) gateWrap.style.display = 'none';
       if (calcWrap) {
         calcWrap.style.display = 'block';
@@ -2019,15 +1827,15 @@ holdBreak.innerHTML =
           calcWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } catch (e) {}
       }
-      // Store verification in sessionStorage so user doesn't have to re-enter during session
+
       try {
         sessionStorage.setItem('utahreia_calc_verified', 'true');
       } catch (e) {}
     }
 
-    // Initialize phone gate
+    // Initialize phone gate on load
     window.addEventListener('load', () => {
-      // Check if already verified in this session
+      // If already verified this session, skip gate
       try {
         if (sessionStorage.getItem('utahreia_calc_verified') === 'true') {
           unlockCalculatorUI();
@@ -2057,7 +1865,7 @@ holdBreak.innerHTML =
         }
       });
 
-      // Submit on Enter key
+      // Submit on Enter
       phoneInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
@@ -2065,7 +1873,6 @@ holdBreak.innerHTML =
         }
       });
     });
-
   </script>
 </body>
 </html>
