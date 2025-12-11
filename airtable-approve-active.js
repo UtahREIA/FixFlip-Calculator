@@ -22,7 +22,24 @@ async function getActiveMembers() {
       maxRecords: 1000,
     },
   });
-  return response.data.records;
+    let allRecords = [];
+    let offset = undefined;
+    do {
+      const params = {
+        filterByFormula: "AND({Member Status}='Active', {Approval Status}!=TRUE())",
+        pageSize: 100,
+      };
+      if (offset) params.offset = offset;
+      const response = await axios.get(AIRTABLE_URL, {
+        headers: {
+          Authorization: `Bearer ${AIRTABLE_KEY}`,
+        },
+        params,
+      });
+      allRecords = allRecords.concat(response.data.records);
+      offset = response.data.offset;
+    } while (offset);
+    return allRecords;
 }
 
 async function updateApprovedStatus(recordId) {
