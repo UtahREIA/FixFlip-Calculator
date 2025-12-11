@@ -1798,11 +1798,21 @@
       try {
         console.log('Submitting phone to GHL workflow:', normalized);
 
-        // Airtable phone verification
+        // Format phone as (000)-567-4567
+        function formatPhoneUS(phone) {
+          const digits = phone.replace(/\D/g, '');
+          if (digits.length !== 10) return null;
+          return `(${digits.slice(0,3)})-${digits.slice(3,6)}-${digits.slice(6)}`;
+        }
+
+        const formatted = formatPhoneUS(phone);
+        if (!formatted) {
+          throw new Error('Please enter a valid 10-digit phone number.');
+        }
         const response = await fetch('http://localhost:3000/api/check-phone-airtable', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone: normalized })
+          body: JSON.stringify({ phone: formatted })
         });
         const data = await response.json();
         if (data.valid) {
