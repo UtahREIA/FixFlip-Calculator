@@ -8,12 +8,12 @@ app.use(cors());
 app.use(express.json());
 
 
-const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
-const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+const AIRTABLE_KEY = process.env.AIRTABLE_KEY;
+const AIRTABLE_ID = process.env.AIRTABLE_ID;
 const AIRTABLE_TABLE_NAME = process.env.AIRTABLE_TABLE_NAME || 'Verifications';
 
 // Airtable API endpoint
-const AIRTABLE_URL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}`;
+const AIRTABLE_URL = `https://api.airtable.com/v0/${AIRTABLE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}`;
 
 // API endpoint to check phone number
 
@@ -25,7 +25,7 @@ app.post('/api/check-phone-airtable', async (req, res) => {
   try {
     const response = await axios.get(AIRTABLE_URL, {
       headers: {
-        Authorization: `Bearer ${AIRTABLE_API_KEY}`
+        Authorization: `Bearer ${AIRTABLE_KEY}`
       },
       params: {
         filterByFormula: `AND({Phone Number} = '${phone}', {Approval Status} = 1)`
