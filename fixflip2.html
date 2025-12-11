@@ -1788,8 +1788,8 @@
       return normalized;
     }
 
-    async function verifyPhoneViaWorkflow(phoneInputValue) {
-      const normalized = normalizePhone(phoneInputValue);
+    async function verifyPhoneViaWorkflow(phone) {
+      const normalized = normalizePhone(phone);
 
       if (!normalized || normalized.length !== 10) {
         throw new Error('Please enter a valid 10-digit phone number.');
@@ -1805,7 +1805,7 @@
           return `(${digits.slice(0,3)})-${digits.slice(3,6)}-${digits.slice(6)}`;
         }
 
-        const formatted = formatPhoneUS(phone);
+        const formatted = formatPhoneUS(normalized);
         if (!formatted) {
           throw new Error('Please enter a valid 10-digit phone number.');
         }
