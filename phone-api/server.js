@@ -29,8 +29,10 @@ const AIRTABLE_URL = `https://api.airtable.com/v0/${AIRTABLE_ID}/${encodeURIComp
 
 // API endpoint to check phone number in Airtable
 app.post('/api/check-phone-airtable', async (req, res) => {
-  const { phone } = req.body;
+  let { phone } = req.body;
   if (!phone) return res.status(400).json({ valid: false, error: 'No phone provided' });
+  // Normalize phone to digits only
+  phone = phone.replace(/\D/g, '');
 
   try {
     const response = await axios.get(AIRTABLE_URL, {
@@ -38,7 +40,10 @@ app.post('/api/check-phone-airtable', async (req, res) => {
         Authorization: `Bearer ${AIRTABLE_KEY}`
       },
       params: {
-        filterByFormula: `AND({Phone Number} = '${phone}', {Approval Status} = 1)`
+        filterByFormula:
+          `AND(` +
+          `SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Phone Number}, '(', ''), ')', ''), '-', ''), ' ', '') = '${phone}', ` +
+          `{Approval Status} = 1)`
       }
     });
     const records = response.data.records;
