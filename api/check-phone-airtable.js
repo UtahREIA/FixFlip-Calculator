@@ -4,11 +4,13 @@
 import axios from 'axios';
 
 export default async function handler(req, res) {
+  // CORS headers for all responses
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
 
   if (req.method === 'OPTIONS') {
+    // Respond to preflight
     return res.status(200).end();
   }
 
@@ -16,13 +18,24 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { phone } = req.body;
+  let { phone } = req.body;
   if (!phone) return res.status(400).json({ valid: false, error: 'No phone provided' });
+
+  // Normalize phone to digits only and get last 10 digits
+  const originalPhone = phone;
+  phone = phone.replace(/\D/g, '');
+  const last10 = phone.slice(-10);
 
   const AIRTABLE_KEY = process.env.AIRTABLE_KEY;
   const AIRTABLE_ID = process.env.AIRTABLE_ID;
   const AIRTABLE_TABLE_NAME = process.env.AIRTABLE_TABLE_NAME || 'Verifications';
   const AIRTABLE_URL = `https://api.airtable.com/v0/${AIRTABLE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}`;
+
+  // Build filter formula to match last 10 digits of phone
+  const filterFormula =
+    `AND(` +
+    `RIGHT(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Phone Number}, '(', ''), ')', ''), '-', ''), ' ', ''), 10) = '${last10}', ` +
+    `{Approval Status} = 1)`;
 
   try {
     const response = await axios.get(AIRTABLE_URL, {
@@ -30,7 +43,7 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${AIRTABLE_KEY}`
       },
       params: {
-        filterByFormula: `AND({Phone Number} = '${phone}', {Approval Status} = 1)`
+        filterByFormula: filterFormula
       }
     });
     const records = response.data.records;
