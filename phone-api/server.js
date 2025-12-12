@@ -4,13 +4,9 @@ const cors = require('cors');
 const axios = require('axios');
 
 const app = express();
-app.use(cors({
-  origin: [
-    'https://fix-flip-calculator-delta.vercel.app',
-    'http://127.0.0.1:5500',
-    'http://localhost:5500'
-  ]
-}));
+app.use(cors({ origin: '*' }));
+// Handle preflight (OPTIONS) requests for all routes
+app.options('*', cors({ origin: '*' }));
 app.use(express.json());
 
 
