@@ -31,8 +31,9 @@ const AIRTABLE_URL = `https://api.airtable.com/v0/${AIRTABLE_ID}/${encodeURIComp
 app.post('/api/check-phone-airtable', async (req, res) => {
   let { phone } = req.body;
   if (!phone) return res.status(400).json({ valid: false, error: 'No phone provided' });
-  // Normalize phone to digits only
+  // Normalize phone to digits only and get last 10 digits
   phone = phone.replace(/\D/g, '');
+  const last10 = phone.slice(-10);
 
   try {
     const response = await axios.get(AIRTABLE_URL, {
@@ -42,7 +43,7 @@ app.post('/api/check-phone-airtable', async (req, res) => {
       params: {
         filterByFormula:
           `AND(` +
-          `SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Phone Number}, '(', ''), ')', ''), '-', ''), ' ', '') = '${phone}', ` +
+          `RIGHT(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Phone Number}, '(', ''), ')', ''), '-', ''), ' ', ''), 10) = '${last10}', ` +
           `{Approval Status} = 1)`
       }
     });
