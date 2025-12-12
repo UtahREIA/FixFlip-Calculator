@@ -32,8 +32,22 @@ app.post('/api/check-phone-airtable', async (req, res) => {
   let { phone } = req.body;
   if (!phone) return res.status(400).json({ valid: false, error: 'No phone provided' });
   // Normalize phone to digits only and get last 10 digits
+  const originalPhone = phone;
   phone = phone.replace(/\D/g, '');
   const last10 = phone.slice(-10);
+
+  // Build filter formula
+  const filterFormula =
+    `AND(` +
+    `RIGHT(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Phone Number}, '(', ''), ')', ''), '-', ''), ' ', ''), 10) = '${last10}', ` +
+    `{Approval Status} = 1)`;
+
+  // Logging for debugging
+  console.log('--- Phone Verification Debug ---');
+  console.log('Original phone input:', originalPhone);
+  console.log('Normalized phone:', phone);
+  console.log('Last 10 digits:', last10);
+  console.log('Airtable filter formula:', filterFormula);
 
   try {
     const response = await axios.get(AIRTABLE_URL, {
@@ -41,20 +55,21 @@ app.post('/api/check-phone-airtable', async (req, res) => {
         Authorization: `Bearer ${AIRTABLE_KEY}`
       },
       params: {
-        filterByFormula:
-          `AND(` +
-          `RIGHT(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Phone Number}, '(', ''), ')', ''), '-', ''), ' ', ''), 10) = '${last10}', ` +
-          `{Approval Status} = 1)`
+        filterByFormula: filterFormula
       }
     });
     const records = response.data.records;
+    console.log('Airtable response record count:', records.length);
     if (records.length > 0) {
       const record = records[0];
+      console.log('Matched record fields:', record.fields);
       res.json({ valid: true, name: record.fields.Name || '', status: 'Active' });
     } else {
+      console.log('No matching record found.');
       res.json({ valid: false });
     }
   } catch (err) {
+    console.error('Airtable API error:', err.message);
     res.status(500).json({ valid: false, error: err.message });
   }
 });
