@@ -1809,7 +1809,7 @@
         if (!formatted) {
           throw new Error('Please enter a valid 10-digit phone number.');
         }
-        const response = await fetch('https://your-backend.vercel.app/api/check-phone-airtable', {
+        const response = await fetch('http://localhost:3000/api/check-phone-airtable', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone: formatted })
