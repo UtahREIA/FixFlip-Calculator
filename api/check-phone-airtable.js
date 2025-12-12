@@ -1,16 +1,11 @@
-// Vercel serverless function for /api/check-phone-airtable with CORS
-// Place this file at /api/check-phone-airtable.js in your Vercel project root
+const axios = require('axios');
 
-import axios from 'axios';
-
-export default async function handler(req, res) {
-  // CORS headers for all responses
+module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
 
   if (req.method === 'OPTIONS') {
-    // Respond to preflight
     return res.status(200).end();
   }
 
@@ -18,11 +13,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  let { phone } = req.body;
+  let phone;
+  try {
+    // Vercel does not auto-parse JSON body
+    if (req.headers['content-type'] === 'application/json' && typeof req.body === 'string') {
+      req.body = JSON.parse(req.body);
+    }
+    phone = req.body.phone;
+  } catch (e) {
+    return res.status(400).json({ valid: false, error: 'Invalid JSON body' });
+  }
   if (!phone) return res.status(400).json({ valid: false, error: 'No phone provided' });
 
-  // Normalize phone to digits only and get last 10 digits
-  const originalPhone = phone;
   phone = phone.replace(/\D/g, '');
   const last10 = phone.slice(-10);
 
@@ -31,7 +33,6 @@ export default async function handler(req, res) {
   const AIRTABLE_TABLE_NAME = process.env.AIRTABLE_TABLE_NAME || 'Verifications';
   const AIRTABLE_URL = `https://api.airtable.com/v0/${AIRTABLE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}`;
 
-  // Build filter formula to match last 10 digits of phone
   const filterFormula =
     `AND(` +
     `RIGHT(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Phone Number}, '(', ''), ')', ''), '-', ''), ' ', ''), 10) = '${last10}', ` +
@@ -56,4 +57,4 @@ export default async function handler(req, res) {
   } catch (err) {
     res.status(500).json({ valid: false, error: err.message });
   }
-}
+};
