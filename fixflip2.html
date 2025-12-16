@@ -1816,8 +1816,21 @@
         });
         const data = await response.json();
         if (data.valid) {
-          return true;
+          if (data.status === 'Active') {
+            return { status: 'Active' };
+          } else if (data.trial) {
+            if (data.trialDaysLeft > 0) {
+              return { status: 'Trial', daysLeft: data.trialDaysLeft };
+            } else {
+              throw new Error('Your free trial has expired. Please contact UTAH REIA for membership options.');
+            }
+          } else {
+            return true;
+          }
         } else {
+          if (data.trial && data.trialDaysLeft === 0) {
+            throw new Error('Your free trial has expired. Please contact UTAH REIA for membership options.');
+          }
           throw new Error('This phone number is not recognized as an active member. Please contact UTAH REIA for access.');
         }
       } catch (error) {
@@ -1865,8 +1878,13 @@
         btn.textContent = 'Verifying...';
 
         try {
-          await verifyPhoneViaWorkflow(phoneInput.value);
+          const result = await verifyPhoneViaWorkflow(phoneInput.value);
           unlockCalculatorUI();
+          if (msg && result && result.status === 'Trial') {
+            msg.textContent = `You are on a free trial. Days left: ${result.daysLeft}`;
+          } else if (msg && result && result.status === 'Active') {
+            msg.textContent = 'Welcome, active member!';
+          }
         } catch (err) {
           if (msg) msg.textContent = err.message || 'Unable to verify phone.';
         } finally {
