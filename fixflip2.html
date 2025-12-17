@@ -1870,6 +1870,24 @@
       const phoneInput = $('gatePhone');
       const msg = $('gateMessage');
 
+      // Add persistent trial reminder area to calculator UI
+      let trialReminder = document.getElementById('trialReminder');
+      if (!trialReminder) {
+        trialReminder = document.createElement('div');
+        trialReminder.id = 'trialReminder';
+        trialReminder.style.display = 'none';
+        trialReminder.style.background = '#fffbe6';
+        trialReminder.style.border = '1px solid #ffe58f';
+        trialReminder.style.color = '#ad6800';
+        trialReminder.style.padding = '10px';
+        trialReminder.style.margin = '10px 0';
+        trialReminder.style.fontWeight = 'bold';
+        trialReminder.style.textAlign = 'center';
+        const calcWrap = document.getElementById('calcWrap');
+        if (calcWrap) calcWrap.prepend(trialReminder);
+        else document.body.appendChild(trialReminder);
+      }
+
       if (!btn || !phoneInput) return;
 
       btn.addEventListener('click', async () => {
@@ -1879,10 +1897,19 @@
 
         try {
           const result = await verifyPhoneViaWorkflow(phoneInput.value);
+          // Show popup for trial users before unlocking
+          if (result && result.status === 'Trial') {
+            alert(`You are on a 30-day free trial. Days left: ${result.daysLeft}.\nContact Utah REIA to become a member and enjoy unlimited access!`);
+          }
           unlockCalculatorUI();
-          if (msg && result && result.status === 'Trial') {
-            msg.textContent = `You are on a free trial. Days left: ${result.daysLeft}`;
-          } else if (msg && result && result.status === 'Active') {
+          // Show persistent reminder for trial users
+          if (trialReminder && result && result.status === 'Trial') {
+            trialReminder.textContent = `You are on a 30-day free trial. Days left: ${result.daysLeft}. Contact Utah REIA to become a member and enjoy unlimited access!`;
+            trialReminder.style.display = 'block';
+          } else if (trialReminder) {
+            trialReminder.style.display = 'none';
+          }
+          if (msg && result && result.status === 'Active') {
             msg.textContent = 'Welcome, active member!';
           }
         } catch (err) {
