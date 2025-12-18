@@ -78,6 +78,12 @@ module.exports = async (req, res) => {
     const fields = record.fields;
     const name = fields.Name || '';
     const firstAccess = fields['First Access Date'];
+    const memberStatus = (fields['Member Status'] || '').toLowerCase();
+
+    // If Member Status is 'active', grant unlimited access
+    if (memberStatus === 'active') {
+      return res.json({ valid: true, name, status: 'Active', trial: false });
+    }
 
     // If no First Access Date, set it to today
     let trialStart = firstAccess;
