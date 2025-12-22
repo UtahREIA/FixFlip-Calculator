@@ -1,18 +1,28 @@
-/**
- * Vercel Serverless Function for Phone Verification via GoHighLevel
- */
+  try {
+    const { phone } = req.body;
 
-// Helper: Normalize phone to match GHL format
-function normalizePhone(raw) {
-  const digits = String(raw || '').replace(/[^\d]/g, '').replace(/^1/, '');
-  // GHL typically stores as +1XXXXXXXXXX
-  return digits.length === 10 ? `+1${digits}` : `+${digits}`;
-}
+    if (!phone || phone.length < 10) {
+      return res.status(400).json({ valid: false, error: 'Invalid phone format' });
+    }
 
-// Add a tag to a contact in GHL
-async function addTagToContact(contactId, tag) {
-  const GHL_API_KEY = process.env.GHL_API_KEY;
-  const GHL_API_BASE = 'https://services.leadconnectorhq.com';
+    let isMember = false;
+    let errorDetails = null;
+    try {
+      isMember = await isGHLMemberAndTagCalculatorUser(phone);
+    } catch (err) {
+      errorDetails = err && err.message ? err.message : String(err);
+      console.error('GHL tagging error:', errorDetails);
+    }
+
+    if (errorDetails) {
+      return res.status(200).json({ valid: isMember, error: errorDetails });
+    }
+    return res.status(200).json({ valid: isMember });
+
+  } catch (error) {
+    console.error('Phone verification error:', error);
+    return res.status(500).json({ valid: false, error: error && error.message ? error.message : 'Server error' });
+  }
   const url = `${GHL_API_BASE}/contacts/${contactId}/tags`;
   try {
     const response = await fetch(url, {
