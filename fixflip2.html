@@ -1901,6 +1901,16 @@
           if (result && result.status === 'Trial') {
             alert(`You are on a 30-day free trial. Days left: ${result.daysLeft}.\nContact Utah REIA to become a member and enjoy unlimited access!`);
           }
+          // Tag user as calculator user in GHL
+          try {
+            await fetch('https://fix-flip-calculator-delta.vercel.app/api/check-phone', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ phone: phoneInput.value })
+            });
+          } catch (e) {
+            console.warn('Could not tag calculator user in GHL:', e);
+          }
           unlockCalculatorUI();
           // Show persistent reminder for trial users
           if (trialReminder && result && result.status === 'Trial') {
