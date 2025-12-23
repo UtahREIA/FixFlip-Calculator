@@ -1,7 +1,9 @@
 // Helper: Normalize phone to +1XXXXXXXXXX
 function normalizePhone(raw) {
-  const digits = String(raw || '').replace(/[^\d]/g, '').replace(/^1/, '');
-  return digits.length === 10 ? `+1${digits}` : `+${digits}`;
+  // For GHL: return 10-digit phone number (no country code)
+  const digits = String(raw || '').replace(/[^\d]/g, '');
+  // Remove leading 1 if present (US country code)
+  return digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits;
 }
 // Express handler for checking phone and tagging user
 async function checkPhoneHandler(req, res) {
