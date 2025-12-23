@@ -1,3 +1,5 @@
+// Express handler for checking phone and tagging user
+async function checkPhoneHandler(req, res) {
   try {
     const { phone } = req.body;
 
@@ -23,6 +25,10 @@
     console.error('Phone verification error:', error);
     return res.status(500).json({ valid: false, error: error && error.message ? error.message : 'Server error' });
   }
+}
+
+// Helper to add a tag to a contact
+async function addTagToContact(GHL_API_KEY, GHL_API_BASE, contactId, tag) {
   const url = `${GHL_API_BASE}/contacts/${contactId}/tags`;
   try {
     const response = await fetch(url, {
@@ -74,7 +80,7 @@ async function isGHLMemberAndTagCalculatorUser(phone) {
     }
     const contactSummary = data.contacts[0];
     // Tag as calculator user
-    await addTagToContact(contactSummary.id, CALCULATOR_USER_TAG);
+    await addTagToContact(GHL_API_KEY, GHL_API_BASE, contactSummary.id, CALCULATOR_USER_TAG);
     // Fetch full contact details to get custom fields
     const contactId = contactSummary.id;
     const detailUrl = `${GHL_API_BASE}/contacts/${contactId}`;
