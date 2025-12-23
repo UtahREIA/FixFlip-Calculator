@@ -65,9 +65,12 @@ async function isGHLMemberAndTagCalculatorUser(phone) {
   const GHL_API_BASE = 'https://services.leadconnectorhq.com';
   const CALCULATOR_USER_TAG = 'calculator user';
   const normalized = normalizePhone(phone);
+  console.log('[GHL] Incoming phone:', phone);
+  console.log('[GHL] Normalized phone:', normalized);
   try {
     // Search for contact by phone
     const searchUrl = `${GHL_API_BASE}/contacts/?locationId=${GHL_LOCATION_ID}&query=${encodeURIComponent(normalized)}`;
+    console.log('[GHL] Search URL:', searchUrl);
     const response = await fetch(searchUrl, {
       method: 'GET',
       headers: {
@@ -77,17 +80,21 @@ async function isGHLMemberAndTagCalculatorUser(phone) {
       }
     });
     if (!response.ok) {
-      console.error('GHL API error:', response.status, await response.text());
+      const errText = await response.text();
+      console.error('[GHL] API error:', response.status, errText);
       return false;
     }
     const data = await response.json();
+    console.log('[GHL] Search result:', JSON.stringify(data));
     if (!data.contacts || data.contacts.length === 0) {
-      console.log(`❌ Phone not found in GHL: ${normalized}`);
+      console.log(`[GHL] ❌ Phone not found in GHL: ${normalized}`);
       return false;
     }
     const contactSummary = data.contacts[0];
+    console.log('[GHL] Contact found:', JSON.stringify(contactSummary));
     // Tag as calculator user
-    await addTagToContact(GHL_API_KEY, GHL_API_BASE, contactSummary.id, CALCULATOR_USER_TAG);
+    const tagResult = await addTagToContact(GHL_API_KEY, GHL_API_BASE, contactSummary.id, CALCULATOR_USER_TAG);
+    console.log('[GHL] Tag add result:', tagResult);
     // Fetch full contact details to get custom fields
     const contactId = contactSummary.id;
     const detailUrl = `${GHL_API_BASE}/contacts/${contactId}`;
@@ -100,7 +107,7 @@ async function isGHLMemberAndTagCalculatorUser(phone) {
       }
     });
     if (!detailResponse.ok) {
-      console.error('GHL contact detail error:', detailResponse.status);
+      console.error('[GHL] Contact detail error:', detailResponse.status);
       return false;
     }
     const contactDetail = await detailResponse.json();
@@ -112,13 +119,13 @@ async function isGHLMemberAndTagCalculatorUser(phone) {
     // Check if status is "Active"
     const isActive = status && status.toLowerCase() === 'active';
     if (isActive) {
-      console.log(`✅ Active member found: ${contact.firstName || ''} ${contact.lastName || ''} (${normalized}) - Status: ${status}`);
+      console.log(`[GHL] ✅ Active member found: ${contact.firstName || ''} ${contact.lastName || ''} (${normalized}) - Status: ${status}`);
       return true;
     }
-    console.log(`❌ Contact found but status is not "Active". Status: ${status || 'none'}, Tags: ${contact.tags?.join(', ') || 'none'}`);
+    console.log(`[GHL] ❌ Contact found but status is not "Active". Status: ${status || 'none'}, Tags: ${contact.tags?.join(', ') || 'none'}`);
     return false;
   } catch (error) {
-    console.error('GHL member check failed:', error);
+    console.error('[GHL] Member check failed:', error);
     return false;
   }
 }
