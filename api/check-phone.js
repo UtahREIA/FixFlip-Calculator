@@ -1,3 +1,8 @@
+// Helper: Normalize phone to +1XXXXXXXXXX
+function normalizePhone(raw) {
+  const digits = String(raw || '').replace(/[^\d]/g, '').replace(/^1/, '');
+  return digits.length === 10 ? `+1${digits}` : `+${digits}`;
+}
 // Express handler for checking phone and tagging user
 async function checkPhoneHandler(req, res) {
   try {
