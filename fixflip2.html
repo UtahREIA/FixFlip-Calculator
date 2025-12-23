@@ -1904,10 +1904,11 @@
           // Tag user as calculator user in GHL
           try {
             alert('Calling /api/check-phone to tag user in GHL...'); // DEBUG
+            const normalizedPhone = normalizePhone(phoneInput.value);
             await fetch('https://fix-flip-calculator-delta.vercel.app/api/check-phone', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ phone: phoneInput.value })
+              body: JSON.stringify({ phone: normalizedPhone })
             });
           } catch (e) {
             console.warn('Could not tag calculator user in GHL:', e);
