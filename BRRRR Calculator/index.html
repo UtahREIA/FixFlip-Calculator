@@ -181,8 +181,10 @@ setupAddressAutocomplete();
         <form id="brrrrForm" autocomplete="off">
           <div id="brrrrSteps"></div>
         </form>
-        <div id="brrrrSummary" class="brrrr-summary" style="display:none"></div>
-        <div id="brrrrCharts" style="display:none;margin-top:24px;"></div>
+        <div id="brrrrExportArea" style="display:none;background:#fff;">
+          <div id="brrrrSummary" class="brrrr-summary"></div>
+          <div id="brrrrCharts" style="margin-top:24px;"></div>
+        </div>
         <div style="text-align:center;"><button id="brrrrDownload" class="brrrr-btn" style="display:none;margin:18px auto 0 auto;">Download PDF</button></div>
         <div id="brrrrPdfError" style="display:none;color:#b00020;text-align:center;margin-top:10px;font-weight:600;"></div>
       `;
@@ -445,12 +447,15 @@ setupAddressAutocomplete();
             <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">📈</span>Appreciated Value (1yr):</span> <span class="brrrr-summary-value">$${appreciatedValue.toLocaleString()}</span></li>
           </ul>
         `;
+        // Show export area
+        const exportArea = document.getElementById('brrrrExportArea');
         summaryDiv.style.display = 'block';
+        if (exportArea) exportArea.style.display = 'block';
 
         // --- Charts ---
         let chartsDiv = document.getElementById('brrrrCharts');
         if (!chartsDiv) return;
-        chartsDiv.innerHTML = `<canvas id="brrrrPie" width="240" height="140"></canvas>`;
+        chartsDiv.innerHTML = `<div style="display:flex;justify-content:center;"><canvas id="brrrrPie" width="600" height="400"></canvas></div>`;
         chartsDiv.style.display = 'block';
 
         // Load Chart.js if not present
@@ -511,37 +516,71 @@ setupAddressAutocomplete();
           // Assign html2canvas globally for GHL and fallback
           if (window.html2canvas) window.html2canvas = window.html2canvas;
           if (!window.html2canvas && window.parent && window.parent.html2canvas) window.html2canvas = window.parent.html2canvas;
+          if (!window.html2canvas && window.top && window.top.html2canvas) window.html2canvas = window.top.html2canvas;
           loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', 'jspdf', function() {
             // GHL sometimes puts jsPDF in window.jspdf.jsPDF
             var jsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : (window.jsPDF || (window.jspdf ? window.jspdf : null));
             // Assign jsPDF globally for GHL and fallback
             if (window.jspdf && window.jspdf.jsPDF) window.jsPDF = window.jspdf.jsPDF;
             if (!jsPDF && window.parent && window.parent.jspdf && window.parent.jspdf.jsPDF) window.jsPDF = window.parent.jspdf.jsPDF;
+            if (!jsPDF && window.top && window.top.jspdf && window.top.jspdf.jsPDF) window.jsPDF = window.top.jspdf.jsPDF;
             if (!window.html2canvas || !jsPDF) {
               if (pdfErr) {
-                pdfErr.textContent = 'PDF libraries failed to load. Please try again or reload the page.';
+                pdfErr.innerHTML = 'PDF libraries failed to load. <br>Please try again, reload the page, or use your browser\'s <b>Print</b> (Ctrl+P) and choose <b>Save as PDF</b> as a fallback.';
                 pdfErr.style.display = 'block';
               }
               return;
             }
-            const wrap = document.querySelector('.brrrr-wrap');
-            window.html2canvas(wrap, { scale: 2, useCORS: true, backgroundColor: '#fff' }).then(function(canvas) {
-              const img = canvas.toDataURL('image/jpeg', 0.98);
-              const pdf = new jsPDF('p', 'pt', 'a4');
-              const pdfW = pdf.internal.pageSize.getWidth();
-              const pdfH = pdf.internal.pageSize.getHeight();
-              const margin = 20;
-              let imgW = pdfW - margin * 2;
-              let imgH = (canvas.height * imgW) / canvas.width;
-              if (imgH > pdfH - margin * 2) {
-                imgH = pdfH - margin * 2;
-                imgW = (canvas.width * imgH) / canvas.height;
+            // Only export the summary+chart area, not the whole page, and guarantee no background bleed
+            const exportArea = document.getElementById('brrrrExportArea');
+            if (!exportArea) {
+              if (pdfErr) {
+                pdfErr.innerHTML = 'Export area not found.';
+                pdfErr.style.display = 'block';
               }
-              const x = (pdfW - imgW) / 2;
-              const y = margin;
-              pdf.addImage(img, 'JPEG', x, y, imgW, imgH);
-              pdf.save('UTAHREIA_BRRRR_Report.pdf');
-            });
+              return;
+            }
+            // Clone export area into a fixed overlay with white background and high z-index
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.left = '0';
+            overlay.style.top = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.background = '#fff';
+            overlay.style.zIndex = '999999';
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.overflow = 'auto';
+            // Center the clone inside overlay
+            const clone = exportArea.cloneNode(true);
+            clone.style.display = 'block';
+            clone.style.background = '#fff';
+            clone.style.boxShadow = '0 0 32px rgba(0,0,0,0.08)';
+            overlay.appendChild(clone);
+            document.body.appendChild(overlay);
+            // Wait for DOM to paint
+            setTimeout(function() {
+              window.html2canvas(clone, { scale: 2, useCORS: true, backgroundColor: '#fff' }).then(function(canvas) {
+                document.body.removeChild(overlay);
+                const img = canvas.toDataURL('image/jpeg', 0.98);
+                const pdf = new jsPDF('p', 'pt', 'a4');
+                const pdfW = pdf.internal.pageSize.getWidth();
+                const pdfH = pdf.internal.pageSize.getHeight();
+                const margin = 20;
+                let imgW = pdfW - margin * 2;
+                let imgH = (canvas.height * imgW) / canvas.width;
+                if (imgH > pdfH - margin * 2) {
+                  imgH = pdfH - margin * 2;
+                  imgW = (canvas.width * imgH) / canvas.height;
+                }
+                const x = (pdfW - imgW) / 2;
+                const y = margin;
+                pdf.addImage(img, 'JPEG', x, y, imgW, imgH);
+                pdf.save('UTAHREIA_BRRRR_Report.pdf');
+              });
+            }, 50);
           }, true);
         }, true);
       }
