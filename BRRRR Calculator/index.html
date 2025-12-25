@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>UTAH REIA - BRRRR Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: Inter, system-ui, Arial; background: #f6f7f8; color: #111; margin: 0; }
+    .wrap { max-width: 1200px; margin: 18px auto; padding: 20px; border-radius: 12px; background: #fff; box-shadow: 0 20px 60px rgba(10,20,30,0.06); }
+    .top { display: flex; align-items: center; gap: 16px; justify-content: center; margin-bottom: 6px; }
+    .top img { height: 68px; }
+    h1 { color: #1a2a4f; font-size: 20px; margin: 6px 0 2px; text-align: center; }
+    .subtitle { text-align: center; color: #666; margin-bottom: 12px; }
+    .card { background: #fff; padding: 16px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.03); }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .field { flex: 1 1 220px; min-width: 140px; margin-bottom: 10px; }
+    label { display: block; font-weight: 600; color: #1a2a4f; margin-bottom: 6px; font-size: 13px; }
+    input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e7e7e7; font-size: 14px; }
+    textarea { min-height: 64px; }
+    .muted { color: #666; font-size: 13px; }
+    .btn { background: #2E8B57; color: #fff; padding: 10px 14px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; }
+    .nav { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+    .step { display: none; opacity: 0; transition: opacity 240ms ease; }
+
+    /* BRRRR Calculator Styles */
+    .brrrr-wrap { max-width: 700px; margin: 32px auto; background: #fff; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); padding: 32px 24px; font-family: Inter, Arial, sans-serif; }
+    .brrrr-step { display: none; }
+    .brrrr-step.active { display: block; animation: fadeIn 0.3s; }
+    .brrrr-card { background: #f8fafb; border-radius: 10px; padding: 24px 18px; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+    .brrrr-row { display: flex; gap: 18px; flex-wrap: wrap; }
+    .brrrr-field { flex: 1 1 220px; min-width: 140px; margin-bottom: 14px; }
+    .brrrr-label { display: block; font-weight: 600; color: #1a2a4f; margin-bottom: 6px; font-size: 14px; }
+    .brrrr-input, .brrrr-select, .brrrr-textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e7e7e7; font-size: 15px; }
+    .brrrr-textarea { min-height: 64px; }
+    .brrrr-muted { color: #666; font-size: 13px; }
+    .brrrr-nav { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 18px; }
+    .brrrr-btn { background: #2E8B57; color: #fff; padding: 10px 22px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; font-size: 1rem; }
+    .brrrr-btn.secondary { background: #eaeaea; color: #1a2a4f; }
+    .brrrr-summary {
+      background: linear-gradient(120deg, #f6f7f8 60%, #eaf6ef 100%);
+      border-radius: 14px;
+      padding: 28px 32px 22px 32px;
+      margin-top: 24px;
+      font-size: 1.13rem;
+      box-shadow: 0 4px 24px rgba(46,139,87,0.08);
+      border: 1.5px solid #e0e7ef;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .brrrr-summary-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .brrrr-summary-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0 8px 0;
+      border-bottom: 1px solid #e7e7e7;
+      font-size: 1.08em;
+    }
+    .brrrr-summary-list li:last-child {
+      border-bottom: none;
+    }
+    .brrrr-summary-label {
+      flex: 1 1 60%;
+      color: #1a2a4f;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .brrrr-summary-value {
+      flex: 0 0 auto;
+      font-family: 'Inter', monospace, Arial;
+      font-weight: 700;
+      color: #2E8B57;
+      font-size: 1.08em;
+      letter-spacing: 0.01em;
+    }
+    .brrrr-summary-value.negative {
+      color: #b00020;
+    }
+    .brrrr-summary-icon {
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1em;
+      opacity: 0.82;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="brrrrWrap">
+    <div class="top"><img src="https://assets.cdn.filesafe.space/DNirEjy0ejVwbHsaBYrn/media/682f680ec314718407baed82.png" alt="UTAH REIA logo"></div>
+    <h1>UTAH REIA BRRRR Calculator</h1>
+    <div class="subtitle">Step-by-step analysis for Buy, Rehab, Rent, Refinance, Repeat (BRRRR) investments.</div>
+    <div id="brrrrCalculatorContainer"></div>
+    <div style="text-align:center;margin-top:12px;color:#666;font-size:13px">© 2025 UTAH REIA - Estimates are educational only.</div>
+  </div>
+  <script>
+    function loadGMaps(cb) {
+  if (window.google && window.google.maps && window.google.maps.places) { cb(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyBv5v5ZA_pJvv_jT_ERUuXAQbG0xBqOWRY&libraries=places';
+  s.onload = cb; document.body.appendChild(s);
+}
+function setupAddressAutocomplete() {
+  loadGMaps(function() {
+    var input = document.getElementById('street');
+    if (input && window.google && window.google.maps && window.google.maps.places) {
+      var autocomplete = new google.maps.places.Autocomplete(input, { types: ['address'] });
+      autocomplete.addListener('place_changed', function() {
+        var place = autocomplete.getPlace();
+        if (place.address_components) {
+          place.address_components.forEach(function(comp) {
+            if (comp.types.includes('locality')) document.getElementById('city').value = comp.long_name;
+            if (comp.types.includes('administrative_area_level_1')) document.getElementById('state').value = comp.short_name;
+            if (comp.types.includes('postal_code')) document.getElementById('zip').value = comp.long_name;
+          });
+        }
+      });
+    }
+  });
+}
+setupAddressAutocomplete();
+    // --- Currency Formatting Helper ---
+
+    function formatCurrencyInput(e) {
+      let val = e.target.value.replace(/[^\d.]/g, '');
+      if (val === '') { e.target.value = ''; return; }
+      let parts = val.split('.');
+      let intPart = parts[0];
+      let decPart = parts[1] ? '.' + parts[1].slice(0,2) : '';
+      intPart = intPart.replace(/^0+(?!$)/, '');
+      intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      e.target.value = '$' + intPart + decPart;
+    }
+
+    // Remove formatting on focus for easier editing
+    function stripCurrencyOnFocus(e) {
+      e.target.value = e.target.value.replace(/[^\d.]/g, '');
+    }
+
+
+    function attachCurrencyFormatters() {
+      const ids = ['purchasePrice','rehab','refiAmount','refiCosts','rent','taxes','insurance','otherExpenses'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.removeEventListener('focus', stripCurrencyOnFocus);
+          el.removeEventListener('input', formatCurrencyInput);
+          el.removeEventListener('blur', formatCurrencyInput);
+          el.removeEventListener('change', triggerImmediateCalc);
+          el.addEventListener('focus', stripCurrencyOnFocus);
+          el.addEventListener('input', formatCurrencyInput);
+          el.addEventListener('blur', formatCurrencyInput);
+          el.addEventListener('change', triggerImmediateCalc);
+        }
+      });
+    }
+
+    // For immediate feedback, recalculate on change
+    function triggerImmediateCalc() {
+      if (typeof calculateSummary === 'function') calculateSummary();
+    }
+
+    (function(){
+      // --- HTML Structure ---
+      const container = document.getElementById('brrrrCalculatorContainer');
+      const root = document.createElement('div');
+      root.className = 'brrrr-wrap';
+      root.innerHTML = `
+        <form id="brrrrForm" autocomplete="off">
+          <div id="brrrrSteps"></div>
+        </form>
+        <div id="brrrrSummary" class="brrrr-summary" style="display:none"></div>
+        <div id="brrrrCharts" style="display:none;margin-top:24px;"></div>
+        <div style="text-align:center;"><button id="brrrrDownload" class="brrrr-btn" style="display:none;margin:18px auto 0 auto;">Download PDF</button></div>
+        <div id="brrrrPdfError" style="display:none;color:#b00020;text-align:center;margin-top:10px;font-weight:600;"></div>
+      `;
+              // Always re-attach download PDF event listener after render
+              setTimeout(() => {
+                const dlBtn = document.getElementById('brrrrDownload');
+                if (dlBtn) {
+                  dlBtn.removeEventListener('click', downloadPDF);
+                  dlBtn.addEventListener('click', downloadPDF);
+                }
+              }, 60);
+      container.appendChild(root);
+
+      // --- Steps Definition ---
+      const steps = [
+        {
+          title: 'Property Info',
+          html: `
+            <div class="brrrr-card">
+              <div class="brrrr-row">
+                <div class="brrrr-field"><label class="brrrr-label">Street address</label><input class="brrrr-input" id="street" type="text" placeholder="Start typing address..."></div>
+                <div class="brrrr-field"><label class="brrrr-label">City</label><input class="brrrr-input" id="city" type="text" placeholder="City"></div>
+                <div class="brrrr-field"><label class="brrrr-label">State</label><input class="brrrr-input" id="state" type="text" placeholder="UT"></div>
+                <div class="brrrr-field"><label class="brrrr-label">ZIP code</label><input class="brrrr-input" id="zip" type="text" placeholder="ZIP"></div>
+              </div>
+              <div class="brrrr-field"><label class="brrrr-label">Property features / description</label><textarea class="brrrr-textarea" id="features" placeholder="3 bed / 2 bath..."></textarea></div>
+            </div>`
+        },
+        {
+          title: 'Purchase & Rehab',
+          html: `
+            <div class="brrrr-card">
+              <div class="brrrr-row">
+                <div class="brrrr-field"><label class="brrrr-label">Purchase Price</label><input class="brrrr-input" id="purchasePrice" type="text" placeholder="$240,000"></div>
+                <div class="brrrr-field"><label class="brrrr-label">Rehab Costs</label><input class="brrrr-input" id="rehab" type="text" placeholder="$40,000"></div>
+              </div>
+            </div>`
+        },
+        {
+          title: 'Purchase Financing',
+          html: `
+            <div class="brrrr-card">
+              <div class="brrrr-row">
+                <div class="brrrr-field"><label class="brrrr-label">Down Payment (%)</label><input class="brrrr-input" id="downPaymentPct" type="number" min="0" max="100" value="20"></div>
+                <div class="brrrr-field"><label class="brrrr-label">Interest Rate (%)</label><input class="brrrr-input" id="purchaseRate" type="number" min="0" step="0.01" value="8"></div>
+                <div class="brrrr-field"><label class="brrrr-label">Loan Term (months)</label><input class="brrrr-input" id="purchaseTerm" type="number" min="0" step="1" value="12"></div>
+              </div>
+            </div>`
+        },
+        {
+          title: 'Refinance',
+          html: `
+            <div class="brrrr-card">
+              <div class="brrrr-row">
+                <div class="brrrr-field"><label class="brrrr-label">Refinance Amount</label><input class="brrrr-input" id="refiAmount" type="text" placeholder="$200,000"></div>
+                <div class="brrrr-field"><label class="brrrr-label">Refi Interest Rate (%)</label><input class="brrrr-input" id="refiRate" type="number" min="0" step="0.01" value="6"></div>
+                <div class="brrrr-field"><label class="brrrr-label">Refi Loan Term (years)</label><input class="brrrr-input" id="refiTerm" type="number" min="0" step="1" value="30"></div>
+              </div>
+              <div class="brrrr-field"><label class="brrrr-label">Refinance Costs</label><input class="brrrr-input" id="refiCosts" type="text" placeholder="$5,000"></div>
+            </div>`
+        },
+        {
+          title: 'Rental Income',
+          html: `
+            <div class="brrrr-card">
+              <div class="brrrr-row">
+                <div class="brrrr-field"><label class="brrrr-label">Monthly Rent</label><input class="brrrr-input" id="rent" type="text" placeholder="$1,800"></div>
+                <div class="brrrr-field"><label class="brrrr-label">Annual Rent Increase (%)</label><input class="brrrr-input" id="rentIncrease" type="number" min="0" step="0.1" value="3"></div>
+              </div>
+            </div>`
+        },
+        {
+          title: 'Operating Expenses',
+          html: `
+            <div class="brrrr-card">
+              <div class="brrrr-row">
+                <div class="brrrr-field"><label class="brrrr-label">Monthly Taxes</label><input class="brrrr-input" id="taxes" type="text" placeholder="$200"></div>
+                <div class="brrrr-field"><label class="brrrr-label">Monthly Insurance</label><input class="brrrr-input" id="insurance" type="text" placeholder="$100"></div>
+                <div class="brrrr-field"><label class="brrrr-label">Other Monthly Expenses</label><input class="brrrr-input" id="otherExpenses" type="text" placeholder="$150"></div>
+              </div>
+              <div class="brrrr-row">
+                <div class="brrrr-field"><label class="brrrr-label">Annual Expense Increase (%)</label><input class="brrrr-input" id="expenseIncrease" type="number" min="0" step="0.1" value="2"></div>
+              </div>
+            </div>`
+        },
+        {
+          title: 'Appreciation & Summary',
+          html: `
+            <div class="brrrr-card">
+              <div class="brrrr-row">
+                <div class="brrrr-field"><label class="brrrr-label">Annual Appreciation (%)</label><input class="brrrr-input" id="appreciation" type="number" min="0" step="0.1" value="3"></div>
+              </div>
+              <div id="brrrrSummaryArea" style="margin-top:18px;"></div>
+            </div>`
+        }
+      ];
+
+      let current = 0;
+      const stepsArea = root.querySelector('#brrrrSteps');
+      const summaryDiv = root.querySelector('#brrrrSummary');
+
+      function renderStep(n) {
+        let navHtml = `<div class="brrrr-nav" style="margin-top:18px;">`;
+        navHtml += `<button type="button" id="brrrrStepPrev" class="brrrr-btn secondary" ${n === 0 ? 'style=\"display:none\"' : ''}>&larr; Back</button>`;
+        if (n < steps.length - 1) {
+          navHtml += `<button type="button" id="brrrrStepNext" class="brrrr-btn">Next &rarr;</button>`;
+        } else {
+          navHtml += `<button type="button" id="brrrrCalculate" class="brrrr-btn" style="background:#2E8B57">Calculate</button>`;
+        }
+        navHtml += `</div>`;
+        // Step indicator
+        const stepIndicator = `<div class=\"brrrr-step-indicator\" style=\"text-align:center;font-weight:600;margin-bottom:12px;color:#2E8B57;font-size:1.1em;\">Step ${n+1} of ${steps.length}</div>`;
+        stepsArea.innerHTML = `${stepIndicator}<div class=\"brrrr-step active\">${steps[n].html}${navHtml}</div>`;
+        summaryDiv.style.display = 'none';
+        let chartsDiv = document.getElementById('brrrrCharts');
+        if (chartsDiv) chartsDiv.style.display = 'none';
+        setTimeout(() => {
+          attachCurrencyFormatters();
+          // Pre-fill fields from brrrrData
+          const allInputs = stepsArea.querySelectorAll('input,textarea');
+          allInputs.forEach(input => {
+            if (window.brrrrData && brrrrData[input.id] !== undefined) {
+              input.value = brrrrData[input.id];
+            }
+            // Save on change
+            input.addEventListener('change', function() {
+              brrrrData[input.id] = input.value;
+            });
+            input.addEventListener('blur', function() {
+              brrrrData[input.id] = input.value;
+            });
+          });
+        }, 50);
+        // Step navigation
+        const navBack = document.getElementById('brrrrStepPrev');
+        const navNext = document.getElementById('brrrrStepNext');
+        const navCalcBtn = document.getElementById('brrrrCalculate');
+        if (navBack) navBack.onclick = () => { saveStepData(); if (current > 0) { current--; renderStep(current); } };
+        if (navNext) navNext.onclick = () => { saveStepData(); if (current < steps.length - 1) { current++; renderStep(current); } };
+        if (navCalcBtn) navCalcBtn.onclick = () => {
+  saveStepData();
+  // Hide the step area (inputs and nav) when showing results
+  stepsArea.innerHTML = '';
+  // Add result navigation buttons
+  const resultNav = document.createElement('div');
+  resultNav.style.textAlign = 'center';
+  resultNav.style.margin = '18px 0 10px 0';
+  resultNav.innerHTML = `
+    <button id="brrrrResultBack" class="brrrr-btn secondary" style="margin-right:12px;">Back</button>
+    <button id="brrrrResultStartOver" class="brrrr-btn">Start Over</button>
+  `;
+  stepsArea.appendChild(resultNav);
+  calculateSummary();
+  // Add event listeners for result nav
+  setTimeout(() => {
+    const backBtn = document.getElementById('brrrrResultBack');
+    const startOverBtn = document.getElementById('brrrrResultStartOver');
+    if (backBtn) backBtn.onclick = () => {
+      // Hide download PDF button and summary/chart when going back
+      const dlBtn = document.getElementById('brrrrDownload');
+      if (dlBtn) dlBtn.style.display = 'none';
+      summaryDiv.style.display = 'none';
+      let chartsDiv = document.getElementById('brrrrCharts');
+      if (chartsDiv) chartsDiv.style.display = 'none';
+      current = steps.length - 2;
+      renderStep(current);
+    };
+    if (startOverBtn) startOverBtn.onclick = () => {
+      // Hide download PDF button and summary/chart when starting over
+      const dlBtn = document.getElementById('brrrrDownload');
+      if (dlBtn) dlBtn.style.display = 'none';
+      summaryDiv.style.display = 'none';
+      let chartsDiv = document.getElementById('brrrrCharts');
+      if (chartsDiv) chartsDiv.style.display = 'none';
+      stepsArea.innerHTML = '';
+      current = 0;
+      renderStep(current);
+    };
+  }, 10);
+  if (n === 0) setupAddressAutocomplete();
+};
+
+      // Store all user input here
+      window.brrrrData = window.brrrrData || {};
+      function saveStepData() {
+        // Save all current step's input values to brrrrData
+        const allInputs = stepsArea.querySelectorAll('input,textarea');
+        allInputs.forEach(input => {
+          brrrrData[input.id] = input.value;
+        });
+      }
+      }
+
+      function parseCurrency(val) {
+        if (!val) return 0;
+        if (typeof val === 'number') return val;
+        return Number(String(val).replace(/[^0-9.-]+/g, '')) || 0;
+      }
+
+      function calculateSummary() {
+        // Use values from brrrrData, not DOM
+        const purchasePrice = parseCurrency(brrrrData['purchasePrice']);
+        const rehab = parseCurrency(brrrrData['rehab']);
+        const downPct = Number(brrrrData['downPaymentPct']) || 0;
+        const purchaseRate = Number(brrrrData['purchaseRate']) || 0;
+        const purchaseTerm = Number(brrrrData['purchaseTerm']) || 0;
+        const refiAmount = parseCurrency(brrrrData['refiAmount']);
+        const refiRate = Number(brrrrData['refiRate']) || 0;
+        const refiTerm = Number(brrrrData['refiTerm']) || 0;
+        const refiCosts = parseCurrency(brrrrData['refiCosts']);
+        const rent = parseCurrency(brrrrData['rent']);
+        const rentIncrease = Number(brrrrData['rentIncrease']) || 0;
+        const taxes = parseCurrency(brrrrData['taxes']);
+        const insurance = parseCurrency(brrrrData['insurance']);
+        const otherExpenses = parseCurrency(brrrrData['otherExpenses']);
+        const expenseIncrease = Number(brrrrData['expenseIncrease']) || 0;
+        const appreciation = Number(brrrrData['appreciation']) || 0;
+
+        // Calculations
+        const totalInvestment = purchasePrice + rehab + refiCosts;
+        const purchaseLoan = purchasePrice * (1 - downPct / 100);
+        // Correct refi monthly payment calculation (standard amortization)
+        let refiMonthly = 0;
+        if (refiAmount > 0 && refiRate > 0 && refiTerm > 0) {
+          const n = refiTerm * 12;
+          const r = refiRate / 100 / 12;
+          refiMonthly = r === 0 ? refiAmount / n : (refiAmount * r) / (1 - Math.pow(1 + r, -n));
+        }
+        const totalMonthlyExpenses = taxes + insurance + otherExpenses;
+        const cashFlow = rent - totalMonthlyExpenses - refiMonthly;
+
+        // Appreciation (simple, 1 year)
+        const appreciatedValue = purchasePrice * Math.pow(1 + appreciation/100, 1);
+
+        // Output
+        // Property Info block
+        const propStreet = brrrrData['street'] || '';
+        const propCity = brrrrData['city'] || '';
+        const propState = brrrrData['state'] || '';
+        const propZip = brrrrData['zip'] || '';
+        const propFeatures = brrrrData['features'] || '';
+        let propInfoHtml = '';
+        if (propStreet || propCity || propState || propZip || propFeatures) {
+          propInfoHtml = `
+            <div class="brrrr-summary-prop" style="background:#fffbe7;border-radius:10px;padding:16px 18px 10px 18px;margin-bottom:18px;box-shadow:0 2px 8px rgba(255,200,40,0.07);border:1.2px solid #f3e7b3;">
+              <div style="font-weight:700;color:#b48a00;font-size:1.08em;margin-bottom:2px;display:flex;align-items:center;gap:7px;"><span style='font-size:1.2em;'>📋</span>Property Info</div>
+              <div style="color:#1a2a4f;font-weight:600;">${propStreet ? propStreet : ''}${(propStreet && (propCity||propState||propZip)) ? ', ' : ''}${propCity ? propCity+', ' : ''}${propState ? propState+' ' : ''}${propZip ? propZip : ''}</div>
+              ${propFeatures ? `<div style='color:#555;margin-top:4px;font-size:0.98em;'>${propFeatures}</div>` : ''}
+            </div>
+          `;
+        }
+        summaryDiv.innerHTML = `
+          ${propInfoHtml}
+          <ul class="brrrr-summary-list">
+            <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">💰</span>Total Investment:</span> <span class="brrrr-summary-value">$${totalInvestment.toLocaleString()}</span></li>
+            <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">🏦</span>Refinance Loan Amount:</span> <span class="brrrr-summary-value">$${refiAmount.toLocaleString()}</span></li>
+            <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">🏠</span>Monthly Rent:</span> <span class="brrrr-summary-value">$${rent.toLocaleString()}</span></li>
+            <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">🧾</span>Total Monthly Expenses:</span> <span class="brrrr-summary-value">$${totalMonthlyExpenses.toLocaleString()}</span></li>
+            <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">💸</span>Estimated Monthly Cash Flow:</span> <span class="brrrr-summary-value${cashFlow>=0?'':' negative'}">$${cashFlow.toLocaleString()}</span></li>
+            <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">📈</span>Appreciated Value (1yr):</span> <span class="brrrr-summary-value">$${appreciatedValue.toLocaleString()}</span></li>
+          </ul>
+        `;
+        summaryDiv.style.display = 'block';
+
+        // --- Charts ---
+        let chartsDiv = document.getElementById('brrrrCharts');
+        if (!chartsDiv) return;
+        chartsDiv.innerHTML = `<canvas id="brrrrPie" width="240" height="140"></canvas>`;
+        chartsDiv.style.display = 'block';
+
+        // Load Chart.js if not present
+        function loadScript(src, cb) {
+          if (window.Chart) { cb(); return; }
+          if (document.querySelector(`script[src='${src}']`)) { document.querySelector(`script[src='${src}']`).addEventListener('load', cb); return; }
+          const s = document.createElement('script');
+          s.src = src; s.onload = cb; document.body.appendChild(s);
+        }
+        loadScript('https://cdn.jsdelivr.net/npm/chart.js', function() {
+          new Chart(document.getElementById('brrrrPie').getContext('2d'), {
+            type: 'pie',
+            data: {
+              labels: ['Rent', 'Expenses', 'Refi Payment', 'Cash Flow'],
+              datasets: [{
+                data: [rent, totalMonthlyExpenses, refiMonthly, cashFlow],
+                backgroundColor: ['#2E8B57', '#b00020', '#1a2a4f', cashFlow >= 0 ? '#2E8B57' : '#b00020']
+              }]
+            },
+            options: {
+              plugins: { legend: { position: 'bottom' } },
+              responsive: false,
+              maintainAspectRatio: false
+            }
+          });
+        });
+
+        // Show download button and clear any previous error
+        const dlBtn = document.getElementById('brrrrDownload');
+        const pdfErr = document.getElementById('brrrrPdfError');
+        if (dlBtn) dlBtn.style.display = 'block';
+        if (pdfErr) { pdfErr.style.display = 'none'; pdfErr.textContent = ''; }
+      }
+
+      // Download PDF logic
+
+      function downloadPDF() {
+        const pdfErr = document.getElementById('brrrrPdfError');
+        if (pdfErr) { pdfErr.style.display = 'none'; pdfErr.textContent = ''; }
+        // Helper to load scripts with retry
+        function loadScript(src, globalName, cb, retry) {
+          if (window[globalName]) { cb(); return; }
+          let script = document.querySelector('script[src="'+src+'"]');
+          if (!script) {
+            script = document.createElement('script');
+            script.src = src;
+            script.onload = function() { setTimeout(cb, 50); };
+            script.onerror = function() {
+              if (retry) setTimeout(() => loadScript(src, globalName, cb, false), 400);
+              else if (pdfErr) { pdfErr.textContent = 'Failed to load PDF library: '+src; pdfErr.style.display = 'block'; }
+            };
+            document.body.appendChild(script);
+          } else {
+            script.addEventListener('load', function handler() { script.removeEventListener('load', handler); setTimeout(cb, 50); });
+          }
+        }
+        loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js', 'html2canvas', function() {
+          // Assign html2canvas globally for GHL and fallback
+          if (window.html2canvas) window.html2canvas = window.html2canvas;
+          if (!window.html2canvas && window.parent && window.parent.html2canvas) window.html2canvas = window.parent.html2canvas;
+          loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', 'jspdf', function() {
+            // GHL sometimes puts jsPDF in window.jspdf.jsPDF
+            var jsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : (window.jsPDF || (window.jspdf ? window.jspdf : null));
+            // Assign jsPDF globally for GHL and fallback
+            if (window.jspdf && window.jspdf.jsPDF) window.jsPDF = window.jspdf.jsPDF;
+            if (!jsPDF && window.parent && window.parent.jspdf && window.parent.jspdf.jsPDF) window.jsPDF = window.parent.jspdf.jsPDF;
+            if (!window.html2canvas || !jsPDF) {
+              if (pdfErr) {
+                pdfErr.textContent = 'PDF libraries failed to load. Please try again or reload the page.';
+                pdfErr.style.display = 'block';
+              }
+              return;
+            }
+            const wrap = document.querySelector('.brrrr-wrap');
+            window.html2canvas(wrap, { scale: 2, useCORS: true, backgroundColor: '#fff' }).then(function(canvas) {
+              const img = canvas.toDataURL('image/jpeg', 0.98);
+              const pdf = new jsPDF('p', 'pt', 'a4');
+              const pdfW = pdf.internal.pageSize.getWidth();
+              const pdfH = pdf.internal.pageSize.getHeight();
+              const margin = 20;
+              let imgW = pdfW - margin * 2;
+              let imgH = (canvas.height * imgW) / canvas.width;
+              if (imgH > pdfH - margin * 2) {
+                imgH = pdfH - margin * 2;
+                imgW = (canvas.width * imgH) / canvas.height;
+              }
+              const x = (pdfW - imgW) / 2;
+              const y = margin;
+              pdf.addImage(img, 'JPEG', x, y, imgW, imgH);
+              pdf.save('UTAHREIA_BRRRR_Report.pdf');
+            });
+          }, true);
+        }, true);
+      }
+
+      // (No-op: event listener now attached after each render)
+
+      // Initial render
+      renderStep(current);
+
+    })();
+  </script>
+</body>
+</html>
