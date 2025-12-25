@@ -560,7 +560,23 @@ setupAddressAutocomplete();
             clone.style.boxShadow = '0 0 32px rgba(0,0,0,0.08)';
             overlay.appendChild(clone);
             document.body.appendChild(overlay);
-            // Wait for DOM to paint
+            // Copy chart canvas image into the clone
+            const origCanvas = document.getElementById('brrrrPie');
+            if (origCanvas) {
+              const origImg = origCanvas.toDataURL('image/png');
+              // Find the canvas in the clone
+              const cloneCanvas = clone.querySelector('#brrrrPie');
+              if (cloneCanvas && cloneCanvas.getContext) {
+                const ctx = cloneCanvas.getContext('2d');
+                const img = new window.Image();
+                img.onload = function() {
+                  ctx.clearRect(0, 0, cloneCanvas.width, cloneCanvas.height);
+                  ctx.drawImage(img, 0, 0, cloneCanvas.width, cloneCanvas.height);
+                };
+                img.src = origImg;
+              }
+            }
+            // Wait for DOM to paint and image to load
             setTimeout(function() {
               window.html2canvas(clone, { scale: 2, useCORS: true, backgroundColor: '#fff' }).then(function(canvas) {
                 document.body.removeChild(overlay);
@@ -580,7 +596,7 @@ setupAddressAutocomplete();
                 pdf.addImage(img, 'JPEG', x, y, imgW, imgH);
                 pdf.save('UTAHREIA_BRRRR_Report.pdf');
               });
-            }, 50);
+            }, 200);
           }, true);
         }, true);
       }
