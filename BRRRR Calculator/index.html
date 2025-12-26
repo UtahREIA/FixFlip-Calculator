@@ -6,6 +6,79 @@
   <title>UTAH REIA - BRRRR Calculator</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+        @media (max-width: 700px) {
+          .wrap, .brrrr-wrap {
+            max-width: 100vw;
+            margin: 0;
+            padding: 8px 2vw;
+            border-radius: 0;
+            box-shadow: none;
+          }
+          .brrrr-card {
+            padding: 14px 6px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+          }
+          .brrrr-row {
+            flex-direction: column;
+            gap: 0;
+          }
+          .brrrr-field {
+            min-width: 0;
+            margin-bottom: 10px;
+          }
+          .brrrr-label {
+            font-size: 13px;
+          }
+          .brrrr-input, .brrrr-select, .brrrr-textarea {
+            font-size: 15px;
+            padding: 12px 10px;
+            border-radius: 6px;
+          }
+          .brrrr-summary {
+            padding: 16px 6px 12px 6px;
+            font-size: 1em;
+            max-width: 98vw;
+          }
+          .brrrr-btn {
+            padding: 10px 12px;
+            font-size: 1em;
+            border-radius: 8px;
+          }
+          .brrrr-step-indicator {
+            font-size: 1em;
+          }
+          .brrrr-summary-list li {
+            font-size: 1em;
+            padding: 8px 0 6px 0;
+          }
+          .brrrr-summary-label {
+            font-size: 1em;
+          }
+          .brrrr-summary-value {
+            font-size: 1em;
+          }
+          .brrrr-summary-icon {
+            width: 18px;
+            height: 18px;
+            font-size: 1em;
+          }
+          .btn, .brrrr-btn {
+            font-size: 1em;
+            padding: 10px 12px;
+            border-radius: 8px;
+          }
+          .field, .brrrr-field {
+            min-width: 0;
+            margin-bottom: 10px;
+          }
+          .loan-card {
+            font-size: 1em;
+          }
+          .loan-info {
+            font-size: 1em;
+          }
+        }
     body { font-family: Inter, system-ui, Arial; background: #f6f7f8; color: #111; margin: 0; }
     .wrap { max-width: 1200px; margin: 18px auto; padding: 20px; border-radius: 12px; background: #fff; box-shadow: 0 20px 60px rgba(10,20,30,0.06); }
     .top { display: flex; align-items: center; gap: 16px; justify-content: center; margin-bottom: 6px; }
@@ -214,25 +287,105 @@ setupAddressAutocomplete();
             </div>`
         },
         {
-          title: 'Purchase & Rehab',
+          title: 'Purchase & Rehab & ARV',
           html: `
             <div class="brrrr-card">
               <div class="brrrr-row">
                 <div class="brrrr-field"><label class="brrrr-label">Purchase Price</label><input class="brrrr-input" id="purchasePrice" type="text" placeholder="$240,000"></div>
                 <div class="brrrr-field"><label class="brrrr-label">Rehab Costs</label><input class="brrrr-input" id="rehab" type="text" placeholder="$40,000"></div>
+                <div class="brrrr-field"><label class="brrrr-label">After Repair Value (ARV)</label><input class="brrrr-input" id="arv" type="text" placeholder="$300,000"></div>
               </div>
             </div>`
         },
         {
           title: 'Purchase Financing',
-          html: `
-            <div class="brrrr-card">
-              <div class="brrrr-row">
-                <div class="brrrr-field"><label class="brrrr-label">Down Payment (%)</label><input class="brrrr-input" id="downPaymentPct" type="number" min="0" max="100" value="20"></div>
-                <div class="brrrr-field"><label class="brrrr-label">Interest Rate (%)</label><input class="brrrr-input" id="purchaseRate" type="number" min="0" step="0.01" value="8"></div>
-                <div class="brrrr-field"><label class="brrrr-label">Loan Term (months)</label><input class="brrrr-input" id="purchaseTerm" type="number" min="0" step="1" value="12"></div>
-              </div>
-            </div>`
+            html: `
+              <div class="brrrr-card">
+                <div class="muted">Financing</div>
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+                  <label class="toggle-label">
+                    Use Financing
+                    <label class="switch" title="Enable financing for this property">
+                      <input id="useFinancing" type="checkbox">
+                      <span class="slider"></span>
+                    </label>
+                  </label>
+                  <div class="muted-small">Default: Financing ON. Add loans to model interest and financed amounts.</div>
+                  <div style="margin-top:10px; margin-bottom:15px;">
+                    <a href="https://retorocapitalinvestments.com/funding" 
+                       target="_blank" 
+                       rel="noopener"
+                       class="btn"
+                       style="
+                         background:#001F3F;
+                         color:#fff;
+                         text-decoration:none;
+                         padding:10px 18px;
+                         border-radius:8px;
+                         font-weight:600;
+                         display:inline-block;">
+                       Get a Loan
+                    </a>
+                  </div>
+                </div>
+                <div id="financingArea" style="margin-top:8px;display:none">
+                  <div style="display:flex;gap:12px;flex-wrap:wrap">
+                    <div class="field"><label>Loan Label</label><input id="newLoanLabel" type="text" placeholder="e.g., Hard Money - Lender A"></div>
+                    <div class="field">
+                      <label>Loan Based On</label>
+                      <select id="newLoanTarget">
+                        <option value="purchase">% of Purchase Price</option>
+                        <option value="rehab">% of Repair Cost</option>
+                        <option value="arv">% of ARV</option>
+                        <option value="purchase_rehab">% of Purchase + Repair Cost</option>
+                        <option value="custom">Custom Amount</option>
+                      </select>
+                    </div>
+                    <div class="field" id="newLoanCustomAmountWrap" style="display:none">
+                      <label>Custom Loan Amount</label>
+                      <input id="newLoanCustomAmount" type="text" placeholder="$50,000">
+                    </div>
+                    <div class="field" id="dpPurchaseWrap" style="display:none">
+                      <label>Purchase Down Payment (%)</label>
+                      <input id="newLoanPriceDownPct" type="number" min="0" max="100" step="0.1" value="10">
+                    </div>
+                    <div class="field" id="dpRehabWrap" style="display:none">
+                      <label>Rehab Down Payment (%)</label>
+                      <input id="newLoanRehabDownPct" type="number" min="0" max="100" step="0.1" value="10">
+                    </div>
+                    <div class="field"><label>Down Payment (%)</label><input id="newLoanDownPct" type="number" min="0" max="100" value="10" step="0.1"></div>
+                    <div class="field"><label>Loan Type</label><select id="newLoanType"><option>Interest-Only</option><option>Amortized</option></select></div>
+                    <div class="field"><label>Interest Rate (%)</label><input id="newLoanRate" type="number" min="0" step="0.1" value="15"></div>
+                    <div class="field"><label>Loan Term (months)</label><input id="newLoanTerm" type="number" min="0" step="1" placeholder="e.g., 6"></div>
+                  </div>
+                  <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                    <button type="button" class="btn" id="calculateLoanBtn" style="background:#001F3F;color:#fff">Save</button>
+                    <button type="button" class="btn" id="addLoanBtn">Add a Loan</button>
+                    <div class="muted-small">Click Save to calculate financed amount, then Add a Loan to confirm.</div>
+                  </div>
+                  <div id="loanPreview" style="margin-top:10px;padding:12px;border-radius:8px;background:#f0f8ff;border:1px solid #d0e8ff;display:none">
+                    <strong>Loan Preview:</strong>
+                    <div id="loanPreviewContent" style="margin-top:6px;font-size:13px;color:#333"></div>
+                  </div>
+                  <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+                    <div class="field" style="min-width:220px">
+                      <label>Holding Timeframe (months)</label>
+                      <select id="holdingTime">
+                        <option value="0.5">0.5 (2 wks)</option><option value="1">1</option><option value="3">3</option>
+                        <option value="6" selected>6</option><option value="9">9</option><option value="12">12</option><option value="24">24</option>
+                      </select>
+                    </div>
+                    <div class="field" style="min-width:220px">
+                      <label>Computed Financed Amount</label>
+                      <div style="display:flex;gap:8px;align-items:center">
+                        <div id="computedLoanAmount" style="font-weight:700;padding:10px;background:#fff;border-radius:8px;border:1px solid #e7e7e7;">$0</div>
+                        <div class="muted-small">Uses added loans.</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="loan-list" id="loanList"></div>
+                </div>
+              </div>`
         },
         {
           title: 'Refinance',
@@ -285,6 +438,114 @@ setupAddressAutocomplete();
       let current = 0;
       const stepsArea = root.querySelector('#brrrrSteps');
       const summaryDiv = root.querySelector('#brrrrSummary');
+      // --- Loan State ---
+      let loans = [];
+      function unformatCurrency(val) {
+        if (!val) return 0;
+        if (typeof val === 'number') return val;
+        return Number(String(val).replace(/[^0-9.-]+/g, '')) || 0;
+      }
+      function formatCurrency(val) {
+        val = Number(val) || 0;
+        return '$' + val.toLocaleString(undefined, {maximumFractionDigits:2});
+      }
+      function escapeHtml(str) {
+        return String(str).replace(/[&<>"]/g, function(m) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]); });
+      }
+      function clearLoanInputs() {
+        const ids = ['newLoanLabel','newLoanCustomAmount','newLoanDownPct','newLoanPriceDownPct','newLoanRehabDownPct','newLoanRate','newLoanTerm'];
+        ids.forEach(id => { const el = document.getElementById(id); if (el) {
+          if (id==='newLoanDownPct'||id==='newLoanPriceDownPct'||id==='newLoanRehabDownPct') el.value = 10;
+          else if (id==='newLoanRate') el.value = 15;
+          else if (id==='newLoanTerm') el.value = '';
+          else el.value = '';
+        }});
+        const custom = document.getElementById('newLoanCustomAmountWrap');
+        const dpP = document.getElementById('dpPurchaseWrap');
+        const dpR = document.getElementById('dpRehabWrap');
+        if (custom) custom.style.display = 'none';
+        if (dpP) dpP.style.display = 'none';
+        if (dpR) dpR.style.display = 'none';
+      }
+      function calculateLoanPreview() {
+        const label = document.getElementById('newLoanLabel').value || 'Loan';
+        const target = document.getElementById('newLoanTarget').value;
+        const type = document.getElementById('newLoanType').value;
+        const rate = Number(document.getElementById('newLoanRate').value) || 0;
+        const term = Number(document.getElementById('newLoanTerm').value) || 0;
+        const purchasePrice = unformatCurrency(document.getElementById('purchasePrice')?.value) || 0;
+        const repairs = unformatCurrency(document.getElementById('rehab')?.value) || 0;
+        const arv = unformatCurrency(document.getElementById('arv')?.value) || 0;
+        let financed = 0;
+        if (target === 'purchase_rehab') {
+          const pctPriceDP = Number(document.getElementById('newLoanPriceDownPct').value) || 0;
+          const pctRehabDP = Number(document.getElementById('newLoanRehabDownPct').value) || 0;
+          financed = purchasePrice * (1 - pctPriceDP / 100) + repairs * (1 - pctRehabDP / 100);
+        } else if (target === 'purchase') {
+          const dp = Number(document.getElementById('newLoanDownPct').value) || 0;
+          financed = purchasePrice * (1 - dp / 100);
+        } else if (target === 'rehab') {
+          const dp = Number(document.getElementById('newLoanDownPct').value) || 0;
+          financed = repairs * (1 - dp / 100);
+        } else if (target === 'arv') {
+          const dp = Number(document.getElementById('newLoanDownPct').value) || 0;
+          financed = arv * (1 - dp / 100);
+        } else if (target === 'custom') {
+          financed = unformatCurrency(document.getElementById('newLoanCustomAmount').value || 0);
+        }
+        const preview = document.getElementById('loanPreview');
+        const content = document.getElementById('loanPreviewContent');
+        if (preview && content) {
+          content.innerHTML = `
+            <div><strong>${escapeHtml(label)}</strong></div>
+            <div>Target: ${target === 'purchase_rehab' ? 'Purchase + Repair' : target.charAt(0).toUpperCase() + target.slice(1)}</div>
+            <div>Financed Amount: ${formatCurrency(financed)}</div>
+            <div>Type: ${type}</div>
+            <div>Rate: ${rate}% | Term: ${term ? term + ' months' : 'Not Set'}</div>
+          `;
+          preview.style.display = 'block';
+        }
+        return financed;
+      }
+      function renderLoanList() {
+        const list = document.getElementById('loanList');
+        if (!list) return;
+        list.innerHTML = '';
+        loans.forEach(l => {
+          const div = document.createElement('div');
+          div.className = 'loan-card';
+          div.innerHTML = `
+            <div class="loan-info">
+              <strong>${escapeHtml(l.label)}</strong>
+              <div style="font-size:12px">
+                ${formatCurrency(Number(l.financed || 0))} - ${escapeHtml(l.type)} @ ${l.rate}% - term ${l.term || 'N/A'} mo
+              </div>
+            </div>
+            <div class="loan-actions">
+              <button class="btn secondary" data-loanid="${l.id}">Delete</button>
+            </div>`;
+          list.appendChild(div);
+        });
+        // Attach delete events
+        Array.from(list.querySelectorAll('button[data-loanid]')).forEach(btn => {
+          btn.onclick = function() {
+            loans = loans.filter(l => String(l.id) !== String(btn.getAttribute('data-loanid')));
+            renderLoanList();
+            updateAggregatedLoanAmountDisplay();
+          };
+        });
+        updateAggregatedLoanAmountDisplay();
+      }
+      function updateAggregatedLoanAmountDisplay() {
+        const val = computeAggregatedFinancedAmount();
+        const el = document.getElementById('computedLoanAmount');
+        if (el) el.textContent = formatCurrency(val);
+      }
+      function computeAggregatedFinancedAmount() {
+        let sum = 0;
+        loans.forEach(l => sum += Number(l.financed || 0));
+        return sum;
+      }
 
       function renderStep(n) {
         let navHtml = `<div class="brrrr-nav" style="margin-top:18px;">`;
@@ -317,6 +578,82 @@ setupAddressAutocomplete();
               brrrrData[input.id] = input.value;
             });
           });
+          // --- Loan UI logic ---
+          if (n === 2) { // Financing step
+            // Show/hide financing area
+            const useFin = document.getElementById('useFinancing');
+            const area = document.getElementById('financingArea');
+            if (useFin && area) {
+              useFin.checked = true;
+              area.style.display = 'block';
+              useFin.onchange = function() {
+                area.style.display = useFin.checked ? 'block' : 'none';
+              };
+            }
+            // Show/hide custom amount and down payment fields
+            const targetSel = document.getElementById('newLoanTarget');
+            const customWrap = document.getElementById('newLoanCustomAmountWrap');
+            const dpPurchaseWrap = document.getElementById('dpPurchaseWrap');
+            const dpRehabWrap = document.getElementById('dpRehabWrap');
+            if (targetSel) {
+              targetSel.onchange = function() {
+                if (targetSel.value === 'custom') {
+                  if (customWrap) customWrap.style.display = 'block';
+                } else { if (customWrap) customWrap.style.display = 'none'; }
+                if (targetSel.value === 'purchase_rehab') {
+                  if (dpPurchaseWrap) dpPurchaseWrap.style.display = 'block';
+                  if (dpRehabWrap) dpRehabWrap.style.display = 'block';
+                } else {
+                  if (dpPurchaseWrap) dpPurchaseWrap.style.display = 'none';
+                  if (dpRehabWrap) dpRehabWrap.style.display = 'none';
+                }
+              };
+            }
+            // Calculate loan preview
+            const calcBtn = document.getElementById('calculateLoanBtn');
+            if (calcBtn) calcBtn.onclick = calculateLoanPreview;
+            // Add loan
+            const addBtn = document.getElementById('addLoanBtn');
+            if (addBtn) addBtn.onclick = function() {
+              const label = document.getElementById('newLoanLabel').value || 'Loan';
+              const target = document.getElementById('newLoanTarget').value;
+              const type = document.getElementById('newLoanType').value;
+              const rate = Number(document.getElementById('newLoanRate').value) || 0;
+              const term = Number(document.getElementById('newLoanTerm').value) || 0;
+              const purchasePrice = unformatCurrency(document.getElementById('purchasePrice')?.value) || 0;
+              const repairs = unformatCurrency(document.getElementById('rehab')?.value) || 0;
+              const arv = unformatCurrency(document.getElementById('arv')?.value) || 0;
+              let financed = 0;
+              if (target === 'purchase_rehab') {
+                const pctPriceDP = Number(document.getElementById('newLoanPriceDownPct').value) || 0;
+                const pctRehabDP = Number(document.getElementById('newLoanRehabDownPct').value) || 0;
+                financed = purchasePrice * (1 - pctPriceDP / 100) + repairs * (1 - pctRehabDP / 100);
+              } else if (target === 'purchase') {
+                const dp = Number(document.getElementById('newLoanDownPct').value) || 0;
+                financed = purchasePrice * (1 - dp / 100);
+              } else if (target === 'rehab') {
+                const dp = Number(document.getElementById('newLoanDownPct').value) || 0;
+                financed = repairs * (1 - dp / 100);
+              } else if (target === 'arv') {
+                const dp = Number(document.getElementById('newLoanDownPct').value) || 0;
+                financed = arv * (1 - dp / 100);
+              } else if (target === 'custom') {
+                financed = unformatCurrency(document.getElementById('newLoanCustomAmount').value || 0);
+              }
+              loans.push({
+                id: Date.now() + Math.random(),
+                label, target, type, rate, term, financed, baseFinanced: financed
+              });
+              renderLoanList();
+              clearLoanInputs();
+              const preview = document.getElementById('loanPreview');
+              if (preview) preview.style.display = 'none';
+              updateAggregatedLoanAmountDisplay();
+            };
+            // Render loan list and computed amount
+            renderLoanList();
+            updateAggregatedLoanAmountDisplay();
+          }
         }, 50);
         // Step navigation
         const navBack = document.getElementById('brrrrStepPrev');
@@ -388,9 +725,27 @@ setupAddressAutocomplete();
         // Use values from brrrrData, not DOM
         const purchasePrice = parseCurrency(brrrrData['purchasePrice']);
         const rehab = parseCurrency(brrrrData['rehab']);
-        const downPct = Number(brrrrData['downPaymentPct']) || 0;
-        const purchaseRate = Number(brrrrData['purchaseRate']) || 0;
-        const purchaseTerm = Number(brrrrData['purchaseTerm']) || 0;
+        // Use loans if any, otherwise fallback to old fields
+        let totalFinanced = computeAggregatedFinancedAmount();
+        let purchaseRate = 0, purchaseTerm = 0;
+        if (loans.length > 0) {
+          // Use weighted average for rate and max term
+          let total = 0, weight = 0, maxTerm = 0;
+          loans.forEach(l => {
+            const amt = Number(l.financed || 0);
+            if (amt > 0) {
+              total += amt * (Number(l.rate || 0) / 100);
+              weight += amt;
+            }
+            if (Number(l.term || 0) > maxTerm) maxTerm = Number(l.term || 0);
+          });
+          purchaseRate = weight > 0 ? (total / weight) * 100 : 0;
+          purchaseTerm = maxTerm;
+        } else {
+          purchaseRate = Number(brrrrData['purchaseRate']) || 0;
+          purchaseTerm = Number(brrrrData['purchaseTerm']) || 0;
+          totalFinanced = purchasePrice; // fallback
+        }
         const refiAmount = parseCurrency(brrrrData['refiAmount']);
         const refiRate = Number(brrrrData['refiRate']) || 0;
         const refiTerm = Number(brrrrData['refiTerm']) || 0;
@@ -405,7 +760,28 @@ setupAddressAutocomplete();
 
         // Calculations
         const totalInvestment = purchasePrice + rehab + refiCosts;
-        const purchaseLoan = purchasePrice * (1 - downPct / 100);
+        // Calculate monthly payment for all loans (interest-only or amortized)
+        let totalLoanMonthly = 0;
+        loans.forEach(l => {
+          if (l.type === 'Interest-Only') {
+            totalLoanMonthly += Number(l.financed || 0) * (Number(l.rate || 0) / 100) / 12;
+          } else if (l.type === 'Amortized') {
+            const amt = Number(l.financed || 0);
+            const r = Number(l.rate || 0) / 100 / 12;
+            const n = Number(l.term || 0);
+            if (amt > 0 && r > 0 && n > 0) {
+              totalLoanMonthly += r === 0 ? amt / n : (amt * r) / (1 - Math.pow(1 + r, -n));
+            }
+          }
+        });
+        // If no loans, fallback to old single loan
+        if (loans.length === 0) {
+          if (totalFinanced > 0 && purchaseRate > 0 && purchaseTerm > 0) {
+            const n = purchaseTerm;
+            const r = purchaseRate / 100 / 12;
+            totalLoanMonthly = r === 0 ? totalFinanced / n : (totalFinanced * r) / (1 - Math.pow(1 + r, -n));
+          }
+        }
         // Correct refi monthly payment calculation (standard amortization)
         let refiMonthly = 0;
         if (refiAmount > 0 && refiRate > 0 && refiTerm > 0) {
@@ -413,7 +789,7 @@ setupAddressAutocomplete();
           const r = refiRate / 100 / 12;
           refiMonthly = r === 0 ? refiAmount / n : (refiAmount * r) / (1 - Math.pow(1 + r, -n));
         }
-        const totalMonthlyExpenses = taxes + insurance + otherExpenses;
+        const totalMonthlyExpenses = taxes + insurance + otherExpenses + totalLoanMonthly;
         const cashFlow = rent - totalMonthlyExpenses - refiMonthly;
 
         // Appreciation (simple, 1 year)
