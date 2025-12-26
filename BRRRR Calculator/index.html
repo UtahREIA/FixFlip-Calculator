@@ -1276,8 +1276,9 @@ setupAddressAutocomplete();
                 img.src = origImg;
               }
             }
-            // Wait for DOM to paint and image to load
+            // Expand all <details> elements in the clone before generating PDF
             setTimeout(function() {
+              Array.from(clone.querySelectorAll('details')).forEach(function(d) { d.open = true; });
               window.html2canvas(clone, { scale: 2, useCORS: true, backgroundColor: '#fff' }).then(function(canvas) {
                 document.body.removeChild(overlay);
                 const img = canvas.toDataURL('image/jpeg', 0.98);
