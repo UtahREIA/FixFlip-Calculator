@@ -391,10 +391,58 @@ setupAddressAutocomplete();
           title: 'Refinance',
           html: `
             <div class="brrrr-card">
-              <div class="brrrr-row">
-                <div class="brrrr-field"><label class="brrrr-label">Refinance Amount</label><input class="brrrr-input" id="refiAmount" type="text" placeholder="$200,000"></div>
-                <div class="brrrr-field"><label class="brrrr-label">Refi Interest Rate (%)</label><input class="brrrr-input" id="refiRate" type="number" min="0" step="0.01" value="6"></div>
-                <div class="brrrr-field"><label class="brrrr-label">Refi Loan Term (years)</label><input class="brrrr-input" id="refiTerm" type="number" min="0" step="1" value="30"></div>
+              <div class="muted">Refinance Loans</div>
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+                <label class="toggle-label">
+                  Use Refinance Loans
+                  <label class="switch" title="Enable refinance loans for this property">
+                    <input id="useRefiFinancing" type="checkbox">
+                    <span class="slider"></span>
+                  </label>
+                </label>
+                <div class="muted-small">Default: ON. Add loans to model refi interest and amounts.</div>
+              </div>
+              <div id="refiFinancingArea" style="margin-top:8px;display:none">
+                <div style="display:flex;gap:12px;flex-wrap:wrap">
+                  <div class="field"><label>Loan Label</label><input id="newRefiLoanLabel" type="text" placeholder="e.g., Refi - Lender B"></div>
+                  <div class="field">
+                    <label>Loan Based On</label>
+                    <select id="newRefiLoanTarget">
+                      <option value="arv">% of ARV</option>
+                      <option value="custom">Custom Amount</option>
+                    </select>
+                  </div>
+                  <div class="field" id="newRefiLoanCustomAmountWrap" style="display:none">
+                    <label>Custom Loan Amount</label>
+                    <input id="newRefiLoanCustomAmount" type="text" placeholder="$200,000">
+                  </div>
+                  <div class="field" id="refiLTVWrap">
+                    <label>Loan-to-Value (LTV %)</label>
+                    <input id="newRefiLoanLTV" type="number" min="0" max="100" value="75" step="0.1">
+                  </div>
+                  <div class="field"><label>Loan Type</label><select id="newRefiLoanType"><option>Interest-Only</option><option>Amortized</option></select></div>
+                  <div class="field"><label>Interest Rate (%)</label><input id="newRefiLoanRate" type="number" min="0" step="0.1" value="6"></div>
+                  <div class="field"><label>Loan Term (years)</label><input id="newRefiLoanTerm" type="number" min="0" step="1" value="30"></div>
+                </div>
+                <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                  <button type="button" class="btn" id="calculateRefiLoanBtn" style="background:#001F3F;color:#fff">Save</button>
+                  <button type="button" class="btn" id="addRefiLoanBtn">Add a Loan</button>
+                  <div class="muted-small">Click Save to calculate amount, then Add a Loan to confirm.</div>
+                </div>
+                <div id="refiLoanPreview" style="margin-top:10px;padding:12px;border-radius:8px;background:#f0f8ff;border:1px solid #d0e8ff;display:none">
+                  <strong>Loan Preview:</strong>
+                  <div id="refiLoanPreviewContent" style="margin-top:6px;font-size:13px;color:#333"></div>
+                </div>
+                <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+                  <div class="field" style="min-width:220px">
+                    <label>Aggregate Refi Amount</label>
+                    <div style="display:flex;gap:8px;align-items:center">
+                      <div id="computedRefiLoanAmount" style="font-weight:700;padding:10px;background:#fff;border-radius:8px;border:1px solid #e7e7e7;">$0</div>
+                      <div class="muted-small">Uses added refi loans.</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="loan-list" id="refiLoanList"></div>
               </div>
               <div class="brrrr-field"><label class="brrrr-label">Refinance Costs</label><input class="brrrr-input" id="refiCosts" type="text" placeholder="$5,000"></div>
             </div>`
@@ -440,6 +488,7 @@ setupAddressAutocomplete();
       const summaryDiv = root.querySelector('#brrrrSummary');
       // --- Loan State ---
       let loans = [];
+      let refiLoans = [];
       function unformatCurrency(val) {
         if (!val) return 0;
         if (typeof val === 'number') return val;
@@ -735,6 +784,156 @@ setupAddressAutocomplete();
             renderLoanList();
             updateAggregatedLoanAmountDisplay();
           }
+          // --- Refi Loan UI logic ---
+          if (n === 3) { // Refinance step
+            const useRefiFin = document.getElementById('useRefiFinancing');
+            const area = document.getElementById('refiFinancingArea');
+            if (useRefiFin && area) {
+              useRefiFin.checked = true;
+              area.style.display = 'block';
+              useRefiFin.onchange = function() {
+                area.style.display = useRefiFin.checked ? 'block' : 'none';
+              };
+            }
+            // Show/hide custom amount field
+            const targetSel = document.getElementById('newRefiLoanTarget');
+            const customWrap = document.getElementById('newRefiLoanCustomAmountWrap');
+            const ltvWrap = document.getElementById('refiLTVWrap');
+            if (targetSel) {
+              targetSel.onchange = function() {
+                if (targetSel.value === 'custom') {
+                  if (customWrap) customWrap.style.display = 'block';
+                  if (ltvWrap) ltvWrap.style.display = 'none';
+                } else {
+                  if (customWrap) customWrap.style.display = 'none';
+                  if (ltvWrap) ltvWrap.style.display = 'block';
+                }
+                calculateRefiLoanPreview();
+              };
+              targetSel.onchange();
+            }
+            // Calculate loan preview
+            const calcBtn = document.getElementById('calculateRefiLoanBtn');
+            if (calcBtn) calcBtn.onclick = function() {
+              const preview = document.getElementById('refiLoanPreview');
+              if (preview) preview.style.display = 'block';
+              calculateRefiLoanPreview();
+            };
+            // Add loan
+            const addBtn = document.getElementById('addRefiLoanBtn');
+            if (addBtn) addBtn.onclick = function() {
+              const label = document.getElementById('newRefiLoanLabel').value || 'Refi Loan';
+              const target = document.getElementById('newRefiLoanTarget').value;
+              const type = document.getElementById('newRefiLoanType').value;
+              const rate = Number(document.getElementById('newRefiLoanRate').value) || 0;
+              const term = Number(document.getElementById('newRefiLoanTerm').value) || 0;
+              const arv = unformatCurrency(window.brrrrData?.arv);
+              let financed = 0;
+              if (target === 'arv') {
+                const ltv = Number(document.getElementById('newRefiLoanLTV').value) || 0;
+                financed = arv * (ltv / 100);
+              } else if (target === 'custom') {
+                financed = unformatCurrency(document.getElementById('newRefiLoanCustomAmount').value || 0);
+              }
+              refiLoans.push({
+                id: Date.now() + Math.random(),
+                label, target, type, rate, term, financed, baseFinanced: financed
+              });
+              renderRefiLoanList();
+              clearRefiLoanInputs();
+              updateAggregatedRefiLoanAmountDisplay();
+            };
+            renderRefiLoanList();
+            updateAggregatedRefiLoanAmountDisplay();
+          }
+              function clearRefiLoanInputs() {
+                const ids = ['newRefiLoanLabel','newRefiLoanCustomAmount','newRefiLoanLTV','newRefiLoanRate','newRefiLoanTerm'];
+                ids.forEach(id => { const el = document.getElementById(id); if (el) {
+                  if (id==='newRefiLoanLTV') el.value = 75;
+                  else if (id==='newRefiLoanRate') el.value = 6;
+                  else if (id==='newRefiLoanTerm') el.value = 30;
+                  else el.value = '';
+                }});
+                const custom = document.getElementById('newRefiLoanCustomAmountWrap');
+                if (custom) custom.style.display = 'none';
+              }
+
+              function calculateRefiLoanPreview() {
+                const label = document.getElementById('newRefiLoanLabel').value || 'Refi Loan';
+                const target = document.getElementById('newRefiLoanTarget').value;
+                const type = document.getElementById('newRefiLoanType').value;
+                const rate = Number(document.getElementById('newRefiLoanRate').value) || 0;
+                const term = Number(document.getElementById('newRefiLoanTerm').value) || 0;
+                let arv = unformatCurrency(window.brrrrData?.arv);
+                let financed = 0;
+                if (target === 'arv') {
+                  const ltv = Number(document.getElementById('newRefiLoanLTV').value) || 0;
+                  financed = arv * (ltv / 100);
+                } else if (target === 'custom') {
+                  financed = unformatCurrency(document.getElementById('newRefiLoanCustomAmount').value || 0);
+                }
+                const preview = document.getElementById('refiLoanPreview');
+                const content = document.getElementById('refiLoanPreviewContent');
+                if (preview && content) {
+                  content.innerHTML = `
+                    <div><strong>${label}</strong></div>
+                    <div>Target: ${target === 'arv' ? 'ARV' : 'Custom'}</div>
+                    <div>Financed Amount: $${financed.toLocaleString()}</div>
+                    <div>Type: ${type}</div>
+                    <div>Rate: ${rate}% | Term: ${term ? term + ' years' : 'Not Set'}</div>
+                  `;
+                  preview.style.display = 'block';
+                }
+                return financed;
+              }
+
+              function renderRefiLoanList() {
+                const list = document.getElementById('refiLoanList');
+                if (!list) return;
+                list.innerHTML = '';
+                refiLoans.forEach(l => {
+                  const div = document.createElement('div');
+                  div.className = 'loan-card';
+                  div.innerHTML = `
+                    <div class="loan-info">
+                      <strong>${l.label}</strong>
+                      <div style="font-size:12px">
+                        $${Number(l.financed || 0).toLocaleString()} - ${l.type} @ ${l.rate}% - term ${l.term || 'N/A'} yrs
+                      </div>
+                    </div>
+                    <div class="loan-actions">
+                      <button class="btn secondary" data-refiloanid="${l.id}">Delete</button>
+                    </div>`;
+                  list.appendChild(div);
+                });
+                // Attach delete events
+                Array.from(list.querySelectorAll('button[data-refiloanid]')).forEach(btn => {
+                  btn.onclick = function() {
+                    refiLoans = refiLoans.filter(l => String(l.id) !== String(btn.getAttribute('data-refiloanid')));
+                    renderRefiLoanList();
+                    updateAggregatedRefiLoanAmountDisplay();
+                  };
+                });
+                updateAggregatedRefiLoanAmountDisplay();
+              }
+
+              function updateAggregatedRefiLoanAmountDisplay() {
+                const val = computeAggregatedRefiFinancedAmount();
+                const el = document.getElementById('computedRefiLoanAmount');
+                if (el) {
+                  el.innerHTML = '$' + val.toLocaleString() +
+                    `<details style='margin-top:4px;color:#444;font-size:12px;'><summary>Debug Info</summary>` +
+                    refiLoans.map((l,i) => `<div>Loan ${i+1}: $${Number(l.financed).toLocaleString()} (${l.label})</div>`).join('') +
+                    `<div>Total Loans: ${refiLoans.length}</div>` +
+                    `</details>`;
+                }
+              }
+
+              function computeAggregatedRefiFinancedAmount() {
+                let sum = 0;
+                refiLoans.forEach(l => sum += Number(l.financed || 0));
+                return sum;
+              }
         }, 50);
         // Step navigation
         const navBack = document.getElementById('brrrrStepPrev');
@@ -807,9 +1006,9 @@ setupAddressAutocomplete();
         const purchasePrice = parseCurrency(brrrrData['purchasePrice']);
         const rehab = parseCurrency(brrrrData['rehab']);
         // Use loans if any, otherwise fallback to old fields
-        let totalFinanced = computeAggregatedFinancedAmount();
-        let purchaseRate = 0, purchaseTerm = 0;
-        if (loans.length > 0) {
+        let totalFinanced = 0, purchaseRate = 0, purchaseTerm = 0, purchaseMonthly = 0;
+        if (typeof loans !== 'undefined' && loans.length > 0) {
+          totalFinanced = loans.reduce((sum, l) => sum + Number(l.financed || 0), 0);
           // Use weighted average for rate and max term
           let total = 0, weight = 0, maxTerm = 0;
           loans.forEach(l => {
@@ -819,6 +1018,16 @@ setupAddressAutocomplete();
               weight += amt;
             }
             if (Number(l.term || 0) > maxTerm) maxTerm = Number(l.term || 0);
+            // Calculate monthly payment for each loan
+            if (l.type === 'Interest-Only') {
+              purchaseMonthly += amt * (Number(l.rate || 0) / 100) / 12;
+            } else if (l.type === 'Amortized') {
+              const n = Number(l.term || 0);
+              const r = Number(l.rate || 0) / 100 / 12;
+              if (amt > 0 && r > 0 && n > 0) {
+                purchaseMonthly += r === 0 ? amt / n : (amt * r) / (1 - Math.pow(1 + r, -n));
+              }
+            }
           });
           purchaseRate = weight > 0 ? (total / weight) * 100 : 0;
           purchaseTerm = maxTerm;
@@ -826,10 +1035,34 @@ setupAddressAutocomplete();
           purchaseRate = Number(brrrrData['purchaseRate']) || 0;
           purchaseTerm = Number(brrrrData['purchaseTerm']) || 0;
           totalFinanced = purchasePrice; // fallback
+          // Fallback single loan monthly payment
+          if (totalFinanced > 0 && purchaseRate > 0 && purchaseTerm > 0) {
+            const n = purchaseTerm;
+            const r = purchaseRate / 100 / 12;
+            purchaseMonthly = r === 0 ? totalFinanced / n : (totalFinanced * r) / (1 - Math.pow(1 + r, -n));
+          }
         }
-        const refiAmount = parseCurrency(brrrrData['refiAmount']);
-        const refiRate = Number(brrrrData['refiRate']) || 0;
-        const refiTerm = Number(brrrrData['refiTerm']) || 0;
+        // Use aggregate of all refi loans if present, else fallback to old field
+        let refiAmount = 0, refiRate = 0, refiTerm = 0;
+        if (typeof refiLoans !== 'undefined' && refiLoans.length > 0) {
+          refiAmount = refiLoans.reduce((sum, l) => sum + Number(l.financed || 0), 0);
+          // Use weighted average for rate and max term
+          let total = 0, weight = 0, maxTerm = 0;
+          refiLoans.forEach(l => {
+            const amt = Number(l.financed || 0);
+            if (amt > 0) {
+              total += amt * (Number(l.rate || 0) / 100);
+              weight += amt;
+            }
+            if (Number(l.term || 0) > maxTerm) maxTerm = Number(l.term || 0);
+          });
+          refiRate = weight > 0 ? (total / weight) * 100 : 0;
+          refiTerm = maxTerm;
+        } else {
+          refiAmount = parseCurrency(brrrrData['refiAmount']);
+          refiRate = Number(brrrrData['refiRate']) || 0;
+          refiTerm = Number(brrrrData['refiTerm']) || 0;
+        }
         const refiCosts = parseCurrency(brrrrData['refiCosts']);
         const rent = parseCurrency(brrrrData['rent']);
         const rentIncrease = Number(brrrrData['rentIncrease']) || 0;
@@ -841,31 +1074,26 @@ setupAddressAutocomplete();
 
         // Calculations
         const totalInvestment = purchasePrice + rehab + refiCosts;
-        // Calculate monthly payment for all loans (interest-only or amortized)
-        let totalLoanMonthly = 0;
-        loans.forEach(l => {
-          if (l.type === 'Interest-Only') {
-            totalLoanMonthly += Number(l.financed || 0) * (Number(l.rate || 0) / 100) / 12;
-          } else if (l.type === 'Amortized') {
-            const amt = Number(l.financed || 0);
-            const r = Number(l.rate || 0) / 100 / 12;
-            const n = Number(l.term || 0);
-            if (amt > 0 && r > 0 && n > 0) {
-              totalLoanMonthly += r === 0 ? amt / n : (amt * r) / (1 - Math.pow(1 + r, -n));
-            }
-          }
-        });
-        // If no loans, fallback to old single loan
-        if (loans.length === 0) {
-          if (totalFinanced > 0 && purchaseRate > 0 && purchaseTerm > 0) {
-            const n = purchaseTerm;
-            const r = purchaseRate / 100 / 12;
-            totalLoanMonthly = r === 0 ? totalFinanced / n : (totalFinanced * r) / (1 - Math.pow(1 + r, -n));
-          }
-        }
+        // totalLoanMonthly is now purchaseMonthly (from above)
+        let totalLoanMonthly = purchaseMonthly;
         // Correct refi monthly payment calculation (standard amortization)
         let refiMonthly = 0;
-        if (refiAmount > 0 && refiRate > 0 && refiTerm > 0) {
+        if (typeof refiLoans !== 'undefined' && refiLoans.length > 0) {
+          refiLoans.forEach(l => {
+            const amt = Number(l.financed || 0);
+            const rate = Number(l.rate || 0);
+            const term = Number(l.term || 0);
+            if (l.type === 'Interest-Only') {
+              refiMonthly += amt * (rate / 100) / 12;
+            } else if (l.type === 'Amortized') {
+              const n = term * 12;
+              const r = rate / 100 / 12;
+              if (amt > 0 && r > 0 && n > 0) {
+                refiMonthly += r === 0 ? amt / n : (amt * r) / (1 - Math.pow(1 + r, -n));
+              }
+            }
+          });
+        } else if (refiAmount > 0 && refiRate > 0 && refiTerm > 0) {
           const n = refiTerm * 12;
           const r = refiRate / 100 / 12;
           refiMonthly = r === 0 ? refiAmount / n : (refiAmount * r) / (1 - Math.pow(1 + r, -n));
@@ -893,11 +1121,26 @@ setupAddressAutocomplete();
             </div>
           `;
         }
+        let purchaseLoanBreakdown = '';
+        if (typeof loans !== 'undefined' && loans.length > 0) {
+          purchaseLoanBreakdown = `<details style='margin:6px 0 0 0;'><summary style='cursor:pointer;font-size:0.98em;color:#2E8B57;'>View Purchase Loan Breakdown</summary><div style='padding:6px 0 0 10px;'>` +
+            loans.map((l,i) => `<div style='font-size:0.97em;margin-bottom:2px;'><strong>${l.label}</strong>: $${Number(l.financed).toLocaleString()} - ${l.type} @ ${l.rate}% - term ${l.term || 'N/A'} mo</div>`).join('') +
+            `</div></details>`;
+        }
+        let refiLoanBreakdown = '';
+        if (typeof refiLoans !== 'undefined' && refiLoans.length > 0) {
+          refiLoanBreakdown = `<details style='margin:6px 0 0 0;'><summary style='cursor:pointer;font-size:0.98em;color:#1a2a4f;'>View Refinance Loan Breakdown</summary><div style='padding:6px 0 0 10px;'>` +
+            refiLoans.map((l,i) => `<div style='font-size:0.97em;margin-bottom:2px;'><strong>${l.label}</strong>: $${Number(l.financed).toLocaleString()} - ${l.type} @ ${l.rate}% - term ${l.term || 'N/A'} yrs</div>`).join('') +
+            `</div></details>`;
+        }
         summaryDiv.innerHTML = `
           ${propInfoHtml}
           <ul class="brrrr-summary-list">
             <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">💰</span>Total Investment:</span> <span class="brrrr-summary-value">$${totalInvestment.toLocaleString()}</span></li>
+            <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">💵</span>Purchase Loan Amount:</span> <span class="brrrr-summary-value">$${totalFinanced.toLocaleString()}</span></li>
+            ${purchaseLoanBreakdown ? `<li style='background:#f8fafb;'>${purchaseLoanBreakdown}</li>` : ''}
             <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">🏦</span>Refinance Loan Amount:</span> <span class="brrrr-summary-value">$${refiAmount.toLocaleString()}</span></li>
+            ${refiLoanBreakdown ? `<li style='background:#f8fafb;'>${refiLoanBreakdown}</li>` : ''}
             <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">🏠</span>Monthly Rent:</span> <span class="brrrr-summary-value">$${rent.toLocaleString()}</span></li>
             <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">🧾</span>Total Monthly Expenses:</span> <span class="brrrr-summary-value">$${totalMonthlyExpenses.toLocaleString()}</span></li>
             <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">💸</span>Estimated Monthly Cash Flow:</span> <span class="brrrr-summary-value${cashFlow>=0?'':' negative'}">$${cashFlow.toLocaleString()}</span></li>
