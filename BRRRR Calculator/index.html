@@ -335,9 +335,9 @@ setupAddressAutocomplete();
                       <label>Loan Based On</label>
                       <select id="newLoanTarget">
                         <option value="purchase">% of Purchase Price</option>
-                        <option value="rehab">% of Repair Cost</option>
+                        <option value="rehab">% of Rehab Cost</option>
                         <option value="arv">% of ARV</option>
-                        <option value="purchase_rehab">% of Purchase + Repair Cost</option>
+                        <option value="purchase_rehab">% of Purchase + Rehab Cost</option>
                         <option value="custom">Custom Amount</option>
                       </select>
                     </div>
@@ -473,25 +473,28 @@ setupAddressAutocomplete();
         const type = document.getElementById('newLoanType').value;
         const rate = Number(document.getElementById('newLoanRate').value) || 0;
         const term = Number(document.getElementById('newLoanTerm').value) || 0;
-        const purchasePrice = unformatCurrency(document.getElementById('purchasePrice')?.value) || 0;
-        const repairs = unformatCurrency(document.getElementById('rehab')?.value) || 0;
-        const arv = unformatCurrency(document.getElementById('arv')?.value) || 0;
+        // Always use values from brrrrData, not DOM, for cross-step consistency
+        let purchasePrice = unformatCurrency(window.brrrrData?.purchasePrice);
+        let repairs = unformatCurrency(window.brrrrData?.rehab);
+        let arv = unformatCurrency(window.brrrrData?.arv);
         let financed = 0;
+        // Debug: log all values used for calculation
+        // window.alert(`purchasePrice=${purchasePrice}, repairs=${repairs}, arv=${arv}, target=${target}`);
         if (target === 'purchase_rehab') {
-          const pctPriceDP = Number(document.getElementById('newLoanPriceDownPct').value) || 0;
-          const pctRehabDP = Number(document.getElementById('newLoanRehabDownPct').value) || 0;
+          const pctPriceDP = Number(document.getElementById('newLoanPriceDownPct')?.value) || 0;
+          const pctRehabDP = Number(document.getElementById('newLoanRehabDownPct')?.value) || 0;
           financed = purchasePrice * (1 - pctPriceDP / 100) + repairs * (1 - pctRehabDP / 100);
         } else if (target === 'purchase') {
-          const dp = Number(document.getElementById('newLoanDownPct').value) || 0;
+          const dp = Number(document.getElementById('newLoanDownPct')?.value) || 0;
           financed = purchasePrice * (1 - dp / 100);
         } else if (target === 'rehab') {
-          const dp = Number(document.getElementById('newLoanDownPct').value) || 0;
+          const dp = Number(document.getElementById('newLoanDownPct')?.value) || 0;
           financed = repairs * (1 - dp / 100);
         } else if (target === 'arv') {
-          const dp = Number(document.getElementById('newLoanDownPct').value) || 0;
+          const dp = Number(document.getElementById('newLoanDownPct')?.value) || 0;
           financed = arv * (1 - dp / 100);
         } else if (target === 'custom') {
-          financed = unformatCurrency(document.getElementById('newLoanCustomAmount').value || 0);
+          financed = unformatCurrency(document.getElementById('newLoanCustomAmount')?.value || 0);
         }
         const preview = document.getElementById('loanPreview');
         const content = document.getElementById('loanPreviewContent');
@@ -590,6 +593,7 @@ setupAddressAutocomplete();
               } else {
                 arvInput.value = '';
               }
+              calculateLoanPreview();
             });
             arvInput.addEventListener('blur', function(e) {
               let val = arvInput.value.replace(/[^\d.]/g, '');
@@ -599,8 +603,30 @@ setupAddressAutocomplete();
               } else {
                 arvInput.value = '';
               }
+              calculateLoanPreview();
             });
           }
+          // --- Hide loan preview on any input change, only show on Save ---
+          function attachLoanPreviewHideOnInput() {
+            const ids = [
+              'newLoanLabel','newLoanTarget','newLoanType','newLoanRate','newLoanTerm',
+              'purchasePrice','rehab','arv','newLoanDownPct','newLoanPriceDownPct','newLoanRehabDownPct','newLoanCustomAmount'
+            ];
+            ids.forEach(id => {
+              const el = document.getElementById(id);
+              if (el) {
+                el.addEventListener('input', function() {
+                  const preview = document.getElementById('loanPreview');
+                  if (preview) preview.style.display = 'none';
+                });
+                el.addEventListener('change', function() {
+                  const preview = document.getElementById('loanPreview');
+                  if (preview) preview.style.display = 'none';
+                });
+              }
+            });
+          }
+          attachLoanPreviewHideOnInput();
           // Pre-fill fields from brrrrData
           const allInputs = stepsArea.querySelectorAll('input,textarea');
           allInputs.forEach(input => {
@@ -644,11 +670,28 @@ setupAddressAutocomplete();
                   if (dpPurchaseWrap) dpPurchaseWrap.style.display = 'none';
                   if (dpRehabWrap) dpRehabWrap.style.display = 'none';
                 }
+                // Always show Down Payment % for purchase, rehab, arv
+                const dpField = document.getElementById('newLoanDownPct');
+                if (dpField) {
+                  if (["purchase","rehab","arv"].includes(targetSel.value)) {
+                    dpField.parentElement.style.display = 'block';
+                  } else {
+                    dpField.parentElement.style.display = 'none';
+                  }
+                }
+                calculateLoanPreview();
               };
+              // Trigger once on load
+              targetSel.onchange();
             }
             // Calculate loan preview
             const calcBtn = document.getElementById('calculateLoanBtn');
-            if (calcBtn) calcBtn.onclick = calculateLoanPreview;
+            if (calcBtn) calcBtn.onclick = function() {
+              // Always recalculate and show preview
+              const preview = document.getElementById('loanPreview');
+              if (preview) preview.style.display = 'block';
+              calculateLoanPreview();
+            };
             // Add loan
             const addBtn = document.getElementById('addLoanBtn');
             if (addBtn) addBtn.onclick = function() {
@@ -657,9 +700,9 @@ setupAddressAutocomplete();
               const type = document.getElementById('newLoanType').value;
               const rate = Number(document.getElementById('newLoanRate').value) || 0;
               const term = Number(document.getElementById('newLoanTerm').value) || 0;
-              const purchasePrice = unformatCurrency(document.getElementById('purchasePrice')?.value) || 0;
-              const repairs = unformatCurrency(document.getElementById('rehab')?.value) || 0;
-              const arv = unformatCurrency(document.getElementById('arv')?.value) || 0;
+              const purchasePrice = unformatCurrency(window.brrrrData?.purchasePrice);
+              const repairs = unformatCurrency(window.brrrrData?.rehab);
+              const arv = unformatCurrency(window.brrrrData?.arv);
               let financed = 0;
               if (target === 'purchase_rehab') {
                 const pctPriceDP = Number(document.getElementById('newLoanPriceDownPct').value) || 0;
@@ -683,8 +726,9 @@ setupAddressAutocomplete();
               });
               renderLoanList();
               clearLoanInputs();
-              const preview = document.getElementById('loanPreview');
-              if (preview) preview.style.display = 'none';
+              // Do not hide the preview after adding a loan
+              // const preview = document.getElementById('loanPreview');
+              // if (preview) preview.style.display = 'none';
               updateAggregatedLoanAmountDisplay();
             };
             // Render loan list and computed amount
