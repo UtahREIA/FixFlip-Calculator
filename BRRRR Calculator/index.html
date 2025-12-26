@@ -502,6 +502,15 @@ setupAddressAutocomplete();
             <div>Financed Amount: ${formatCurrency(financed)}</div>
             <div>Type: ${type}</div>
             <div>Rate: ${rate}% | Term: ${term ? term + ' months' : 'Not Set'}</div>
+            <details style="margin-top:8px;color:#444;font-size:12px;"><summary>Debug Info</summary>
+              <div>purchasePrice: ${purchasePrice}</div>
+              <div>repairs: ${repairs}</div>
+              <div>arv: ${arv}</div>
+              <div>target: ${target}</div>
+              <div>rate: ${rate}</div>
+              <div>term: ${term}</div>
+              <div>financed: ${financed}</div>
+            </details>
           `;
           preview.style.display = 'block';
         }
@@ -539,7 +548,13 @@ setupAddressAutocomplete();
       function updateAggregatedLoanAmountDisplay() {
         const val = computeAggregatedFinancedAmount();
         const el = document.getElementById('computedLoanAmount');
-        if (el) el.textContent = formatCurrency(val);
+        if (el) {
+          el.innerHTML = formatCurrency(val) +
+            `<details style='margin-top:4px;color:#444;font-size:12px;'><summary>Debug Info</summary>` +
+            loans.map((l,i) => `<div>Loan ${i+1}: ${formatCurrency(l.financed)} (${escapeHtml(l.label)})</div>`).join('') +
+            `<div>Total Loans: ${loans.length}</div>` +
+            `</details>`;
+        }
       }
       function computeAggregatedFinancedAmount() {
         let sum = 0;
@@ -564,6 +579,28 @@ setupAddressAutocomplete();
         if (chartsDiv) chartsDiv.style.display = 'none';
         setTimeout(() => {
           attachCurrencyFormatters();
+          // Ensure ARV field uses currency formatting
+          const arvInput = document.getElementById('arv');
+          if (arvInput) {
+            arvInput.addEventListener('input', function(e) {
+              let val = arvInput.value.replace(/[^\d.]/g, '');
+              if (val) {
+                val = parseFloat(val).toLocaleString(undefined, {maximumFractionDigits:2});
+                arvInput.value = '$' + val;
+              } else {
+                arvInput.value = '';
+              }
+            });
+            arvInput.addEventListener('blur', function(e) {
+              let val = arvInput.value.replace(/[^\d.]/g, '');
+              if (val) {
+                val = parseFloat(val).toLocaleString(undefined, {maximumFractionDigits:2});
+                arvInput.value = '$' + val;
+              } else {
+                arvInput.value = '';
+              }
+            });
+          }
           // Pre-fill fields from brrrrData
           const allInputs = stepsArea.querySelectorAll('input,textarea');
           allInputs.forEach(input => {
