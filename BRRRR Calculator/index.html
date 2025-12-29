@@ -14,12 +14,6 @@
             border-radius: 0;
             box-shadow: none;
           }
-          .top img {
-            max-width: 80vw;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-          }
           .brrrr-card {
             padding: 14px 6px;
             margin-bottom: 12px;
@@ -88,13 +82,7 @@
     body { font-family: Inter, system-ui, Arial; background: #f6f7f8; color: #111; margin: 0; }
     .wrap { max-width: 1200px; margin: 18px auto; padding: 20px; border-radius: 12px; background: #fff; box-shadow: 0 20px 60px rgba(10,20,30,0.06); }
     .top { display: flex; align-items: center; gap: 16px; justify-content: center; margin-bottom: 6px; }
-    .top img {
-      height: 68px;
-      max-width: 100%;
-      width: auto;
-      display: block;
-      margin: 0 auto;
-    }
+    .top img { height: 68px; }
     h1 { color: #1a2a4f; font-size: 20px; margin: 6px 0 2px; text-align: center; }
     .subtitle { text-align: center; color: #666; margin-bottom: 12px; }
     .card { background: #fff; padding: 16px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.03); }
@@ -401,63 +389,30 @@ setupAddressAutocomplete();
               </div>`
         },
         {
-          title: 'Refinance',
+          title: 'Refinance Costs',
           html: `
             <div class="brrrr-card">
-              <div class="muted">Refinance Loans</div>
-              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
                 <label class="toggle-label">
-                  Use Refinance Loans
-                  <label class="switch" title="Enable refinance loans for this property">
-                    <input id="useRefiFinancing" type="checkbox">
+                  Itemize Refinance Costs
+                  <label class="switch" title="Enable itemized refinance costs">
+                    <input id="useRefiCostBreakdown" type="checkbox">
                     <span class="slider"></span>
                   </label>
                 </label>
-                <div class="muted-small">Default: ON. Add loans to model refi interest and amounts.</div>
+                <div class="muted-small">Enable to itemize refinance costs. Disable to enter a total amount.</div>
               </div>
-              <div id="refiFinancingArea" style="margin-top:8px;display:none">
-                <div style="display:flex;gap:12px;flex-wrap:wrap">
-                  <div class="field"><label>Loan Label</label><input id="newRefiLoanLabel" type="text" placeholder="e.g., Refi - Lender B"></div>
-                  <div class="field">
-                    <label>Loan Based On</label>
-                    <select id="newRefiLoanTarget">
-                      <option value="arv">% of ARV</option>
-                      <option value="custom">Custom Amount</option>
-                    </select>
-                  </div>
-                  <div class="field" id="newRefiLoanCustomAmountWrap" style="display:none">
-                    <label>Custom Loan Amount</label>
-                    <input id="newRefiLoanCustomAmount" type="text" placeholder="$200,000">
-                  </div>
-                  <div class="field" id="refiLTVWrap">
-                    <label>Loan-to-Value (LTV %)</label>
-                    <input id="newRefiLoanLTV" type="number" min="0" max="100" value="75" step="0.1">
-                  </div>
-                  <div class="field"><label>Loan Type</label><select id="newRefiLoanType"><option>Interest-Only</option><option>Amortized</option></select></div>
-                  <div class="field"><label>Interest Rate (%)</label><input id="newRefiLoanRate" type="number" min="0" step="0.1" value="6"></div>
-                  <div class="field"><label>Loan Term (years)</label><input id="newRefiLoanTerm" type="number" min="0" step="1" value="30"></div>
+              <div id="refiCostSimpleField">
+                <div class="brrrr-row">
+                  <div class="brrrr-field"><label class="brrrr-label">Total Refinance Costs</label><input class="brrrr-input" id="refiCosts" type="text" placeholder="$3,250"></div>
                 </div>
-                <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                  <button type="button" class="btn" id="calculateRefiLoanBtn" style="background:#001F3F;color:#fff">Save</button>
-                  <button type="button" class="btn" id="addRefiLoanBtn">Add a Loan</button>
-                  <div class="muted-small">Click Save to calculate amount, then Add a Loan to confirm.</div>
-                </div>
-                <div id="refiLoanPreview" style="margin-top:10px;padding:12px;border-radius:8px;background:#f0f8ff;border:1px solid #d0e8ff;display:none">
-                  <strong>Loan Preview:</strong>
-                  <div id="refiLoanPreviewContent" style="margin-top:6px;font-size:13px;color:#333"></div>
-                </div>
-                <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-                  <div class="field" style="min-width:220px">
-                    <label>Aggregate Refi Amount</label>
-                    <div style="display:flex;gap:8px;align-items:center">
-                      <div id="computedRefiLoanAmount" style="font-weight:700;padding:10px;background:#fff;border-radius:8px;border:1px solid #e7e7e7;">$0</div>
-                      <div class="muted-small">Uses added refi loans.</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="loan-list" id="refiLoanList"></div>
               </div>
-              <div class="brrrr-field"><label class="brrrr-label">Refinance Costs</label><input class="brrrr-input" id="refiCosts" type="text" placeholder="$5,000"></div>
+              <div id="refiCostBreakdownArea" style="display:none;">
+                <div style="margin-bottom:10px;font-weight:600;">Itemized Refinance Costs</div>
+                <div id="refiCostItemsList"></div>
+                <button type="button" class="btn" id="addRefiCostItemBtn">Add Refi Cost Item</button>
+                <div style="margin-top:10px;font-weight:600;">Total: <span id="refiCostBreakdownTotal">$0</span></div>
+              </div>
             </div>`
         },
         {
@@ -474,13 +429,34 @@ setupAddressAutocomplete();
           title: 'Operating Expenses',
           html: `
             <div class="brrrr-card">
-              <div class="brrrr-row">
-                <div class="brrrr-field"><label class="brrrr-label">Monthly Taxes</label><input class="brrrr-input" id="taxes" type="text" placeholder="$200"></div>
-                <div class="brrrr-field"><label class="brrrr-label">Monthly Insurance</label><input class="brrrr-input" id="insurance" type="text" placeholder="$100"></div>
-                <div class="brrrr-field"><label class="brrrr-label">Other Monthly Expenses</label><input class="brrrr-input" id="otherExpenses" type="text" placeholder="$150"></div>
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+                <label class="toggle-label">
+                  Use Expense Breakdown
+                  <label class="switch" title="Enable itemized expense breakdown">
+                    <input id="useExpenseBreakdown" type="checkbox">
+                    <span class="slider"></span>
+                  </label>
+                </label>
+                <div class="muted-small">Toggle to enter itemized expenses or use simple fields.</div>
               </div>
-              <div class="brrrr-row">
-                <div class="brrrr-field"><label class="brrrr-label">Annual Expense Increase (%)</label><input class="brrrr-input" id="expenseIncrease" type="number" min="0" step="0.1" value="2"></div>
+              <div id="expenseSimpleFields">
+                <div class="brrrr-row">
+                  <div class="brrrr-field"><label class="brrrr-label">Monthly Taxes</label><input class="brrrr-input" id="taxes" type="text" placeholder="$200"></div>
+                  <div class="brrrr-field"><label class="brrrr-label">Monthly Insurance</label><input class="brrrr-input" id="insurance" type="text" placeholder="$100"></div>
+                  <div class="brrrr-field"><label class="brrrr-label">Other Monthly Expenses</label><input class="brrrr-input" id="otherExpenses" type="text" placeholder="$150"></div>
+                </div>
+                <div class="brrrr-row">
+                  <div class="brrrr-field"><label class="brrrr-label">Annual Expense Increase (%)</label><input class="brrrr-input" id="expenseIncrease" type="number" min="0" step="0.1" value="2"></div>
+                </div>
+              </div>
+              <div id="expenseBreakdownArea" style="display:none;">
+                <div style="margin-bottom:10px;font-weight:600;">Itemized Operating Expenses</div>
+                <div id="expenseItemsList"></div>
+                <button type="button" class="btn" id="addExpenseItemBtn">Add Expense Item</button>
+                <div style="margin-top:10px;font-weight:600;">Total: <span id="expenseBreakdownTotal">$0</span></div>
+                <div class="brrrr-row">
+                  <div class="brrrr-field"><label class="brrrr-label">Annual Expense Increase (%)</label><input class="brrrr-input" id="expenseIncreaseBreakdown" type="number" min="0" step="0.1" value="2"></div>
+                </div>
               </div>
             </div>`
         },
@@ -799,65 +775,200 @@ setupAddressAutocomplete();
           }
           // --- Refi Loan UI logic ---
           if (n === 3) { // Refinance step
-            const useRefiFin = document.getElementById('useRefiFinancing');
-            const area = document.getElementById('refiFinancingArea');
-            if (useRefiFin && area) {
-              useRefiFin.checked = true;
-              area.style.display = 'block';
-              useRefiFin.onchange = function() {
-                area.style.display = useRefiFin.checked ? 'block' : 'none';
+            // --- Refinance Costs UI logic ---
+            const useBreakdown = document.getElementById('useRefiCostBreakdown');
+            const simpleField = document.getElementById('refiCostSimpleField');
+            const breakdownArea = document.getElementById('refiCostBreakdownArea');
+            if (!window.brrrrData.refiCostItems) window.brrrrData.refiCostItems = [];
+            // Set default items if empty
+            if (!window.brrrrData.refiCostItems || window.brrrrData.refiCostItems.length === 0) {
+              window.brrrrData.refiCostItems = [
+                { label: 'Appraisal', amount: '750' },
+                { label: 'Lender Fees', amount: '1000' },
+                { label: 'Closing Costs', amount: '1500' }
+              ];
+            }
+            if (useBreakdown && simpleField && breakdownArea) {
+              useBreakdown.checked = !!window.brrrrData.useRefiCostBreakdown;
+              simpleField.style.display = useBreakdown.checked ? 'none' : 'block';
+              breakdownArea.style.display = useBreakdown.checked ? 'block' : 'none';
+              useBreakdown.onchange = function() {
+                window.brrrrData.useRefiCostBreakdown = useBreakdown.checked;
+                simpleField.style.display = useBreakdown.checked ? 'none' : 'block';
+                breakdownArea.style.display = useBreakdown.checked ? 'block' : 'none';
               };
             }
-            // Show/hide custom amount field
-            const targetSel = document.getElementById('newRefiLoanTarget');
-            const customWrap = document.getElementById('newRefiLoanCustomAmountWrap');
-            const ltvWrap = document.getElementById('refiLTVWrap');
-            if (targetSel) {
-              targetSel.onchange = function() {
-                if (targetSel.value === 'custom') {
-                  if (customWrap) customWrap.style.display = 'block';
-                  if (ltvWrap) ltvWrap.style.display = 'none';
-                } else {
-                  if (customWrap) customWrap.style.display = 'none';
-                  if (ltvWrap) ltvWrap.style.display = 'block';
+            // Render itemized list
+            function renderRefiCostItems() {
+              const list = document.getElementById('refiCostItemsList');
+              if (!list) return;
+              list.innerHTML = '';
+              (window.brrrrData.refiCostItems || []).forEach((item, idx) => {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                row.style.gap = '8px';
+                row.style.marginBottom = '6px';
+                // Format amount with $ and commas
+                let formattedAmount = item.amount;
+                if (item.amount !== undefined && item.amount !== '') {
+                  formattedAmount = '$' + Number(item.amount).toLocaleString();
                 }
-                calculateRefiLoanPreview();
-              };
-              targetSel.onchange();
-            }
-            // Calculate loan preview
-            const calcBtn = document.getElementById('calculateRefiLoanBtn');
-            if (calcBtn) calcBtn.onclick = function() {
-              const preview = document.getElementById('refiLoanPreview');
-              if (preview) preview.style.display = 'block';
-              calculateRefiLoanPreview();
-            };
-            // Add loan
-            const addBtn = document.getElementById('addRefiLoanBtn');
-            if (addBtn) addBtn.onclick = function() {
-              const label = document.getElementById('newRefiLoanLabel').value || 'Refi Loan';
-              const target = document.getElementById('newRefiLoanTarget').value;
-              const type = document.getElementById('newRefiLoanType').value;
-              const rate = Number(document.getElementById('newRefiLoanRate').value) || 0;
-              const term = Number(document.getElementById('newRefiLoanTerm').value) || 0;
-              const arv = unformatCurrency(window.brrrrData?.arv);
-              let financed = 0;
-              if (target === 'arv') {
-                const ltv = Number(document.getElementById('newRefiLoanLTV').value) || 0;
-                financed = arv * (ltv / 100);
-              } else if (target === 'custom') {
-                financed = unformatCurrency(document.getElementById('newRefiLoanCustomAmount').value || 0);
-              }
-              refiLoans.push({
-                id: Date.now() + Math.random(),
-                label, target, type, rate, term, financed, baseFinanced: financed
+                row.innerHTML = `
+                  <input type="text" class="brrrr-input" style="width:180px;" value="${item.label || ''}" placeholder="Cost Name">
+                  <input type="text" class="brrrr-input" style="width:120px;" value="${formattedAmount || ''}" placeholder="$0">
+                  <button type="button" class="btn secondary" data-del="${idx}">Delete</button>
+                `;
+                // Label change
+                row.children[0].onchange = function() {
+                  window.brrrrData.refiCostItems[idx].label = row.children[0].value;
+                };
+                // Amount change
+                row.children[1].onchange = function() {
+                  let val = row.children[1].value.replace(/[^0-9.]/g, '');
+                  if (val) val = '$' + Number(val).toLocaleString();
+                  row.children[1].value = val;
+                  window.brrrrData.refiCostItems[idx].amount = val.replace(/[^0-9.]/g, '');
+                  updateRefiCostBreakdownTotal();
+                };
+                // Delete
+                row.children[2].onclick = function() {
+                  window.brrrrData.refiCostItems.splice(idx, 1);
+                  renderRefiCostItems();
+                  updateRefiCostBreakdownTotal();
+                };
+                list.appendChild(row);
               });
-              renderRefiLoanList();
-              clearRefiLoanInputs();
-              updateAggregatedRefiLoanAmountDisplay();
+              updateRefiCostBreakdownTotal();
+            }
+            function updateRefiCostBreakdownTotal() {
+              const total = (window.brrrrData.refiCostItems || []).reduce((sum, item) => sum + (parseFloat(String(item.amount).replace(/[^0-9.-]+/g, '')) || 0), 0);
+              const totalEl = document.getElementById('refiCostBreakdownTotal');
+              if (totalEl) totalEl.textContent = '$' + total.toLocaleString();
+            }
+            // Add item
+            const addBtn = document.getElementById('addRefiCostItemBtn');
+            if (addBtn) addBtn.onclick = function() {
+              window.brrrrData.refiCostItems.push({label:'',amount:''});
+              renderRefiCostItems();
             };
-            renderRefiLoanList();
-            updateAggregatedRefiLoanAmountDisplay();
+            renderRefiCostItems();
+          }
+
+          // --- Operating Expenses UI logic ---
+          if (n === 5) { // Operating Expenses step (index after Rental Income)
+            // Toggle logic
+            const useBreakdown = document.getElementById('useExpenseBreakdown');
+            const simpleFields = document.getElementById('expenseSimpleFields');
+            const breakdownArea = document.getElementById('expenseBreakdownArea');
+            if (!window.brrrrData.expenseItems) window.brrrrData.expenseItems = [];
+            // Set default items if empty
+            if (!window.brrrrData.expenseItems || window.brrrrData.expenseItems.length === 0) {
+              window.brrrrData.expenseItems = [
+                { label: 'Property Taxes', amount: '3250', period: 'perYear' },
+                { label: 'Insurance', amount: '750', period: 'perYear' },
+                { label: 'Property Management', amount: '8', period: 'percentRent' },
+                { label: 'Maintenance', amount: '8', period: 'percentRent' },
+                { label: 'Capital Reserves', amount: '2', period: 'percentRent' },
+                { label: 'Common Utilities', amount: '75', period: 'perMonth' },
+                { label: 'Landscaping', amount: '50', period: 'perMonth' }
+              ];
+            }
+            if (useBreakdown && simpleFields && breakdownArea) {
+              useBreakdown.checked = !!window.brrrrData.useExpenseBreakdown;
+              simpleFields.style.display = useBreakdown.checked ? 'none' : 'block';
+              breakdownArea.style.display = useBreakdown.checked ? 'block' : 'none';
+              useBreakdown.onchange = function() {
+                window.brrrrData.useExpenseBreakdown = useBreakdown.checked;
+                simpleFields.style.display = useBreakdown.checked ? 'none' : 'block';
+                breakdownArea.style.display = useBreakdown.checked ? 'block' : 'none';
+              };
+            }
+            // Render itemized list
+            function renderExpenseItems() {
+              const list = document.getElementById('expenseItemsList');
+              if (!list) return;
+              list.innerHTML = '';
+              (window.brrrrData.expenseItems || []).forEach((item, idx) => {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                row.style.gap = '8px';
+                row.style.marginBottom = '6px';
+                // Format amount for per year and per month with $ and commas
+                let formattedAmount = item.amount;
+                if ((item.period === 'perYear' || item.period === 'perMonth') && item.amount !== undefined && item.amount !== '') {
+                  formattedAmount = '$' + Number(item.amount).toLocaleString();
+                }
+                row.innerHTML = `
+                  <input type="text" class="brrrr-input" style="width:180px;" value="${item.label || ''}" placeholder="Expense Name">
+                  <input type="text" class="brrrr-input" style="width:120px;" value="${formattedAmount || ''}" placeholder="$0">
+                  <select class="brrrr-input" style="width:110px;" data-period>
+                    <option value="perYear" ${item.period === 'perYear' ? 'selected' : ''}>Per Year</option>
+                    <option value="perMonth" ${item.period === 'perMonth' ? 'selected' : ''}>Per Month</option>
+                    <option value="percentRent" ${item.period === 'percentRent' ? 'selected' : ''}>% of Rent</option>
+                  </select>
+                  <button type="button" class="btn secondary" data-del="${idx}">Delete</button>
+                `;
+                // Label change
+                row.children[0].onchange = function() {
+                  window.brrrrData.expenseItems[idx].label = row.children[0].value;
+                };
+                // Amount change
+                row.children[1].onchange = function() {
+                  let val = row.children[1].value;
+                  if (row.children[2].value === 'perYear' || row.children[2].value === 'perMonth') {
+                    val = val.replace(/[^0-9.]/g, '');
+                    if (val) val = '$' + Number(val).toLocaleString();
+                    row.children[1].value = val;
+                  }
+                  window.brrrrData.expenseItems[idx].amount = val.replace(/[^0-9.]/g, '');
+                  updateExpenseBreakdownTotal();
+                };
+                // Period change
+                row.children[2].onchange = function() {
+                  window.brrrrData.expenseItems[idx].period = row.children[2].value;
+                  // Reformat amount if switching to perYear
+                  if (row.children[2].value === 'perYear' || row.children[2].value === 'perMonth') {
+                    let val = row.children[1].value.replace(/[^0-9.]/g, '');
+                    if (val) val = '$' + Number(val).toLocaleString();
+                    row.children[1].value = val;
+                  } else if (row.children[2].value === 'percentRent') {
+                    let val = row.children[1].value.replace(/[^0-9.]/g, '');
+                    row.children[1].value = val;
+                  }
+                  updateExpenseBreakdownTotal();
+                };
+                // Delete
+                row.children[3].onclick = function() {
+                  window.brrrrData.expenseItems.splice(idx, 1);
+                  renderExpenseItems();
+                  updateExpenseBreakdownTotal();
+                };
+                list.appendChild(row);
+              });
+              updateExpenseBreakdownTotal();
+            }
+            function updateExpenseBreakdownTotal() {
+              const total = (window.brrrrData.expenseItems || []).reduce((sum, item) => sum + (parseFloat(String(item.amount).replace(/[^0-9.-]+/g, '')) || 0), 0);
+              const totalEl = document.getElementById('expenseBreakdownTotal');
+              if (totalEl) totalEl.textContent = '$' + total.toLocaleString();
+            }
+            // Add item
+            const addBtn = document.getElementById('addExpenseItemBtn');
+            if (addBtn) addBtn.onclick = function() {
+              window.brrrrData.expenseItems.push({label:'',amount:''});
+              renderExpenseItems();
+            };
+            // Pre-fill breakdown increase
+            const incInput = document.getElementById('expenseIncreaseBreakdown');
+            if (incInput) {
+              incInput.value = window.brrrrData.expenseIncreaseBreakdown || 2;
+              incInput.onchange = function() {
+                window.brrrrData.expenseIncreaseBreakdown = incInput.value;
+              };
+            }
+            renderExpenseItems();
           }
               function clearRefiLoanInputs() {
                 const ids = ['newRefiLoanLabel','newRefiLoanCustomAmount','newRefiLoanLTV','newRefiLoanRate','newRefiLoanTerm'];
@@ -1076,12 +1187,37 @@ setupAddressAutocomplete();
           refiRate = Number(brrrrData['refiRate']) || 0;
           refiTerm = Number(brrrrData['refiTerm']) || 0;
         }
-        const refiCosts = parseCurrency(brrrrData['refiCosts']);
+
+        // --- Use itemized refinance costs if enabled ---
+        let refiCosts = 0;
+        if (brrrrData.useRefiCostBreakdown && Array.isArray(brrrrData.refiCostItems)) {
+          refiCosts = brrrrData.refiCostItems.reduce((sum, item) => sum + (parseFloat(String(item.amount).replace(/[^0-9.-]+/g, '')) || 0), 0);
+        } else {
+          refiCosts = parseCurrency(brrrrData['refiCosts']);
+        }
+
         const rent = parseCurrency(brrrrData['rent']);
         const rentIncrease = Number(brrrrData['rentIncrease']) || 0;
-        const taxes = parseCurrency(brrrrData['taxes']);
-        const insurance = parseCurrency(brrrrData['insurance']);
-        const otherExpenses = parseCurrency(brrrrData['otherExpenses']);
+
+        // --- Use itemized operating expenses if enabled ---
+        let taxes = 0, insurance = 0, otherExpenses = 0;
+        let totalItemizedMonthly = 0;
+        if (brrrrData.useExpenseBreakdown && Array.isArray(brrrrData.expenseItems)) {
+          brrrrData.expenseItems.forEach(item => {
+            let amt = parseFloat(String(item.amount).replace(/[^0-9.-]+/g, '')) || 0;
+            if (item.period === 'perYear') {
+              amt = amt / 12;
+            } else if (item.period === 'percentRent') {
+              amt = rent * (amt / 100);
+            }
+            // perMonth and perYear (now monthly) both add to total
+            totalItemizedMonthly += amt;
+          });
+        } else {
+          taxes = parseCurrency(brrrrData['taxes']);
+          insurance = parseCurrency(brrrrData['insurance']);
+          otherExpenses = parseCurrency(brrrrData['otherExpenses']);
+        }
         const expenseIncrease = Number(brrrrData['expenseIncrease']) || 0;
         const appreciation = Number(brrrrData['appreciation']) || 0;
 
@@ -1111,7 +1247,8 @@ setupAddressAutocomplete();
           const r = refiRate / 100 / 12;
           refiMonthly = r === 0 ? refiAmount / n : (refiAmount * r) / (1 - Math.pow(1 + r, -n));
         }
-        const totalMonthlyExpenses = taxes + insurance + otherExpenses + totalLoanMonthly;
+        // Use itemized monthly if enabled, else sum of simple fields
+        const totalMonthlyExpenses = brrrrData.useExpenseBreakdown ? totalItemizedMonthly + totalLoanMonthly : taxes + insurance + otherExpenses + totalLoanMonthly;
         const cashFlow = rent - totalMonthlyExpenses - refiMonthly;
 
         // Appreciation (simple, 1 year)
@@ -1127,7 +1264,7 @@ setupAddressAutocomplete();
         let propInfoHtml = '';
         if (propStreet || propCity || propState || propZip || propFeatures) {
           propInfoHtml = `
-            <div class="brrrr-summary-prop" style="background:#fffbe7;border-radius:10px;padding:16px 18px 10px 18px;margin-bottom:18px;box-shadow:0 2px 8px rgba(255,200,40,0.07);border:1.2px solid #f3e7b3;">
+            <div class="brrrr-summary-prop" style="background:#fffbe7;border-radius:10px;padding:16px 18px 10px 18px;margin-bottom:18px;box-shadow:0 2px 8px rgba(255,200,40,0.07);border:1.2px solid #f3e7b3;max-width:none;width:540px;min-width:420px;">
               <div style="font-weight:700;color:#b48a00;font-size:1.08em;margin-bottom:2px;display:flex;align-items:center;gap:7px;"><span style='font-size:1.2em;'>📋</span>Property Info</div>
               <div style="color:#1a2a4f;font-weight:600;">${propStreet ? propStreet : ''}${(propStreet && (propCity||propState||propZip)) ? ', ' : ''}${propCity ? propCity+', ' : ''}${propState ? propState+' ' : ''}${propZip ? propZip : ''}</div>
               ${propFeatures ? `<div style='color:#555;margin-top:4px;font-size:0.98em;'>${propFeatures}</div>` : ''}
@@ -1147,13 +1284,15 @@ setupAddressAutocomplete();
             `</div></details>`;
         }
         summaryDiv.innerHTML = `
-          ${propInfoHtml}
-          <ul class="brrrr-summary-list">
+          <div style="background:#fffbe7;border-radius:16px;padding:24px 32px 18px 32px;box-shadow:0 2px 8px rgba(255,200,40,0.07);border:1.2px solid #f3e7b3;max-width:none;width:540px;min-width:420px;margin:0 auto 18px auto;">
+            ${propInfoHtml}
+            <ul class="brrrr-summary-list" style="max-width:none;width:100%;margin:0 auto;">
             <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">💰</span>Total Investment:</span> <span class="brrrr-summary-value">$${totalInvestment.toLocaleString()}</span></li>
             <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">💵</span>Purchase Loan Amount:</span> <span class="brrrr-summary-value">$${totalFinanced.toLocaleString()}</span></li>
             ${purchaseLoanBreakdown ? `<li style='background:#f8fafb;'>${purchaseLoanBreakdown}</li>` : ''}
-            <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">🏦</span>Refinance Loan Amount:</span> <span class="brrrr-summary-value">$${refiAmount.toLocaleString()}</span></li>
-            ${refiLoanBreakdown ? `<li style='background:#f8fafb;'>${refiLoanBreakdown}</li>` : ''}
+            <!-- Refinance Loan Amount removed as requested -->
+            <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">💳</span>Refinance Costs:</span> <span class="brrrr-summary-value">$${refiCosts.toLocaleString()}</span></li>
+            ${brrrrData.useRefiCostBreakdown && Array.isArray(brrrrData.refiCostItems) ? `<li style='background:#f8fafb;'><details open><summary style='cursor:pointer;font-size:0.98em;color:#1a2a4f;'>View Refinance Cost Breakdown</summary><div style='padding:6px 0 0 10px;'>${brrrrData.refiCostItems.map((item,i) => `<div style='font-size:0.97em;margin-bottom:2px;'><strong>${item.label}</strong>: $${(parseFloat(String(item.amount).replace(/[^0-9.-]+/g, '')) || 0).toLocaleString()}</div>`).join('')}</div></details></li>` : ''}
             <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">🏠</span>Monthly Rent:</span> <span class="brrrr-summary-value">$${rent.toLocaleString()}</span></li>
             <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">🧾</span>Total Monthly Expenses:</span> <span class="brrrr-summary-value">$${totalMonthlyExpenses.toLocaleString()}</span></li>
             <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">💸</span>Estimated Monthly Cash Flow:</span> <span class="brrrr-summary-value${cashFlow>=0?'':' negative'}">$${cashFlow.toLocaleString()}</span></li>
