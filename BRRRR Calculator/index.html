@@ -179,8 +179,9 @@
         if (globalName && window[globalName]) { cb(); return; }
         const existing = document.querySelector('script[src="' + src + '"]');
         if (existing) {
-          existing.addEventListener("load", cb);
-          // if it already loaded, cb still ok
+          // Avoid duplicate callbacks turning into errors
+          existing.addEventListener("load", cb, { once: true });
+          // If it already loaded, cb still ok
           try { cb(); } catch (_) {}
           return;
         }
@@ -270,82 +271,90 @@
       let loans = []; // holding/acquisition loans
 
       // ---------------------------
-      // DEFAULT ITEMIZED DATA
-      // Step 4 Purchase Costs:
-      // - Home Inspection: $400 (fixed)
-      // - Loan Points: 2 (% of Loan)  <-- per your request
-      // - Closing Costs: $2,000 (fixed)
+      // DEFAULTS + RESET (SAFE RESETS)
       // ---------------------------
-      if (!Array.isArray(window.brrrrData.purchaseCostItems) || window.brrrrData.purchaseCostItems.length === 0) {
-        window.brrrrData.purchaseCostItems = [
-          { label: "Home Inspection", amount: "400", mode: "fixed" },
-          { label: "Loan Points", amount: "2", mode: "pct_loan" },
-          { label: "Closing Costs", amount: "2000", mode: "fixed" }
-        ];
-      } else {
-        // Ensure Loan Points defaults to 2% of Loan if present but incomplete
-        window.brrrrData.purchaseCostItems = window.brrrrData.purchaseCostItems.map(it => {
-          if (String(it.label || "").toLowerCase().includes("loan points")) {
-            return { label: it.label || "Loan Points", amount: (it.amount == null || it.amount === "") ? "2" : String(it.amount), mode: it.mode || "pct_loan" };
-          }
-          return { label: it.label || "", amount: it.amount || "", mode: it.mode || "fixed" };
-        });
+      function applyDefaultData(force) {
+        // Step 4 Purchase Costs defaults
+        if (force || !Array.isArray(window.brrrrData.purchaseCostItems) || window.brrrrData.purchaseCostItems.length === 0) {
+          window.brrrrData.purchaseCostItems = [
+            { label: "Home Inspection", amount: "400", mode: "fixed" },
+            { label: "Loan Points", amount: "2", mode: "pct_loan" },
+            { label: "Closing Costs", amount: "2000", mode: "fixed" }
+          ];
+        } else {
+          window.brrrrData.purchaseCostItems = window.brrrrData.purchaseCostItems.map(it => {
+            if (String(it.label || "").toLowerCase().includes("loan points")) {
+              return { label: it.label || "Loan Points", amount: (it.amount == null || it.amount === "") ? "2" : String(it.amount), mode: it.mode || "pct_loan" };
+            }
+            return { label: it.label || "", amount: it.amount || "", mode: it.mode || "fixed" };
+          });
+        }
+
+        // Step 6 Refi costs defaults
+        if (force || !Array.isArray(window.brrrrData.refiCostItems) || window.brrrrData.refiCostItems.length === 0) {
+          window.brrrrData.refiCostItems = [
+            { label: "Appraisal", amount: "750" },
+            { label: "Lender Fees", amount: "1000" },
+            { label: "Closing Costs", amount: "1500" },
+          ];
+        } else {
+          const hasLand = window.brrrrData.refiCostItems.some(it => String(it.label || "").toLowerCase().includes("landscap"));
+          if (!hasLand) window.brrrrData.refiCostItems.push({ label: "Landscaping (annualized)", amount: "600" });
+        }
+
+        // Step 8 expenses defaults
+        if (force || !Array.isArray(window.brrrrData.expenseItems) || window.brrrrData.expenseItems.length === 0) {
+          window.brrrrData.expenseItems = [
+            { label: "Property Taxes", amount: "3250", period: "perYear" },
+            { label: "Insurance", amount: "750", period: "perYear" },
+            { label: "Property Management", amount: "8", period: "percentRent" },
+            { label: "Maintenance", amount: "8", period: "percentRent" },
+            { label: "Capital Reserves", amount: "2", period: "percentRent" },
+            { label: "Common Utilities", amount: "75", period: "perMonth" },
+            { label: "Landscaping", amount: "50", period: "perMonth" }
+          ];
+        }
+
+        // Default rehab items
+        if (force || !Array.isArray(window.brrrrData.rehabItems) || window.brrrrData.rehabItems.length === 0) {
+          window.brrrrData.rehabItems = [
+            { label: "Exterior Stucco Repair", amount: "1750" },
+            { label: "New North/East Side Fence", amount: "2800" },
+            { label: "Unit 1 - New Windows", amount: "1800" },
+            { label: "Unit 1 - Master Bath Shower", amount: "2500" },
+            { label: "Unit 2 - Stairwell Repair", amount: "2200" },
+            { label: "Unit 1/2 - Full Interior Paint", amount: "1750" },
+            { label: "Unit 1/2 - New Carpet", amount: "2500" },
+            { label: "Unit 1/2 - New Fixtures", amount: "750" },
+            { label: "Unit 1/2 - New Appliances", amount: "1800" },
+            { label: "Unit 1/2 - New Water Heaters", amount: "2000" },
+            { label: "Landscaping", amount: "350" },
+            { label: "Trash Removal", amount: "750" }
+          ];
+        }
       }
 
-      // Step 6 Refi costs: Landscaping should be inside itemized list (no separate toggle)
-      if (!Array.isArray(window.brrrrData.refiCostItems) || window.brrrrData.refiCostItems.length === 0) {
-        window.brrrrData.refiCostItems = [
-          { label: "Appraisal", amount: "750" },
-          { label: "Lender Fees", amount: "1000" },
-          { label: "Closing Costs", amount: "1500" },
-        ];
-      } else {
-        // If user previously had landscaping toggle concept, ensure a landscaping line exists
-        const hasLand = window.brrrrData.refiCostItems.some(it => String(it.label || "").toLowerCase().includes("landscap"));
-        if (!hasLand) window.brrrrData.refiCostItems.push({ label: "Landscaping (annualized)", amount: "600" });
+      function resetAllData() {
+        // Clear user-entered values and volatile state
+        window.brrrrData = {};
+        loans = [];
+
+        // Re-apply defaults so UI still has prefilled line-items
+        applyDefaultData(true);
+
+        // Hide export/results and any errors
+        if (exportArea) exportArea.style.display = "none";
+        if (summaryDiv) summaryDiv.style.display = "none";
+        if (chartsDiv) { chartsDiv.style.display = "none"; chartsDiv.innerHTML = ""; }
+        if (dlBtn) dlBtn.style.display = "none";
+        if (pdfErr) { pdfErr.style.display = "none"; pdfErr.textContent = ""; }
       }
 
-      // Step 8 expenses defaults
-      if (!Array.isArray(window.brrrrData.expenseItems) || window.brrrrData.expenseItems.length === 0) {
-        window.brrrrData.expenseItems = [
-          { label: "Property Taxes", amount: "3250", period: "perYear" },
-          { label: "Insurance", amount: "750", period: "perYear" },
-          { label: "Property Management", amount: "8", period: "percentRent" },
-          { label: "Maintenance", amount: "8", period: "percentRent" },
-          { label: "Capital Reserves", amount: "2", period: "percentRent" },
-          { label: "Common Utilities", amount: "75", period: "perMonth" },
-          { label: "Landscaping", amount: "50", period: "perMonth" }
-        ];
-      }
-
-      // Default rehab items
-      if (!Array.isArray(window.brrrrData.rehabItems) || window.brrrrData.rehabItems.length === 0) {
-        window.brrrrData.rehabItems = [
-          { label: "Exterior Stucco Repair", amount: "1750" },
-          { label: "New North/East Side Fence", amount: "2800" },
-          { label: "Unit 1 - New Windows", amount: "1800" },
-          { label: "Unit 1 - Master Bath Shower", amount: "2500" },
-          { label: "Unit 2 - Stairwell Repair", amount: "2200" },
-          { label: "Unit 1/2 - Full Interior Paint", amount: "1750" },
-          { label: "Unit 1/2 - New Carpet", amount: "2500" },
-          { label: "Unit 1/2 - New Fixtures", amount: "750" },
-          { label: "Unit 1/2 - New Appliances", amount: "1800" },
-          { label: "Unit 1/2 - New Water Heaters", amount: "2000" },
-          { label: "Landscaping", amount: "350" },
-          { label: "Trash Removal", amount: "750" }
-        ];
-      }
+      // Initialize defaults on first load
+      applyDefaultData(false);
 
       // ---------------------------
       // STEPS (ALIGNED TO CHRIS)
-      // 1-3 OK
-      // 4 Purchase Cost
-      // 5 Refinance/Financing
-      // 6 Refinance Cost
-      // 7 Monthly Rent (Vacancy + Other Income)
-      // 8 Operating Expenses
-      // 9 Appreciation & Selling Costs
-      // 10 Depreciation
       // ---------------------------
       const steps = [
         {
@@ -439,7 +448,6 @@
             </div>`
         },
 
-        // STEP 4 — PURCHASE COST
         {
           title: "Purchase Cost",
           html: `
@@ -474,7 +482,6 @@
             </div>`
         },
 
-        // STEP 5 — REFI/FINANCING
         {
           title: "Refinance/Financing",
           html: `
@@ -545,24 +552,36 @@
                   </div>
 
                   <div class="brrrr-field">
-  <label class="brrrr-label">Loan Term (months)</label>
-  <input 
-    id="newLoanTerm" 
-    class="brrrr-input" 
-    type="number" 
-    min="0" 
-    step="1" 
-    value="6"
-    placeholder="e.g., 6"
-  >
-</div>
-
+                    <label class="brrrr-label">Loan Term (months)</label>
+                    <input
+                      id="newLoanTerm"
+                      class="brrrr-input"
+                      type="number"
+                      min="0"
+                      step="1"
+                      value="6"
+                      placeholder="e.g., 6"
+                    >
+                  </div>
                 </div>
 
                 <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                  <button type="button" class="btn" id="addLoanBtn">Add Loan</button>
-                  <div class="muted-small">Tip: Add multiple loans to model blended payment impact.</div>
-                </div>
+  <button
+    type="button"
+    class="btn"
+    id="previewLoanBtn"
+    style="background:#001F3F;color:#fff;"
+  >
+    Preview Loan
+  </button>
+
+  <button type="button" class="btn" id="addLoanBtn">Add Loan</button>
+
+  <div class="muted-small">Tip: Add multiple loans to model blended payment impact.</div>
+</div>
+
+<div id="loanPreviewNote" class="muted-small" style="display:none;margin-top:8px;"></div>
+
 
                 <div class="loan-list" id="loanList"></div>
 
@@ -576,7 +595,6 @@
             </div>`
         },
 
-        // STEP 6 — REFI COST (single toggle only; landscaping is in items)
         {
           title: "Refinance Cost",
           html: `
@@ -608,7 +626,6 @@
             </div>`
         },
 
-        // STEP 7 — MONTHLY RENT
         {
           title: "Monthly Rent",
           html: `
@@ -635,7 +652,6 @@
             </div>`
         },
 
-        // STEP 8 — OPERATING EXPENSES (itemization now displays properly)
         {
           title: "Operating Expenses",
           html: `
@@ -688,7 +704,6 @@
             </div>`
         },
 
-        // STEP 9 — APPRECIATION & SELLING COSTS
         {
           title: "Appreciation & Selling Costs",
           html: `
@@ -716,7 +731,6 @@
             </div>`
         },
 
-        // STEP 10 — DEPRECIATION
         {
           title: "Depreciation",
           html: `
@@ -741,7 +755,6 @@
         const inputs = stepsArea.querySelectorAll("input,textarea,select");
         inputs.forEach(el => {
           if (!el.id) return;
-          // checkbox state stored as boolean
           if (el.type === "checkbox") window.brrrrData[el.id] = el.checked;
           else window.brrrrData[el.id] = el.value;
         });
@@ -799,7 +812,6 @@
         // Step-specific wiring
         wireStep(n);
 
-        // Address autocomplete only needs to run when street exists
         if (n === 0) setupAddressAutocomplete();
 
         // Nav wiring
@@ -824,7 +836,7 @@
           showResults();
         };
 
-        // Save on change
+        // Save on change/blur
         stepsArea.querySelectorAll("input,textarea,select").forEach(el => {
           el.addEventListener("change", () => {
             if (!el.id) return;
@@ -871,7 +883,6 @@
         }, 0);
         const el = document.getElementById("rehabBreakdownTotal");
         if (el) el.textContent = formatCurrency(total);
-        // store total back into rehab field for calculations
         window.brrrrData.rehab = String(total);
       }
 
@@ -929,13 +940,11 @@
 
       // ---------------------------
       // PURCHASE COST ITEMIZATION
-      // Loan Points (% of Loan) computed off sum of Step 5 financed loans (fallback to purchase price if none)
       // ---------------------------
       function getTotalFinancedLoanAmount() {
         if (window.brrrrData.useFinancing === false) return 0;
         const total = loans.reduce((sum, l) => sum + (Number(l.financed) || 0), 0);
         if (total > 0) return total;
-        // fallback basis if user hasn't added loans yet
         return parseCurrency(window.brrrrData.purchasePrice);
       }
 
@@ -982,7 +991,6 @@
         const loanBase = getTotalFinancedLoanAmount();
 
         (window.brrrrData.purchaseCostItems || []).forEach((item, idx) => {
-          // Normalize
           if (!item.mode) item.mode = "fixed";
           if (String(item.label || "").toLowerCase().includes("loan points") && item.mode !== "pct_loan") item.mode = "pct_loan";
           if (String(item.label || "").toLowerCase().includes("loan points") && (item.amount == null || item.amount === "")) item.amount = "2";
@@ -996,7 +1004,6 @@
 
           const isPctLoan = item.mode === "pct_loan";
           const displayAmount = isPctLoan ? String(item.amount || "2") : (item.amount ? formatCurrency(item.amount) : "");
-
           const computed = isPctLoan ? (loanBase * ((parseFloat(String(item.amount).replace(/[^0-9.-]+/g, "")) || 0) / 100)) : null;
 
           row.innerHTML = `
@@ -1032,9 +1039,9 @@
           `;
 
           const labelEl = row.querySelectorAll("input.brrrr-input")[0];
-          const typeEl = row.querySelectorAll("select.brrrr-input")[0];
-          const amtEl = row.querySelectorAll("input.brrrr-input")[1];
-          const delBtn = row.querySelectorAll("button")[0];
+          const typeEl  = row.querySelectorAll("select.brrrr-input")[0];
+          const amtEl   = row.querySelectorAll("input.brrrr-input")[1];
+          const delBtn  = row.querySelectorAll("button")[0];
 
           labelEl.onchange = function () {
             window.brrrrData.purchaseCostItems[idx].label = labelEl.value;
@@ -1042,8 +1049,6 @@
 
           typeEl.onchange = function () {
             window.brrrrData.purchaseCostItems[idx].mode = typeEl.value;
-
-            // If switched to % loan and it's Loan Points, default to 2
             const isLP = String(window.brrrrData.purchaseCostItems[idx].label || "").toLowerCase().includes("loan points");
             if (typeEl.value === "pct_loan" && (window.brrrrData.purchaseCostItems[idx].amount == null || window.brrrrData.purchaseCostItems[idx].amount === "")) {
               window.brrrrData.purchaseCostItems[idx].amount = isLP ? "2" : "0";
@@ -1052,7 +1057,6 @@
             updatePurchaseCostTotal();
           };
 
-          // Amount formatting
           amtEl.onfocus = function () {
             if (typeEl.value === "fixed") stripCurrencyOnFocus({ target: amtEl });
           };
@@ -1064,7 +1068,6 @@
               formatCurrencyInput({ target: amtEl });
               window.brrrrData.purchaseCostItems[idx].amount = amtEl.value.replace(/[^0-9.-]+/g, "");
             } else {
-              // percent
               const raw = amtEl.value.replace(/[^0-9.-]+/g, "");
               amtEl.value = raw;
               window.brrrrData.purchaseCostItems[idx].amount = raw;
@@ -1098,7 +1101,7 @@
       }
 
       // ---------------------------
-      // REFI COST ITEMIZATION (now works)
+      // REFI COST ITEMIZATION
       // ---------------------------
       function wireRefiCostBreakdown() {
         const useBreakdown = document.getElementById("useRefiCostBreakdown");
@@ -1191,7 +1194,7 @@
       }
 
       // ---------------------------
-      // EXPENSE ITEMIZATION (now works)
+      // EXPENSE ITEMIZATION
       // ---------------------------
       function wireExpenseBreakdown() {
         const useBreakdown = document.getElementById("useExpenseBreakdown");
@@ -1243,12 +1246,10 @@
             <button type="button" class="btn secondary">Delete</button>
           `;
 
-          // label
           row.children[0].onchange = function () {
             window.brrrrData.expenseItems[idx].label = row.children[0].value;
           };
 
-          // amount
           row.children[1].onfocus = function () {
             const period = row.children[2].value;
             if (period === "perYear" || period === "perMonth") stripCurrencyOnFocus({ target: row.children[1] });
@@ -1271,14 +1272,12 @@
             updateExpenseTotalRaw();
           };
 
-          // period
           row.children[2].onchange = function () {
             window.brrrrData.expenseItems[idx].period = row.children[2].value;
             renderExpenseItems();
             updateExpenseTotalRaw();
           };
 
-          // delete
           row.children[3].onclick = function () {
             window.brrrrData.expenseItems.splice(idx, 1);
             renderExpenseItems();
@@ -1320,7 +1319,6 @@
 
         if (title === "Acquisition Numbers") {
           wireRehabBreakdown();
-          // If breakdown is on, make sure total sets rehab
           if (window.brrrrData.useRehabBreakdown) updateRehabTotal();
         }
 
@@ -1329,153 +1327,224 @@
         }
 
         if (title === "Refinance/Financing") {
-          // Financing wiring
-          const useFin = document.getElementById("useFinancing");
-          const area = document.getElementById("financingArea");
+  const useFin = document.getElementById("useFinancing");
+  const area = document.getElementById("financingArea");
 
-          if (useFin && area) {
-            useFin.checked = (window.brrrrData.useFinancing !== undefined) ? !!window.brrrrData.useFinancing : true;
-            area.style.display = useFin.checked ? "block" : "none";
-            useFin.onchange = function () {
-              window.brrrrData.useFinancing = useFin.checked;
-              area.style.display = useFin.checked ? "block" : "none";
-              updateAggregatedLoanAmountDisplay();
-              // If purchase costs are itemized, refresh Loan Points computed line
-              if (window.brrrrData.usePurchaseCostBreakdown) {
-                const pcList = document.getElementById("purchaseCostItemsList");
-                if (pcList) { renderPurchaseCostItems(); }
-              }
-            };
-          }
+  if (useFin && area) {
+    useFin.checked = (window.brrrrData.useFinancing !== undefined) ? !!window.brrrrData.useFinancing : true;
+    area.style.display = useFin.checked ? "block" : "none";
 
-          const targetSel = document.getElementById("newLoanTarget");
-          const customWrap = document.getElementById("newLoanCustomAmountWrap");
-          const dpPurchaseWrap = document.getElementById("dpPurchaseWrap");
-          const dpRehabWrap = document.getElementById("dpRehabWrap");
-          const dpSingleWrap = document.getElementById("dpSingleWrap");
+    useFin.onchange = function () {
+      window.brrrrData.useFinancing = useFin.checked;
+      area.style.display = useFin.checked ? "block" : "none";
 
-          function refreshLoanUI() {
-            const target = targetSel.value;
-            if (customWrap) customWrap.style.display = (target === "custom") ? "block" : "none";
-            if (dpPurchaseWrap) dpPurchaseWrap.style.display = (target === "purchase_rehab") ? "block" : "none";
-            if (dpRehabWrap) dpRehabWrap.style.display = (target === "purchase_rehab") ? "block" : "none";
-            if (dpSingleWrap) dpSingleWrap.style.display = (["purchase","rehab","arv"].includes(target)) ? "block" : "none";
-          }
+      // Clear preview + show real totals
+      updateAggregatedLoanAmountDisplay(0);
 
-          if (targetSel) {
-            targetSel.onchange = refreshLoanUI;
-            refreshLoanUI();
-          }
+      if (window.brrrrData.usePurchaseCostBreakdown) {
+        const pcList = document.getElementById("purchaseCostItemsList");
+        if (pcList) renderPurchaseCostItems();
+      }
+    };
+  }
 
-          function computeFinancedForLoan() {
-            const purchasePrice = parseCurrency(window.brrrrData.purchasePrice);
-            const rehab = parseCurrency(window.brrrrData.rehab);
-            const arv = parseCurrency(window.brrrrData.arv);
+  const targetSel = document.getElementById("newLoanTarget");
+  const customWrap = document.getElementById("newLoanCustomAmountWrap");
+  const dpPurchaseWrap = document.getElementById("dpPurchaseWrap");
+  const dpRehabWrap = document.getElementById("dpRehabWrap");
+  const dpSingleWrap = document.getElementById("dpSingleWrap");
 
-            const target = document.getElementById("newLoanTarget").value;
-            let financed = 0;
+  function refreshLoanUI() {
+    if (!targetSel) return;
+    const target = targetSel.value;
+    if (customWrap) customWrap.style.display = (target === "custom") ? "block" : "none";
+    if (dpPurchaseWrap) dpPurchaseWrap.style.display = (target === "purchase_rehab") ? "block" : "none";
+    if (dpRehabWrap) dpRehabWrap.style.display = (target === "purchase_rehab") ? "block" : "none";
+    if (dpSingleWrap) dpSingleWrap.style.display = (["purchase", "rehab", "arv"].includes(target)) ? "block" : "none";
+  }
 
-            if (target === "purchase_rehab") {
-              const pctPriceDP = Number(document.getElementById("newLoanPriceDownPct").value) || 0;
-              const pctRehabDP = Number(document.getElementById("newLoanRehabDownPct").value) || 0;
-              financed = purchasePrice * (1 - pctPriceDP / 100) + rehab * (1 - pctRehabDP / 100);
-            } else if (target === "purchase") {
-              const dp = Number(document.getElementById("newLoanDownPct").value) || 0;
-              financed = purchasePrice * (1 - dp / 100);
-            } else if (target === "rehab") {
-              const dp = Number(document.getElementById("newLoanDownPct").value) || 0;
-              financed = rehab * (1 - dp / 100);
-            } else if (target === "arv") {
-              const dp = Number(document.getElementById("newLoanDownPct").value) || 0;
-              financed = arv * (1 - dp / 100);
-            } else if (target === "custom") {
-              financed = parseCurrency(document.getElementById("newLoanCustomAmount").value);
-            }
+  if (targetSel) {
+    targetSel.onchange = refreshLoanUI;
+    refreshLoanUI();
+  }
 
-            return financed;
-          }
+  function computeFinancedForLoan() {
+    const purchasePrice = parseCurrency(window.brrrrData.purchasePrice);
+    const rehab = parseCurrency(window.brrrrData.rehab);
+    const arv = parseCurrency(window.brrrrData.arv);
 
-          function renderLoanList() {
-            const list = document.getElementById("loanList");
-            if (!list) return;
-            list.innerHTML = "";
+    const targetEl = document.getElementById("newLoanTarget");
+    const target = targetEl ? targetEl.value : "purchase";
+    let financed = 0;
 
-            loans.forEach(l => {
-              const div = document.createElement("div");
-              div.className = "loan-card";
-              div.innerHTML = `
-                <div class="loan-info">
-                  <strong>${escapeHtml(l.label)}</strong>
-                  <div style="margin-top:3px;">
-                    ${formatCurrency(l.financed)} — ${escapeHtml(l.type)} @ ${Number(l.rate).toFixed(2)}% — term ${l.term || "N/A"} mo
-                  </div>
-                </div>
-                <div class="loan-actions">
-                  <button type="button" class="btn secondary" data-loanid="${l.id}">Delete</button>
-                </div>
-              `;
-              list.appendChild(div);
-            });
+    if (target === "purchase_rehab") {
+      const dpP = document.getElementById("newLoanPriceDownPct");
+      const dpR = document.getElementById("newLoanRehabDownPct");
+      const pctPriceDP = dpP ? (Number(dpP.value) || 0) : 0;
+      const pctRehabDP = dpR ? (Number(dpR.value) || 0) : 0;
+      financed = purchasePrice * (1 - pctPriceDP / 100) + rehab * (1 - pctRehabDP / 100);
+    } else if (target === "purchase") {
+      const dp = document.getElementById("newLoanDownPct");
+      const down = dp ? (Number(dp.value) || 0) : 0;
+      financed = purchasePrice * (1 - down / 100);
+    } else if (target === "rehab") {
+      const dp = document.getElementById("newLoanDownPct");
+      const down = dp ? (Number(dp.value) || 0) : 0;
+      financed = rehab * (1 - down / 100);
+    } else if (target === "arv") {
+      const dp = document.getElementById("newLoanDownPct");
+      const down = dp ? (Number(dp.value) || 0) : 0;
+      financed = arv * (1 - down / 100);
+    } else if (target === "custom") {
+      const custom = document.getElementById("newLoanCustomAmount");
+      financed = custom ? parseCurrency(custom.value) : 0;
+    }
 
-            list.querySelectorAll("button[data-loanid]").forEach(btn => {
-              btn.onclick = function () {
-                const id = btn.getAttribute("data-loanid");
-                loans = loans.filter(l => String(l.id) !== String(id));
-                renderLoanList();
-                updateAggregatedLoanAmountDisplay();
-                // keep purchase cost loan points live
-                if (window.brrrrData.usePurchaseCostBreakdown) {
-                  const pcList = document.getElementById("purchaseCostItemsList");
-                  if (pcList) renderPurchaseCostItems();
-                }
-              };
-            });
+    return financed;
+  }
 
-            updateAggregatedLoanAmountDisplay();
-          }
+  function renderLoanList() {
+    const list = document.getElementById("loanList");
+    if (!list) return;
+    list.innerHTML = "";
 
-          function updateAggregatedLoanAmountDisplay() {
-            const el = document.getElementById("computedLoanAmount");
-            if (!el) return;
-            const total = loans.reduce((sum, l) => sum + (Number(l.financed) || 0), 0);
-            el.textContent = formatCurrency(total);
-          }
+    loans.forEach(l => {
+      const div = document.createElement("div");
+      div.className = "loan-card";
+      div.innerHTML = `
+        <div class="loan-info">
+          <strong>${escapeHtml(l.label)}</strong>
+          <div style="margin-top:3px;">
+            ${formatCurrency(l.financed)} — ${escapeHtml(l.type)} @ ${Number(l.rate).toFixed(2)}% — term ${l.term || "N/A"} mo
+          </div>
+        </div>
+        <div class="loan-actions">
+          <button type="button" class="btn secondary" data-loanid="${l.id}">Delete</button>
+        </div>
+      `;
+      list.appendChild(div);
+    });
 
-          const addLoanBtn = document.getElementById("addLoanBtn");
-          if (addLoanBtn) {
-            addLoanBtn.onclick = function () {
-              const label = document.getElementById("newLoanLabel").value || "Loan";
-              const type = document.getElementById("newLoanType").value;
-              const rate = Number(document.getElementById("newLoanRate").value) || 0;
-              const term = Number(document.getElementById("newLoanTerm").value) || 0;
-              const financed = computeFinancedForLoan();
+    list.querySelectorAll("button[data-loanid]").forEach(btn => {
+      btn.onclick = function (e) {
+        e.preventDefault();
+        const id = btn.getAttribute("data-loanid");
+        loans = loans.filter(l => String(l.id) !== String(id));
 
-              loans.push({
-                id: Date.now() + Math.random(),
-                label, type, rate, term, financed
-              });
+        renderLoanList();
+        updateAggregatedLoanAmountDisplay(0); // clear preview note, show real total
 
-              document.getElementById("newLoanLabel").value = "";
-              document.getElementById("newLoanCustomAmount").value = "";
-              document.getElementById("newLoanTerm").value = "";
-
-              renderLoanList();
-              updateAggregatedLoanAmountDisplay();
-
-              // keep purchase cost loan points live
-              if (window.brrrrData.usePurchaseCostBreakdown) {
-                const pcList = document.getElementById("purchaseCostItemsList");
-                if (pcList) renderPurchaseCostItems();
-              }
-            };
-          }
-
-          // expose for inner calls
-          window.__updateAggregatedLoanAmountDisplay = updateAggregatedLoanAmountDisplay;
-
-          renderLoanList();
-          updateAggregatedLoanAmountDisplay();
+        if (window.brrrrData.usePurchaseCostBreakdown) {
+          const pcList = document.getElementById("purchaseCostItemsList");
+          if (pcList) renderPurchaseCostItems();
         }
+      };
+    });
+
+    updateAggregatedLoanAmountDisplay(0);
+  }
+
+  function updateAggregatedLoanAmountDisplay(previewAmount) {
+    const el = document.getElementById("computedLoanAmount");
+    const note = document.getElementById("loanPreviewNote");
+    if (!el) return;
+
+    const existingTotal = loans.reduce((sum, l) => sum + (Number(l.financed) || 0), 0);
+    const preview = Number(previewAmount) || 0;
+    const grandTotal = existingTotal + preview;
+
+    el.textContent = formatCurrency(grandTotal);
+
+    if (note) {
+      if (preview > 0) {
+        note.style.display = "block";
+        note.innerHTML =
+          `Preview included: <strong>${formatCurrency(preview)}</strong> (not added yet). ` +
+          `Existing loans: <strong>${formatCurrency(existingTotal)}</strong>`;
+      } else {
+        note.style.display = "none";
+        note.textContent = "";
+      }
+    }
+  }
+
+  // Expose if needed elsewhere
+  window.__updateAggregatedLoanAmountDisplay = updateAggregatedLoanAmountDisplay;
+
+  // ---- GHL-safe: Event delegation (bind once) ----
+  if (!window.__brrrrLoanButtonsBound) {
+    window.__brrrrLoanButtonsBound = true;
+
+    stepsArea.addEventListener("click", function (e) {
+      // PREVIEW
+      const previewBtn = e.target && e.target.closest ? e.target.closest("#previewLoanBtn") : null;
+      if (previewBtn) {
+        e.preventDefault();
+
+        if (window.brrrrData.useFinancing === false) {
+          updateAggregatedLoanAmountDisplay(0);
+          return;
+        }
+
+        const previewAmt = computeFinancedForLoan();
+        updateAggregatedLoanAmountDisplay(previewAmt);
+
+        if (window.brrrrData.usePurchaseCostBreakdown) {
+          const pcList = document.getElementById("purchaseCostItemsList");
+          if (pcList) renderPurchaseCostItems();
+        }
+        return;
+      }
+
+      // ADD LOAN
+      const addBtn = e.target && e.target.closest ? e.target.closest("#addLoanBtn") : null;
+      if (addBtn) {
+        e.preventDefault();
+
+        if (window.brrrrData.useFinancing === false) {
+          updateAggregatedLoanAmountDisplay(0);
+          return;
+        }
+
+        const labelEl = document.getElementById("newLoanLabel");
+        const typeEl = document.getElementById("newLoanType");
+        const rateEl = document.getElementById("newLoanRate");
+        const termEl = document.getElementById("newLoanTerm");
+
+        const label = labelEl ? (labelEl.value || "Loan") : "Loan";
+        const type = typeEl ? typeEl.value : "Interest-Only";
+        const rate = rateEl ? (Number(rateEl.value) || 0) : 0;
+        const term = termEl ? (Number(termEl.value) || 0) : 0;
+        const financed = computeFinancedForLoan();
+
+        loans.push({
+          id: Date.now() + Math.random(),
+          label, type, rate, term, financed
+        });
+
+        // SAFE clears
+        if (labelEl) labelEl.value = "";
+        const customAmt = document.getElementById("newLoanCustomAmount");
+        if (customAmt) customAmt.value = "";
+        if (termEl) termEl.value = "6";
+
+        renderLoanList();
+        updateAggregatedLoanAmountDisplay(0); // clear preview note after adding
+
+        if (window.brrrrData.usePurchaseCostBreakdown) {
+          const pcList = document.getElementById("purchaseCostItemsList");
+          if (pcList) renderPurchaseCostItems();
+        }
+        return;
+      }
+    });
+  }
+
+  // Initial render
+  renderLoanList();
+  updateAggregatedLoanAmountDisplay(0);
+}
+
 
         if (title === "Refinance Cost") {
           wireRefiCostBreakdown();
@@ -1489,7 +1558,7 @@
       // ---------------------------
       // CALCULATION + RESULTS
       // ---------------------------
-      function computeTotalMonthlyExpenses(rent) {
+      function computeTotalMonthlyExpenses(grossRent, collectedRentBase) {
         const useBreakdown = !!window.brrrrData.useExpenseBreakdown;
 
         if (!useBreakdown) {
@@ -1502,8 +1571,13 @@
         let totalMonthly = 0;
         (window.brrrrData.expenseItems || []).forEach(item => {
           let amt = parseFloat(String(item.amount).replace(/[^0-9.-]+/g, "")) || 0;
+
           if (item.period === "perYear") amt = amt / 12;
-          if (item.period === "percentRent") amt = rent * (amt / 100);
+          if (item.period === "percentRent") {
+            const base = (Number(collectedRentBase) || 0);
+            amt = base * (amt / 100);
+          }
+
           totalMonthly += amt;
         });
 
@@ -1533,13 +1607,18 @@
         return monthly;
       }
 
+      function computeRehabCosts() {
+        if (!!window.brrrrData.useRehabBreakdown) {
+          return (window.brrrrData.rehabItems || []).reduce((sum, item) => {
+            return sum + (parseFloat(String(item.amount).replace(/[^0-9.-]+/g, "")) || 0);
+          }, 0);
+        }
+        return parseCurrency(window.brrrrData.rehab);
+      }
+
       function showResults() {
-        // Pull values
         const purchasePrice = parseCurrency(window.brrrrData.purchasePrice);
-
-        // Rehab: if itemized, we stored total into brrrrData.rehab already
-        const rehab = window.brrrrData.useRehabBreakdown ? (parseCurrency(window.brrrrData.rehab)) : parseCurrency(window.brrrrData.rehab);
-
+        const rehab = computeRehabCosts();
         const arv = parseCurrency(window.brrrrData.arv);
 
         const purchaseCosts = computePurchaseCosts();
@@ -1551,25 +1630,24 @@
 
         const effectiveRent = (rent * (1 - vacancyPct / 100)) + otherIncome;
 
-        const baseMonthlyExpenses = computeTotalMonthlyExpenses(rent);
+        const collectedRent = rent * (1 - vacancyPct / 100);
+        const baseMonthlyExpenses = computeTotalMonthlyExpenses(rent, collectedRent);
+
         const holdingLoanMonthly = computeHoldingLoanMonthlyPayment();
         const totalMonthlyExpenses = baseMonthlyExpenses + holdingLoanMonthly;
 
         const cashFlow = effectiveRent - totalMonthlyExpenses;
 
-        // Appreciation & selling costs
         const appreciation = Number(window.brrrrData.appreciation) || 0;
         const holdYears = Number(window.brrrrData.holdYears) || 1;
         const sellingCostPct = Number(window.brrrrData.sellingCostPct) || 0;
 
-        // Exit: projected value from purchase price
         const projectedValue = purchasePrice * Math.pow(1 + appreciation / 100, holdYears);
         const sellingCosts = projectedValue * (sellingCostPct / 100);
         const netSaleProceeds = projectedValue - sellingCosts;
 
         const totalInvestment = purchasePrice + rehab + purchaseCosts + refiCosts;
 
-        // Property info
         const propStreet = window.brrrrData.street || "";
         const propCity = window.brrrrData.city || "";
         const propState = window.brrrrData.state || "";
@@ -1584,7 +1662,6 @@
           </div>
         ` : "";
 
-        // Loans breakdown
         const loanBreakdown = loans.length ? `
           <details style="margin-top:6px;">
             <summary style="cursor:pointer;font-weight:800;color:#2E8B57;">View Financing Breakdown</summary>
@@ -1648,7 +1725,7 @@
           });
         });
 
-        // Replace step area with result nav
+        // Replace step area with result nav (safe reset included)
         stepsArea.innerHTML = `
           <div style="text-align:center;margin:14px 0;">
             <button id="brrrrResultBack" class="brrrr-btn secondary" type="button" style="margin-right:10px;">Back</button>
@@ -1662,6 +1739,7 @@
         };
 
         document.getElementById("brrrrResultStartOver").onclick = function () {
+          resetAllData();     // ✅ SAFE RESET (clears brrrrData + loans, restores defaults)
           current = 0;
           renderStep(current);
         };
@@ -1673,88 +1751,120 @@
       // PDF DOWNLOAD
       // ---------------------------
       function downloadPDF() {
-        if (pdfErr) { pdfErr.style.display = "none"; pdfErr.textContent = ""; }
+  if (pdfErr) { pdfErr.style.display = "none"; pdfErr.textContent = ""; }
 
-        loadScript("https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js", "html2canvas", function () {
-          loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js", "jspdf", function () {
-            const jsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : null;
-            if (!window.html2canvas || !jsPDF) {
-              if (pdfErr) {
-                pdfErr.innerHTML = "PDF libraries failed to load. Try reload, or use Print (Ctrl+P) → Save as PDF.";
-                pdfErr.style.display = "block";
-              }
-              return;
-            }
+  // --- Helper: replace Chart.js canvas with an image so html2canvas captures it ---
+  function replaceCanvasWithImage(rootEl) {
+    const canvas = rootEl.querySelector("#brrrrPie");
+    if (!canvas || !canvas.toDataURL) return null;
 
-            const area = document.getElementById("brrrrExportArea");
-            if (!area) {
-              if (pdfErr) { pdfErr.textContent = "Export area not found."; pdfErr.style.display = "block"; }
-              return;
-            }
+    const img = document.createElement("img");
+    img.src = canvas.toDataURL("image/png");
+    img.alt = "BRRRR Chart";
+    img.style.maxWidth = "100%";
+    img.style.display = "block";
+    img.style.margin = "0 auto";
 
-            const overlay = document.createElement("div");
-            overlay.style.position = "fixed";
-            overlay.style.left = "0";
-            overlay.style.top = "0";
-            overlay.style.width = "100vw";
-            overlay.style.height = "100vh";
-            overlay.style.background = "#fff";
-            overlay.style.zIndex = "999999";
-            overlay.style.display = "flex";
-            overlay.style.alignItems = "center";
-            overlay.style.justifyContent = "center";
-            overlay.style.overflow = "auto";
+    const parent = canvas.parentNode;
+    if (!parent) return null;
 
-            const clone = area.cloneNode(true);
-            clone.style.display = "block";
-            clone.style.background = "#fff";
-            clone.style.padding = "18px";
-            overlay.appendChild(clone);
-            document.body.appendChild(overlay);
+    parent.replaceChild(img, canvas);
+    return { canvas, img, parent };
+  }
 
-            setTimeout(function () {
-              window.html2canvas(clone, { scale: 2, useCORS: true, backgroundColor: "#fff" })
-                .then(function (canvas) {
-                  document.body.removeChild(overlay);
+  function restoreCanvas(replaced) {
+    if (!replaced || !replaced.parent || !replaced.canvas || !replaced.img) return;
+    try { replaced.parent.replaceChild(replaced.canvas, replaced.img); } catch (_) {}
+  }
 
-                  const img = canvas.toDataURL("image/jpeg", 0.98);
-                  const pdf = new jsPDF("p", "pt", "a4");
-
-                  const pdfW = pdf.internal.pageSize.getWidth();
-                  const pdfH = pdf.internal.pageSize.getHeight();
-                  const margin = 20;
-
-                  let imgW = pdfW - margin * 2;
-                  let imgH = (canvas.height * imgW) / canvas.width;
-
-                  if (imgH > pdfH - margin * 2) {
-                    imgH = pdfH - margin * 2;
-                    imgW = (canvas.width * imgH) / canvas.height;
-                  }
-
-                  const x = (pdfW - imgW) / 2;
-                  const y = margin;
-
-                  pdf.addImage(img, "JPEG", x, y, imgW, imgH);
-                  pdf.save("UTAHREIA_BRRRR_Report.pdf");
-                })
-                .catch(function (e) {
-                  try { document.body.removeChild(overlay); } catch (_) {}
-                  if (pdfErr) { pdfErr.textContent = "PDF export failed: " + e.message; pdfErr.style.display = "block"; }
-                });
-            }, 100);
-          });
-        });
+  loadScript("https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js", "html2canvas", function () {
+    loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js", "jspdf", function () {
+      const jsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : null;
+      if (!window.html2canvas || !jsPDF) {
+        if (pdfErr) {
+          pdfErr.innerHTML = "PDF libraries failed to load. Try reload, or use Print (Ctrl+P) → Save as PDF.";
+          pdfErr.style.display = "block";
+        }
+        return;
       }
 
-      if (dlBtn) dlBtn.addEventListener("click", downloadPDF);
+      const area = document.getElementById("brrrrExportArea");
+      if (!area) {
+        if (pdfErr) { pdfErr.textContent = "Export area not found."; pdfErr.style.display = "block"; }
+        return;
+      }
 
-      // ---------------------------
-      // INITIAL RENDER
-      // ---------------------------
-      renderStep(0);
+      // ✅ Convert the live chart canvas to an image BEFORE cloning/export
+      const replacedLive = replaceCanvasWithImage(document);
 
-    })();
+      const overlay = document.createElement("div");
+      overlay.style.position = "fixed";
+      overlay.style.left = "0";
+      overlay.style.top = "0";
+      overlay.style.width = "100vw";
+      overlay.style.height = "100vh";
+      overlay.style.background = "#fff";
+      overlay.style.zIndex = "999999";
+      overlay.style.display = "flex";
+      overlay.style.alignItems = "center";
+      overlay.style.justifyContent = "center";
+      overlay.style.overflow = "auto";
+
+      const clone = area.cloneNode(true);
+      clone.style.display = "block";
+      clone.style.background = "#fff";
+      clone.style.padding = "18px";
+      overlay.appendChild(clone);
+      document.body.appendChild(overlay);
+
+      setTimeout(function () {
+        window.html2canvas(clone, { scale: 2, useCORS: true, backgroundColor: "#fff" })
+          .then(function (canvas) {
+            document.body.removeChild(overlay);
+
+            const img = canvas.toDataURL("image/jpeg", 0.98);
+            const pdf = new jsPDF("p", "pt", "a4");
+
+            const pdfW = pdf.internal.pageSize.getWidth();
+            const pdfH = pdf.internal.pageSize.getHeight();
+            const margin = 20;
+
+            let imgW = pdfW - margin * 2;
+            let imgH = (canvas.height * imgW) / canvas.width;
+
+            if (imgH > pdfH - margin * 2) {
+              imgH = pdfH - margin * 2;
+              imgW = (canvas.width * imgH) / canvas.height;
+            }
+
+            const x = (pdfW - imgW) / 2;
+            const y = margin;
+
+            pdf.addImage(img, "JPEG", x, y, imgW, imgH);
+            pdf.save("UTAHREIA_BRRRR_Report.pdf");
+
+            // ✅ Restore live chart canvas after export
+            restoreCanvas(replacedLive);
+          })
+          .catch(function (e) {
+            try { document.body.removeChild(overlay); } catch (_) {}
+            restoreCanvas(replacedLive);
+            if (pdfErr) { pdfErr.textContent = "PDF export failed: " + e.message; pdfErr.style.display = "block"; }
+          });
+      }, 150);
+    });
+  });
+}
+
+if (dlBtn) dlBtn.addEventListener("click", downloadPDF);
+
+// ---------------------------
+// INITIAL RENDER
+// ---------------------------
+renderStep(0);
+
+})();
+
   </script>
 </body>
 </html>
