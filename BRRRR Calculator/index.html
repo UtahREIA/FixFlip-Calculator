@@ -416,6 +416,8 @@
                 <div id="rehabItemsList"></div>
                 <button type="button" class="btn" id="addRehabItemBtn">Add Rehab Item</button>
                 <div style="margin-top:10px;font-weight:800;color:#1a2a4f;">Total: <span id="rehabBreakdownTotal">$0</span></div>
+                <button type="button" class="btn" id="saveRehabBreakdownBtn" style="margin-top:10px;background:#2E8B57;color:#fff;">Save Itemized Rehab Total</button>
+                <button type="button" class="btn" id="editRehabBreakdownBtn" style="margin-top:10px;display:none;background:#001F3F;color:#fff;">Edit Itemized Breakdown</button>
               </div>
 
               <div class="brrrr-muted">These values are used across financing, cash flow, and summary calculations.</div>
@@ -866,7 +868,38 @@
           const on = toggle.checked;
           area.style.display = on ? "block" : "none";
           rehabInput.style.display = on ? "none" : "block";
-          if (on) renderRehabItems();
+          if (on) {
+            renderRehabItems();
+            updateRehabTotal(); // Ensure total is synced when toggling on
+            // Set manual input to itemized total if Save was clicked
+            const saveBtn = document.getElementById("saveRehabBreakdownBtn");
+            const editBtn = document.getElementById("editRehabBreakdownBtn");
+            if (saveBtn) {
+              saveBtn.onclick = function () {
+                const total = (window.brrrrData.rehabItems || []).reduce((sum, item) => {
+                  return sum + (parseFloat(String(item.amount).replace(/[^0-9.-]+/g, "")) || 0);
+                }, 0);
+                rehabInput.value = total > 0 ? formatCurrency(total) : "";
+                window.brrrrData.rehab = String(total);
+                area.style.display = "none";
+                rehabInput.style.display = "block";
+                if (editBtn) editBtn.style.display = "inline-block";
+              };
+            }
+            if (editBtn) {
+              editBtn.onclick = function () {
+                area.style.display = "block";
+                rehabInput.style.display = "none";
+                editBtn.style.display = "none";
+              };
+            }
+          } else {
+            // Clear manual input when toggling off itemized
+            rehabInput.value = "";
+            window.brrrrData.rehab = "";
+            const editBtn = document.getElementById("editRehabBreakdownBtn");
+            if (editBtn) editBtn.style.display = "none";
+          }
         }
 
         toggle.onchange = function () {
@@ -1408,6 +1441,7 @@
     if (!list) return;
     list.innerHTML = "";
 
+    console.debug('Step 5 Loans:', loans);
     loans.forEach(l => {
       const div = document.createElement("div");
       div.className = "loan-card";
@@ -1456,15 +1490,10 @@
     el.textContent = formatCurrency(grandTotal);
 
     if (note) {
-      if (preview > 0) {
-        note.style.display = "block";
-        note.innerHTML =
-          `Preview included: <strong>${formatCurrency(preview)}</strong> (not added yet). ` +
-          `Existing loans: <strong>${formatCurrency(existingTotal)}</strong>`;
-      } else {
-        note.style.display = "none";
-        note.textContent = "";
-      }
+      note.style.display = "block";
+      note.innerHTML =
+        `Preview included: <strong>${formatCurrency(preview)}</strong> (not added yet). ` +
+        `Existing loans: <strong>${formatCurrency(existingTotal)}</strong>`;
     }
   }
 
@@ -1795,7 +1824,7 @@
       }
 
       // ✅ Convert the live chart canvas to an image BEFORE cloning/export
-      const replacedLive = replaceCanvasWithImage(document);
+      const replacedLive = replaceCanvasWithImage(area);
 
       const overlay = document.createElement("div");
       overlay.style.position = "fixed";
