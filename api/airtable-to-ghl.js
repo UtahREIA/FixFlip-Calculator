@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     }
     const incomingPhone = normalizePhone(phone);
 
-    if (!email && !normalizedPhone) {
+    if (!email && !incomingPhone) {
       return res.status(400).json({ error: "Missing email or phone" });
     }
 
