@@ -2,40 +2,32 @@
 
 export default async function handler(req, res) {
   try {
-    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-
-    const {
-      phone,
-      email,
-      name,
-      calculator = "Fix & Flip", // default
-      firstAccessAt // optional timestamp from Airtable
-    } = req.body || {};
-
-    // Normalize phone number to digits only
-    function normalizePhone(num) {
-      return String(num || '').replace(/\D/g, '');
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
     }
-    const incomingPhone = normalizePhone(phone);
 
-    if (!email && !incomingPhone) {
+    const { phone, email, name, calculator = "Fix & Flip", firstAccessAt } = req.body || {};
+
+    const normalizedPhone = normalizePhone(phone);
+
+    if (!email && !normalizedPhone) {
       return res.status(400).json({ error: "Missing email or phone" });
     }
 
-    // --- REQUIRED ENV VARS ---
-    const TOKEN = process.env.GHL_TOKEN;                 // OAuth/private integration token
-    const LOCATION_ID = process.env.GHL_LOCATION_ID;     // locationId
-    const CF_CALC_USER_ID = process.env.CF_CALC_USER_ID; // custom field ID to mark user (checkbox/true-false)
-    // Optional:
-    const CF_CALC_NAME_ID = process.env.CF_CALC_NAME_ID; // e.g. multi-select field storing "Fix & Flip"
-    const CF_FIRST_ACCESS_ID = process.env.CF_FIRST_ACCESS_ID; // date field
+    // --- ENV VARS (set in Vercel) ---
+    const TOKEN = process.env.GHL_TOKEN;
+    const LOCATION_ID = process.env.GHL_LOCATION_ID;
+    const CF_CALC_USER_ID = process.env.CF_CALC_USER_ID;
+
+    const CF_CALC_NAME_ID = process.env.CF_CALC_NAME_ID; // optional
+    const CF_FIRST_ACCESS_ID = process.env.CF_FIRST_ACCESS_ID; // optional
 
     if (!TOKEN || !LOCATION_ID || !CF_CALC_USER_ID) {
       return res.status(500).json({
         error: "Missing env vars",
         missing: {
           GHL_TOKEN: !TOKEN,
-          GHL_LOCATION_ID: !LOCATION_ID,
+          GHL_LOCATION_LOCATION_ID: !LOCATION_ID,
           CF_CALC_USER_ID: !CF_CALC_USER_ID
         }
       });
@@ -48,13 +40,11 @@ export default async function handler(req, res) {
       Version: "2021-07-28"
     };
 
-    // 1) Find contact (search)
-    // The search endpoint can vary by account; safest is: upsert, then use returned contact.
-    // We'll do upsert because it solves "contact not found".
+    // 1) Upsert contact (creates or updates)
     const upsertPayload = {
       locationId: LOCATION_ID,
       ...(email ? { email } : {}),
-      ...(incomingPhone ? { phone: incomingPhone } : {}),
+      ...(normalizedPhone ? { phone: normalizedPhone } : {}),
       ...(name ? { name } : {})
     };
 
@@ -66,7 +56,11 @@ export default async function handler(req, res) {
 
     const upsertText = await upsertResp.text();
     let upsertData;
-    try { upsertData = JSON.parse(upsertText); } catch { upsertData = { raw: upsertText }; }
+    try {
+      upsertData = JSON.parse(upsertText);
+    } catch {
+      upsertData = { raw: upsertText };
+    }
 
     if (!upsertResp.ok) {
       return res.status(502).json({ error: "GHL upsert failed", details: upsertData });
@@ -81,19 +75,13 @@ export default async function handler(req, res) {
       return res.status(502).json({ error: "Could not determine contactId", details: upsertData });
     }
 
-    // 2) Build custom fields update
-    const customFields = [
-      { id: CF_CALC_USER_ID, value: true }
-    ];
+    // 2) Update custom fields
+    const customFields = [{ id: CF_CALC_USER_ID, value: true }];
 
-    // If you want to store the calculator name in a field:
-    // - If it's a multi-select text field, pass a string like "Fix & Flip"
-    // - If it's a true multi-select custom field in GHL, you typically still pass a string value that matches an option
     if (CF_CALC_NAME_ID) {
       customFields.push({ id: CF_CALC_NAME_ID, value: String(calculator) });
     }
 
-    // Store first access time if you want
     if (CF_FIRST_ACCESS_ID) {
       customFields.push({
         id: CF_FIRST_ACCESS_ID,
@@ -109,7 +97,11 @@ export default async function handler(req, res) {
 
     const updateText = await updateResp.text();
     let updateData;
-    try { updateData = JSON.parse(updateText); } catch { updateData = { raw: updateText }; }
+    try {
+      updateData = JSON.parse(updateText);
+    } catch {
+      updateData = { raw: updateText };
+    }
 
     if (!updateResp.ok) {
       return res.status(502).json({ error: "GHL update failed", details: updateData });
@@ -122,9 +114,9 @@ export default async function handler(req, res) {
   }
 }
 
+// Keep last 10 digits (US-style). If you want E.164 later, we can upgrade this.
 function normalizePhone(raw) {
   const digits = String(raw || "").replace(/[^\d]/g, "");
   if (!digits) return "";
-  // US assumption: keep last 10 digits
   return digits.length >= 10 ? digits.slice(-10) : digits;
 }
