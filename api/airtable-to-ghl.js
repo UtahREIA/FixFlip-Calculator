@@ -12,7 +12,11 @@ export default async function handler(req, res) {
       firstAccessAt // optional timestamp from Airtable
     } = req.body || {};
 
-    const normalizedPhone = normalizePhone(phone);
+    // Normalize phone number to digits only
+    function normalizePhone(num) {
+      return String(num || '').replace(/\D/g, '');
+    }
+    const incomingPhone = normalizePhone(phone);
 
     if (!email && !normalizedPhone) {
       return res.status(400).json({ error: "Missing email or phone" });
@@ -50,7 +54,7 @@ export default async function handler(req, res) {
     const upsertPayload = {
       locationId: LOCATION_ID,
       ...(email ? { email } : {}),
-      ...(normalizedPhone ? { phone: normalizedPhone } : {}),
+      ...(incomingPhone ? { phone: incomingPhone } : {}),
       ...(name ? { name } : {})
     };
 
