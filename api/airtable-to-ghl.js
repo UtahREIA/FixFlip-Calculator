@@ -1,7 +1,3 @@
-// Express webhook to receive Airtable data and send to GoHighLevel custom field
-const express = require('express');
-const axios = require('axios');
-const app = express();
 
 const axios = require('axios');
 
