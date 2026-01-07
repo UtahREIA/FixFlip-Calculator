@@ -77,7 +77,4 @@ module.exports = async (req, res) => {
     res.status(500).json({ error: 'Internal error', details: err.response?.data || err.message });
   }
 };
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Webhook server running on port ${PORT}`);
-});
+
