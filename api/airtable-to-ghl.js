@@ -15,8 +15,11 @@ export default async function handler(req, res) {
     }
 
     // --- ENV VARS (set in Vercel) ---
-    const TOKEN = process.env.GHL_TOKEN;
+    // Use GHL_API_KEY for GoHighLevel API authentication
+    const TOKEN = process.env.GHL_API_KEY;
     const LOCATION_ID = process.env.GHL_LOCATION_ID;
+    // CF_CALC_USER_ID is the custom field ID for the "Access To Calculators" field in GHL
+    // You can find this in GHL by inspecting the custom field in the contact record or via the API
     const CF_CALC_USER_ID = process.env.CF_CALC_USER_ID;
 
     const CF_CALC_NAME_ID = process.env.CF_CALC_NAME_ID; // optional
