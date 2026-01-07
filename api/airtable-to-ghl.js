@@ -2,35 +2,37 @@
 const express = require('express');
 const axios = require('axios');
 const app = express();
-app.use(express.json());
 
+const axios = require('axios');
 
-// Replace with your GoHighLevel API key
 const GHL_API_KEY = 'YOUR_GHL_API_KEY';
-// The custom field ID for "Access To Calculators" (update if needed)
 const GHL_CALC_FIELD_ID = 'access_to_calculators';
 
-
-// Accepts POST with { email, phone, name, calculators } where calculators is an array or string
-app.post('/airtable-to-ghl', async (req, res) => {
+module.exports = async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
   try {
     const { email, phone, calculators } = req.body;
     if (!email && !phone) {
-      return res.status(400).json({ error: 'Missing email or phone' });
+      res.status(400).json({ error: 'Missing email or phone' });
+      return;
     }
-    // calculators can be a string or array
     let newCalcs = [];
     if (Array.isArray(calculators)) {
       newCalcs = calculators;
     } else if (typeof calculators === 'string') {
       newCalcs = [calculators];
     } else {
-      return res.status(400).json({ error: 'Missing calculators' });
+      res.status(400).json({ error: 'Missing calculators' });
+      return;
     }
     // Only keep 'Fix & Flip'
     newCalcs = newCalcs.filter(c => String(c).toLowerCase().replace(/[^a-z]/g, '') === 'fixflip');
     if (newCalcs.length === 0) {
-      return res.status(200).json({ success: true, skipped: 'No Fix & Flip calculator in request.' });
+      res.status(200).json({ success: true, skipped: 'No Fix & Flip calculator in request.' });
+      return;
     }
 
     // Find contact in GHL by email or phone
@@ -44,7 +46,8 @@ app.post('/airtable-to-ghl', async (req, res) => {
     });
     const contact = searchResp.data.contacts?.[0];
     if (!contact) {
-      return res.status(404).json({ error: 'Contact not found in GHL' });
+      res.status(404).json({ error: 'Contact not found in GHL' });
+      return;
     }
 
     // Get current calculators (array of strings)
@@ -54,7 +57,6 @@ app.post('/airtable-to-ghl', async (req, res) => {
       if (Array.isArray(val)) {
         currentCalcs = val;
       } else if (typeof val === 'string') {
-        // Sometimes GHL returns comma-separated string
         currentCalcs = val.split(',').map(s => s.trim()).filter(Boolean);
       }
     }
@@ -78,8 +80,7 @@ app.post('/airtable-to-ghl', async (req, res) => {
     console.error('Webhook error:', err.response?.data || err.message);
     res.status(500).json({ error: 'Internal error', details: err.response?.data || err.message });
   }
-});
-
+};
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Webhook server running on port ${PORT}`);
