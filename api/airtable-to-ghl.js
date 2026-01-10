@@ -66,6 +66,7 @@ export default async function handler(req, res) {
     }
 
     if (!upsertResp.ok) {
+      console.error("GHL upsert failed", { status: upsertResp.status, upsertData });
       return res.status(502).json({ error: "GHL upsert failed", details: upsertData });
     }
 
@@ -75,6 +76,7 @@ export default async function handler(req, res) {
       upsertData?.id;
 
     if (!contactId) {
+      console.error("Could not determine contactId", { upsertData });
       return res.status(502).json({ error: "Could not determine contactId", details: upsertData });
     }
 
@@ -107,12 +109,19 @@ export default async function handler(req, res) {
     }
 
     if (!updateResp.ok) {
+      console.error("GHL update failed", { status: updateResp.status, updateData });
       return res.status(502).json({ error: "GHL update failed", details: updateData });
     }
 
     return res.status(200).json({ ok: true, contactId });
   } catch (err) {
     console.error("airtable-to-ghl error:", err);
+    if (err?.response) {
+      try {
+        const errorText = await err.response.text();
+        console.error("GHL API error response:", errorText);
+      } catch {}
+    }
     return res.status(500).json({ error: err?.message || "Internal error" });
   }
 }
