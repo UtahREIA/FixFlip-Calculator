@@ -23,7 +23,8 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Missing Airtable credentials for BRRRR" });
   }
 
-  const searchUrl = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?filterByFormula={phone}='${phone}'`;
+  // Use the exact field name for phone lookup
+  const searchUrl = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?filterByFormula={Phone Number}='${phone}'`;
 
   const response = await fetch(searchUrl, {
     headers: {
@@ -36,11 +37,12 @@ export default async function handler(req, res) {
 
   if (data.records && data.records.length > 0) {
     const record = data.records[0].fields;
-    const status = record.status || record.Status || "Inactive";
-    const approved = record.approved || record.Approved || false;
+    // Use exact field names from Airtable
+    const approvalStatus = record["Approval Status"] || "";
+    const memberStatus = record["Member Status"] || "";
 
     // If approved and Active, grant full access
-    if (approved && status === "Active") {
+    if (approvalStatus === "Approved" && memberStatus === "Active") {
       return res.status(200).json({
         valid: true,
         status: "Active",
@@ -50,10 +52,10 @@ export default async function handler(req, res) {
     }
 
     // Otherwise, grant 30-day trial
-    // Calculate days left if trial started
+    // Calculate days left if First Access Date exists
     let trialDaysLeft = 30;
-    if (record.trialStart) {
-      const start = new Date(record.trialStart);
+    if (record["First Access Date"]) {
+      const start = new Date(record["First Access Date"]);
       const now = new Date();
       const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24));
       trialDaysLeft = Math.max(30 - diff, 0);
