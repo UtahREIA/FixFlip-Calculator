@@ -1,78 +1,121 @@
 // API endpoint for BRRRR Calculator phone verification (Airtable)
 // Place in: BRRRR Calculator/api/check-phone-brrrr.js
 
+const axios = require('axios');
+
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  if (req.method === "OPTIONS") return res.status(200).end();
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
 
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
 
-  const { phone } = req.body || {};
-  if (!phone) {
-    return res.status(400).json({ error: "Phone required" });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Airtable config for BRRRR Calculator
-  const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY_BRRRR;
-  const BASE_ID = process.env.AIRTABLE_BASE_ID_BRRRR;
-  const TABLE_NAME = "Verifications";
-
-  if (!AIRTABLE_API_KEY || !BASE_ID) {
-    return res.status(500).json({ error: "Missing Airtable credentials for BRRRR" });
-  }
-
-  // Use the exact field name for phone lookup
-  const searchUrl = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}?filterByFormula={Phone Number}='${phone}'`;
-
-  const response = await fetch(searchUrl, {
-    headers: {
-      Authorization: `Bearer ${AIRTABLE_API_KEY}`,
-      "Content-Type": "application/json"
-    },
-  });
-
-  const data = await response.json();
-
-  if (data.records && data.records.length > 0) {
-    const record = data.records[0].fields;
-    // Use exact field names from Airtable
-    const approvalStatus = record["Approval Status"] || "";
-    const memberStatus = record["Member Status"] || "";
-
-    // If approved and Active, grant full access
-    if (approvalStatus === "Approved" && memberStatus === "Active") {
-      return res.status(200).json({
-        valid: true,
-        status: "Active",
-        trial: false,
-        trialDaysLeft: 0
-      });
+  let phone;
+  try {
+    if (req.headers['content-type'] === 'application/json' && typeof req.body === 'string') {
+      req.body = JSON.parse(req.body);
     }
+    phone = req.body.phone;
+  } catch (e) {
+    return res.status(400).json({ valid: false, error: 'Invalid JSON body' });
+  }
+  if (!phone) return res.status(400).json({ valid: false, error: 'No phone provided' });
 
-    // Otherwise, grant 30-day trial
-    // Calculate days left if First Access Date exists
-    let trialDaysLeft = 30;
-    if (record["First Access Date"]) {
-      const start = new Date(record["First Access Date"]);
-      const now = new Date();
-      const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-      trialDaysLeft = Math.max(30 - diff, 0);
-    }
-    return res.status(200).json({
-      valid: true,
-      status: "Trial",
-      trial: true,
-      trialDaysLeft
+  phone = phone.replace(/\D/g, '');
+  const last10 = phone.slice(-10);
+
+  const AIRTABLE_KEY = process.env.AIRTABLE_API_KEY_BRRRR;
+  const AIRTABLE_ID = process.env.AIRTABLE_BASE_ID_BRRRR;
+  const AIRTABLE_TABLE_NAME = process.env.AIRTABLE_TABLE_NAME_BRRRR || 'Verifications';
+  const AIRTABLE_URL = `https://api.airtable.com/v0/${AIRTABLE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}`;
+
+  // First, try to find an active member
+  const filterActive =
+    `AND(` +
+    `RIGHT(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Phone Number}, '(', ''), ')', ''), '-', ''), ' ', ''), 10) = '${last10}', ` +
+    `{Approval Status} = 'Approved', {Member Status} = 'Active')`;
+
+  // If not active, try to find any contact with this phone
+  const filterAny =
+    `RIGHT(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Phone Number}, '(', ''), ')', ''), '-', ''), ' ', ''), 10) = '${last10}'`;
+
+  try {
+    // 1. Check for active member
+    let response = await axios.get(AIRTABLE_URL, {
+      headers: {
+        Authorization: `Bearer ${AIRTABLE_KEY}`
+      },
+      params: {
+        filterByFormula: filterActive
+      }
     });
-  }
+    let records = response.data.records;
+    if (records.length > 0) {
+      const record = records[0];
+      return res.json({ valid: true, name: record.fields.Name || '', status: 'Active', trial: false });
+    }
 
-  // No record found: start trial now
-  return res.status(200).json({
-    valid: true,
-    status: "Trial",
-    trial: true,
-    trialDaysLeft: 30
-  });
-}
+    // 2. Check for any contact (not active)
+    response = await axios.get(AIRTABLE_URL, {
+      headers: {
+        Authorization: `Bearer ${AIRTABLE_KEY}`
+      },
+      params: {
+        filterByFormula: filterAny
+      }
+    });
+    records = response.data.records;
+    if (records.length === 0) {
+      // No such contact
+      return res.json({ valid: false });
+    }
+    const record = records[0];
+    const recordId = record.id;
+    const fields = record.fields;
+    const name = fields.Name || '';
+    const firstAccess = fields['First Access Date'];
+    const memberStatus = (fields['Member Status'] || '').toLowerCase();
+
+    // If Member Status is 'active', grant unlimited access
+    if (memberStatus === 'active') {
+      return res.json({ valid: true, name, status: 'Active', trial: false });
+    }
+
+    // If no First Access Date, set it to today
+    let trialStart = firstAccess;
+    let trialDaysLeft = 0;
+    let trialExpired = false;
+    let today = new Date();
+    if (!firstAccess) {
+      const isoToday = today.toISOString().split('T')[0];
+      await axios.patch(`${AIRTABLE_URL}/${recordId}`, {
+        fields: { 'First Access Date': isoToday }
+      }, {
+        headers: { Authorization: `Bearer ${AIRTABLE_KEY}` }
+      });
+      trialStart = isoToday;
+      trialDaysLeft = 30;
+    } else {
+      const start = new Date(firstAccess);
+      const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
+      trialDaysLeft = 30 - diff;
+      if (trialDaysLeft < 0) trialDaysLeft = 0;
+      trialExpired = diff > 30;
+    }
+
+    if (!trialExpired) {
+      return res.json({ valid: true, name, status: 'Trial', trial: true, trialDaysLeft });
+    } else {
+      return res.json({ valid: false, name, status: 'Trial Expired', trial: true, trialDaysLeft: 0 });
+    }
+  } catch (err) {
+    console.error('BRRRR verification error:', err?.message, err?.response?.data);
+    res.status(500).json({ valid: false, error: err.message, airtable: err?.response?.data });
+  }
+};
