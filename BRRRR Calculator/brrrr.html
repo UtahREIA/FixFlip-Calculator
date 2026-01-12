@@ -471,6 +471,7 @@
       // STEPS
       // ---------------------------
       const steps = [
+          // ...existing steps...
         {
           title: "Property Info",
           html: `
@@ -840,6 +841,25 @@
               </div>
               <div class="brrrr-muted">Depreciation is captured for reference. Tax impact is not calculated in this version.</div>
             </div>`
+        },
+
+        // Step 11: CapEX
+        {
+          title: "CapEX",
+          html: `
+            <div class="brrrr-card">
+              <div class="brrrr-row">
+                <div class="brrrr-field">
+                  <label class="brrrr-label">Capital Expenditures (CapEX) Reserve</label>
+                  <input class="brrrr-input" id="capexReserve" type="text" placeholder="$2,000">
+                </div>
+                <div class="brrrr-field">
+                  <label class="brrrr-label">CapEX Notes (optional)</label>
+                  <input class="brrrr-input" id="capexNotes" type="text" placeholder="Roof, HVAC, etc.">
+                </div>
+              </div>
+              <div class="brrrr-muted">Set aside funds for major repairs and replacements (roof, HVAC, etc.).</div>
+            </div>`
         }
       ];
 
@@ -882,9 +902,10 @@
       }
 
       function renderStep(n) {
+
         const stepIndicator = `
           <div class="brrrr-step-indicator" style="text-align:center;font-weight:800;margin-bottom:12px;color:#2E8B57;font-size:1.05em;">
-            Step ${n + 1} of ${steps.length}: ${escapeHtml(steps[n].title)}
+            Step ${n + 1} of 11: ${escapeHtml(steps[n].title)}
           </div>
         `;
 
@@ -1684,6 +1705,9 @@
       // RESULTS
       // ---------------------------
       function showResults() {
+          // CapEX
+          const capexReserve = parseCurrency(window.brrrrData.capexReserve);
+          const capexNotes = window.brrrrData.capexNotes || "";
         const purchasePrice = parseCurrency(window.brrrrData.purchasePrice);
         const rehab = computeRehabCosts();
         const purchaseCosts = computePurchaseCosts();
@@ -1710,7 +1734,7 @@
         const sellingCosts = projectedValue * (sellingCostPct / 100);
         const netSaleProceeds = projectedValue - sellingCosts;
 
-        const totalInvestment = purchasePrice + rehab + purchaseCosts + refiCosts;
+        const totalInvestment = purchasePrice + rehab + purchaseCosts + refiCosts + capexReserve;
 
         const propStreet = window.brrrrData.street || "";
         const propCity = window.brrrrData.city || "";
@@ -1745,6 +1769,8 @@
             <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">💰</span>Total Investment:</span><span class="brrrr-summary-value">${formatCurrency(totalInvestment)}</span></li>
             <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">🧾</span>Purchase Costs:</span><span class="brrrr-summary-value">${formatCurrency(purchaseCosts)}</span></li>
             <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">💳</span>Refinance Costs:</span><span class="brrrr-summary-value">${formatCurrency(refiCosts)}</span></li>
+            <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">🛠️</span>CapEX Reserve:</span><span class="brrrr-summary-value">${formatCurrency(capexReserve)}</span></li>
+            ${capexNotes ? `<li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">📝</span>CapEX Notes:</span><span class="brrrr-summary-value">${escapeHtml(capexNotes)}</span></li>` : ""}
             <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">🏠</span>Monthly Rent:</span><span class="brrrr-summary-value">${formatCurrency(rent)}</span></li>
             <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">🛏️</span>Vacancy (%):</span><span class="brrrr-summary-value">${vacancyPct.toFixed(1)}%</span></li>
             <li><span class="brrrr-summary-label"><span class="brrrr-summary-icon">➕</span>Other Income:</span><span class="brrrr-summary-value">${formatCurrency(otherIncome)}</span></li>
