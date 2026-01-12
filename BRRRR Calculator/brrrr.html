@@ -139,7 +139,7 @@
       const normalized = normalizePhone(phone);
       if (!normalized || normalized.length < 10) throw new Error("Please enter a valid phone number.");
 
-      const response = await fetch("/BRRRR%20Calculator/api/check-phone-brrrr", {
+      const response = await fetch("/api/check-phone-brrrr", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone: normalized })
