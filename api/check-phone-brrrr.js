@@ -12,13 +12,13 @@ export default async function handler(req, res) {
 
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
+    res.status(200).send('OK');
     return;
   }
 
   // Only allow POST
   if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).setHeader('Access-Control-Allow-Origin', '*').json({ error: 'Method not allowed' });
     return;
   }
 
@@ -29,9 +29,13 @@ export default async function handler(req, res) {
     }
     phone = req.body.phone;
   } catch (e) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
     return res.status(400).json({ valid: false, error: 'Invalid JSON body' });
   }
-  if (!phone) return res.status(400).json({ valid: false, error: 'No phone provided' });
+  if (!phone) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    return res.status(400).json({ valid: false, error: 'No phone provided' });
+  }
 
   phone = phone.replace(/\D/g, '');
   const last10 = phone.slice(-10);
@@ -64,6 +68,7 @@ export default async function handler(req, res) {
     let records = response.data.records;
     if (records.length > 0) {
       const record = records[0];
+      res.setHeader('Access-Control-Allow-Origin', '*');
       return res.json({ valid: true, name: record.fields.Name || '', status: 'Active', trial: false });
     }
 
@@ -79,6 +84,7 @@ export default async function handler(req, res) {
     records = response.data.records;
     if (records.length === 0) {
       // No such contact
+      res.setHeader('Access-Control-Allow-Origin', '*');
       return res.json({ valid: false });
     }
     const record = records[0];
@@ -90,6 +96,7 @@ export default async function handler(req, res) {
 
     // If Member Status is 'active', grant unlimited access
     if (memberStatus === 'active') {
+      res.setHeader('Access-Control-Allow-Origin', '*');
       return res.json({ valid: true, name, status: 'Active', trial: false });
     }
 
@@ -116,12 +123,15 @@ export default async function handler(req, res) {
     }
 
     if (!trialExpired) {
+      res.setHeader('Access-Control-Allow-Origin', '*');
       return res.json({ valid: true, name, status: 'Trial', trial: true, trialDaysLeft });
     } else {
+      res.setHeader('Access-Control-Allow-Origin', '*');
       return res.json({ valid: false, name, status: 'Trial Expired', trial: true, trialDaysLeft: 0 });
     }
   } catch (err) {
     console.error('BRRRR verification error:', err?.message, err?.response?.data);
+    res.setHeader('Access-Control-Allow-Origin', '*');
     res.status(500).json({ valid: false, error: err.message, airtable: err?.response?.data });
   }
 };
