@@ -1,197 +1,184 @@
-// API endpoint for BRRRR Calculator phone verification (Airtable)
-// Vercel Serverless Function: /api/check-phone-brrrr
-
-import axios from "axios";
-
 export default async function handler(req, res) {
-  // ---------------------------
-  // CORS (always set)
-  // ---------------------------
+  // ---- CORS (always) ----
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept");
-  res.setHeader("Access-Control-Max-Age", "86400"); // cache preflight 24h
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
 
-  // Handle preflight requests
+  // Preflight
   if (req.method === "OPTIONS") {
-    return res.status(204).end();
+    return res.status(200).send("OK");
   }
 
-  // Only allow POST
+  // Only POST
   if (req.method !== "POST") {
     return res.status(405).json({ valid: false, error: "Method not allowed" });
   }
 
-  // ---------------------------
-  // Parse + validate input
-  // ---------------------------
-  let body = req.body;
-
-  // Vercel typically parses JSON body automatically, but handle string body safely too
-  if (typeof body === "string") {
-    try {
-      body = JSON.parse(body);
-    } catch (e) {
-      return res.status(400).json({ valid: false, error: "Invalid JSON body" });
-    }
-  }
-
-  let phone = body?.phone;
-  if (!phone || typeof phone !== "string") {
-    return res.status(400).json({ valid: false, error: "No phone provided" });
-  }
-
-  phone = phone.replace(/\D/g, "");
-  const last10 = phone.slice(-10);
-
-  if (!last10 || last10.length !== 10) {
-    return res.status(400).json({ valid: false, error: "Phone number must contain 10 digits" });
-  }
-
-  // ---------------------------
-  // Env vars
-  // ---------------------------
-  const AIRTABLE_KEY = process.env.AIRTABLE_API_KEY_BRRRR;
-  const AIRTABLE_ID = process.env.AIRTABLE_BASE_ID_BRRRR;
-  const AIRTABLE_TABLE_NAME = process.env.AIRTABLE_TABLE_NAME_BRRRR || "Verifications";
-
-  if (!AIRTABLE_KEY || !AIRTABLE_ID) {
-    return res.status(500).json({
-      valid: false,
-      error: "Missing Airtable env vars (AIRTABLE_API_KEY_BRRRR or AIRTABLE_BASE_ID_BRRRR).",
-    });
-  }
-
-  const AIRTABLE_URL = `https://api.airtable.com/v0/${AIRTABLE_ID}/${encodeURIComponent(
-    AIRTABLE_TABLE_NAME
-  )}`;
-
-  // ---------------------------
-  // Airtable filters
-  // ---------------------------
-  // First: approved + active members
-  const filterActive =
-    `AND(` +
-    `RIGHT(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Phone Number}, '(', ''), ')', ''), '-', ''), ' ', ''), 10) = '${last10}', ` +
-    `{Approval Status} = 'Approved', {Member Status} = 'Active')`;
-
-  // Second: any record matching phone
-  const filterAny =
-    `RIGHT(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Phone Number}, '(', ''), ')', ''), '-', ''), ' ', ''), 10) = '${last10}'`;
-
   try {
-    // 1) Active member check
-    let response = await axios.get(AIRTABLE_URL, {
-      headers: { Authorization: `Bearer ${AIRTABLE_KEY}` },
-      params: {
-        filterByFormula: filterActive,
-        maxRecords: 1,
-      },
-    });
+    // ---- Parse body safely ----
+    // Vercel/Next usually gives req.body as object already.
+    const body =
+      typeof req.body === "string"
+        ? JSON.parse(req.body || "{}")
+        : (req.body || {});
 
-    let records = response?.data?.records || [];
+    let phone = body.phone;
+    if (!phone) {
+      return res.status(400).json({ valid: false, error: "No phone provided" });
+    }
+
+    phone = String(phone).replace(/\D/g, "");
+    const last10 = phone.slice(-10);
+    if (last10.length < 10) {
+      return res.status(400).json({ valid: false, error: "Invalid phone number" });
+    }
+
+    // ---- Env vars ----
+    const AIRTABLE_KEY = process.env.AIRTABLE_API_KEY_BRRRR;
+    const AIRTABLE_ID = process.env.AIRTABLE_BASE_ID_BRRRR;
+    const AIRTABLE_TABLE_NAME = process.env.AIRTABLE_TABLE_NAME_BRRRR || "Verifications";
+
+    if (!AIRTABLE_KEY || !AIRTABLE_ID) {
+      return res.status(500).json({
+        valid: false,
+        error: "Missing Airtable environment variables",
+        missing: {
+          AIRTABLE_API_KEY_BRRRR: !AIRTABLE_KEY,
+          AIRTABLE_BASE_ID_BRRRR: !AIRTABLE_ID,
+        }
+      });
+    }
+
+    const AIRTABLE_URL = `https://api.airtable.com/v0/${AIRTABLE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}`;
+
+    // Airtable formulas
+    const normalizePhoneFormula =
+      `RIGHT(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Phone Number}, '(', ''), ')', ''), '-', ''), ' ', ''), 10)`;
+
+    const filterActive =
+      `AND(${normalizePhoneFormula} = '${last10}', {Approval Status} = 'Approved', {Member Status} = 'Active')`;
+
+    const filterAny =
+      `${normalizePhoneFormula} = '${last10}'`;
+
+    // helper to call Airtable
+    async function airtableGet(filterByFormula) {
+      const url = new URL(AIRTABLE_URL);
+      url.searchParams.set("filterByFormula", filterByFormula);
+
+      const r = await fetch(url.toString(), {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${AIRTABLE_KEY}`,
+        },
+      });
+
+      const text = await r.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = { raw: text }; }
+
+      if (!r.ok) {
+        const msg = data?.error?.message || `Airtable error ${r.status}`;
+        throw new Error(msg);
+      }
+      return data;
+    }
+
+    async function airtablePatch(recordId, fields) {
+      const r = await fetch(`${AIRTABLE_URL}/${recordId}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${AIRTABLE_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ fields }),
+      });
+
+      const text = await r.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = { raw: text }; }
+
+      if (!r.ok) {
+        const msg = data?.error?.message || `Airtable patch error ${r.status}`;
+        throw new Error(msg);
+      }
+      return data;
+    }
+
+    // 1) Active member check
+    let data = await airtableGet(filterActive);
+    let records = data.records || [];
     if (records.length > 0) {
       const record = records[0];
-      return res.status(200).json({
+      return res.json({
         valid: true,
-        name: record?.fields?.Name || "",
+        name: record.fields?.Name || "",
         status: "Active",
-        trial: false,
+        trial: false
       });
     }
 
     // 2) Any contact check
-    response = await axios.get(AIRTABLE_URL, {
-      headers: { Authorization: `Bearer ${AIRTABLE_KEY}` },
-      params: {
-        filterByFormula: filterAny,
-        maxRecords: 1,
-      },
-    });
+    data = await airtableGet(filterAny);
+    records = data.records || [];
 
-    records = response?.data?.records || [];
     if (records.length === 0) {
-      // No such contact
-      return res.status(200).json({ valid: false });
+      return res.json({ valid: false });
     }
 
     const record = records[0];
     const recordId = record.id;
     const fields = record.fields || {};
-
     const name = fields.Name || "";
     const firstAccess = fields["First Access Date"];
     const memberStatus = String(fields["Member Status"] || "").toLowerCase();
 
-    // If Member Status is active, grant unlimited access
+    // If active, unlimited
     if (memberStatus === "active") {
-      return res.status(200).json({ valid: true, name, status: "Active", trial: false });
+      return res.json({ valid: true, name, status: "Active", trial: false });
     }
 
     // Trial logic
     const today = new Date();
-
     let trialStart = firstAccess;
     let trialDaysLeft = 0;
     let trialExpired = false;
 
     if (!firstAccess) {
       const isoToday = today.toISOString().split("T")[0];
-
-      await axios.patch(
-        `${AIRTABLE_URL}/${recordId}`,
-        { fields: { "First Access Date": isoToday } },
-        {
-          headers: {
-            Authorization: `Bearer ${AIRTABLE_KEY}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
+      await airtablePatch(recordId, { "First Access Date": isoToday });
       trialStart = isoToday;
       trialDaysLeft = 30;
     } else {
       const start = new Date(firstAccess);
       const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
-
-      trialDaysLeft = 30 - diff;
-      if (trialDaysLeft < 0) trialDaysLeft = 0;
-
-      // If diff is 31+ days, trial is expired
+      trialDaysLeft = Math.max(0, 30 - diff);
       trialExpired = diff > 30;
     }
 
     if (!trialExpired) {
-      return res.status(200).json({
+      return res.json({
         valid: true,
         name,
         status: "Trial",
         trial: true,
-        trialDaysLeft,
-        trialStart,
+        trialDaysLeft
       });
     }
 
-    return res.status(200).json({
+    return res.json({
       valid: false,
       name,
       status: "Trial Expired",
       trial: true,
-      trialDaysLeft: 0,
-      trialStart,
+      trialDaysLeft: 0
     });
+
   } catch (err) {
-    // More useful error output
-    const airtableData = err?.response?.data;
-    const message = err?.message || "Unknown error";
-
-    console.error("BRRRR verification error:", message, airtableData);
-
+    // Keep response JSON always
     return res.status(500).json({
       valid: false,
-      error: message,
-      airtable: airtableData,
+      error: err?.message || "Server error"
     });
   }
 }
