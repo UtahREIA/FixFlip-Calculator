@@ -102,7 +102,7 @@
     <div id="trialReminder" style="display:none;background:#fffbe6;border:1px solid #ffe58f;color:#ad6800;padding:10px;margin:10px 0 18px 0;font-weight:bold;text-align:center;border-radius:8px;font-size:15px;"></div>
 
     <div class="card">
-      <div class="step-ind" id="stepIndicator">Step 1 of 12</div>
+      <div class="step-ind" id="stepIndicator">Step 1 of 13</div>
     </div>
 
     <div id="stepsArea">
@@ -169,35 +169,8 @@
       </div>
 
       <div class="card step" data-step="4">
-        <div class="muted">Hold Period</div>
-        <div class="row">
-          <div class="field"><label>Holding Timeframe (months)</label>
-            <select id="holdingTime"><option value="3">3</option><option value="6" selected>6</option><option value="9">9</option><option value="12">12</option><option value="18">18</option></select>
-          </div>
-        </div>
-      </div>
-
-      <div class="card step" data-step="5">
-        <div class="muted">Purchase Cost</div>
-        <div class="row" style="margin-bottom:8px">
-          <div class="field"><label>Purchase Cost (manual)</label><input id="purchaseClosing" type="text" placeholder="$3,000"></div>
-          <div class="field" style="align-self:end"><label class="toggle-label">Manual only<label class="switch"><input id="purchaseManualToggle" type="checkbox"><span class="slider"></span></label></label><div class="muted-small" style="margin-top:6px">Default: OFF</div></div>
-        </div>
-        <button type="button" class="pencil" onclick="toggleEditor('purchase')">✏️ Edit Breakdown</button>
-        <div class="editor" id="editor-purchase" aria-hidden="true">
-          <div style="margin-bottom:8px"><div class="subheading">Itemized Purchase Costs</div></div>
-          <div class="item"><input class="item-label" value="Home Inspection"><input class="item-value small-input" data-kind="fixed" value="400"><select class="item-kind"><option value="fixed" selected>$</option></select><span class="small">Per Building, Pay Upfront</span><button type="button" class="icon-btn">🗑️</button></div>
-          <div class="item"><input class="item-label" value="Loan Points"><input class="item-value small-input" data-kind="pct_loan" value="2"><select class="item-kind"><option value="fixed">$</option><option value="pct_loan" selected>% of Loan</option></select><span class="small">Per Building, Roll Into Loan</span><button type="button" class="icon-btn">🗑️</button></div>
-          <div class="item"><input class="item-label" value="Closing Costs"><input class="item-value small-input" data-kind="fixed" value="2000"><select class="item-kind"><option value="fixed" selected>$</option></select><span class="small">Per Building, Pay Upfront</span><button type="button" class="icon-btn">🗑️</button></div>
-          <div id="purchase-add-area"></div>
-          <div style="margin-top:8px;"><button type="button" class="btn" onclick="addItem('purchase')">+ Add Item</button></div>
-          <div class="row-actions"><div class="total-display">Total Upfront: <span id="purchaseEditorTotal">$0</span></div><div style="display:flex;gap:8px"><button type="button" class="btn secondary" onclick="cancelEditor('purchase')">Cancel</button><button type="button" class="btn" onclick="saveEditor('purchase')">Save</button></div></div>
-        </div>
-        <div id="purchaseBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
-      </div>
-
-      <div class="card step" data-step="6">
-        <div class="muted">Initial Financing (Purchase)</div>
+        <div class="muted">Financing & Hold Period</div>
+        
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
           <label class="toggle-label">Use Financing<label class="switch"><input id="useFinancing" type="checkbox" checked><span class="slider"></span></label></label>
           <div style="margin-top:10px;margin-bottom:15px;"><a href="https://retorocapitalinvestments.com/funding" target="_blank" class="btn" style="background:#001F3F;color:#fff;">Get a Loan</a></div>
@@ -222,26 +195,66 @@
           <div class="loan-list" id="loanList"></div>
           <div style="margin-top:12px;font-weight:700">Total Initial Financing: <span id="computedLoanAmount">$0</span></div>
         </div>
-        <div style="margin-top:18px;border-top:1px solid #eee;padding-top:12px;">
-          <div class="subheading">Holding Costs (During Rehab)</div>
-          <div class="row">
-            <div class="field"><label>Monthly Holding (Manual Base)</label><input id="holdingMonthly" type="text" placeholder="$500"></div>
-            <div class="field" style="align-self:end"><label class="toggle-label">Manual Only<label class="switch"><input id="holdingManualToggle" type="checkbox"><span class="slider"></span></label></label></div>
-          </div>
-          <button type="button" class="pencil" onclick="toggleEditor('holding')">✏️ Edit Monthly Items</button>
-          <div class="editor" id="editor-holding" aria-hidden="true">
-            <div class="item"><input class="item-label" value="Utilities"><input class="item-value small-input" data-kind="fixed" value="150"><select class="item-kind"><option value="fixed">$</option></select><button type="button" class="icon-btn">🗑️</button></div>
-            <div class="item"><input class="item-label" value="Insurance"><input class="item-value small-input" data-kind="fixed" value="100"><select class="item-kind"><option value="fixed">$</option></select><button type="button" class="icon-btn">🗑️</button></div>
-            <div id="holding-add-area"></div>
-            <div style="margin-top:8px;"><button type="button" class="btn" onclick="addItem('holding')">+ Add Item</button></div>
-            <div class="row-actions"><div class="total-display">Monthly Extras: <span id="holdingEditorTotal">$0</span></div><div style="display:flex;gap:8px"><button type="button" class="btn secondary" onclick="cancelEditor('holding')">Cancel</button><button type="button" class="btn" onclick="saveEditor('holding')">Save</button></div></div>
-          </div>
-          <div id="holdingBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
-          <div style="margin-top:6px;font-size:13px"><strong>Total Holding (over <span id="holdMonthsDisplay">6</span> mo):</strong> <span id="holdingTotalDisplay">$0</span> (Includes Interest)</div>
+
+        <div style="margin-top:20px; border-top:1px solid #eee; padding-top:12px;">
+           <div class="subheading">Hold Period</div>
+           <div class="row">
+             <div class="field"><label>Holding Timeframe (months)</label>
+               <select id="holdingTime"><option value="3">3</option><option value="6" selected>6</option><option value="9">9</option><option value="12">12</option><option value="18">18</option></select>
+             </div>
+           </div>
         </div>
       </div>
 
+      <div class="card step" data-step="5">
+        <div class="muted">Purchase Cost</div>
+        <div class="row" style="margin-bottom:8px">
+          <div class="field"><label>Purchase Cost (manual)</label><input id="purchaseClosing" type="text" placeholder="$3,000"></div>
+          <div class="field" style="align-self:end"><label class="toggle-label">Manual only<label class="switch"><input id="purchaseManualToggle" type="checkbox"><span class="slider"></span></label></label><div class="muted-small" style="margin-top:6px">Default: OFF</div></div>
+        </div>
+        <button type="button" class="pencil" onclick="toggleEditor('purchase')">✏️ Edit Breakdown</button>
+        <div class="editor" id="editor-purchase" aria-hidden="true">
+          <div style="margin-bottom:8px"><div class="subheading">Itemized Purchase Costs</div></div>
+          <div class="item"><input class="item-label" value="Home Inspection"><input class="item-value small-input" data-kind="fixed" value="400"><select class="item-kind"><option value="fixed" selected>$</option></select><span class="small">Per Building, Pay Upfront</span><button type="button" class="icon-btn">🗑️</button></div>
+          <div class="item"><input class="item-label" value="Loan Points"><input class="item-value small-input" data-kind="pct_loan" value="2"><select class="item-kind"><option value="fixed">$</option><option value="pct_loan" selected>% of Loan</option></select><span class="small">Per Building, Roll Into Loan</span><button type="button" class="icon-btn">🗑️</button></div>
+          <div class="item"><input class="item-label" value="Closing Costs"><input class="item-value small-input" data-kind="fixed" value="2000"><select class="item-kind"><option value="fixed" selected>$</option></select><span class="small">Per Building, Pay Upfront</span><button type="button" class="icon-btn">🗑️</button></div>
+          <div id="purchase-add-area"></div>
+          <div style="margin-top:8px;"><button type="button" class="btn" onclick="addItem('purchase')">+ Add Item</button></div>
+          <div class="row-actions"><div class="total-display">Total Upfront: <span id="purchaseEditorTotal">$0</span></div><div style="display:flex;gap:8px"><button type="button" class="btn secondary" onclick="cancelEditor('purchase')">Cancel</button><button type="button" class="btn" onclick="saveEditor('purchase')">Save</button></div></div>
+        </div>
+        <div id="purchaseBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
+      </div>
+
+      <div class="card step" data-step="6">
+        <div class="muted">Monthly Holding Costs</div>
+        <div class="subheading">Holding Costs (During Rehab)</div>
+        <div class="row">
+          <div class="field"><label>Monthly Holding (Manual Base)</label><input id="holdingMonthly" type="text" placeholder="$500"></div>
+          <div class="field" style="align-self:end"><label class="toggle-label">Manual Only<label class="switch"><input id="holdingManualToggle" type="checkbox"><span class="slider"></span></label></label></div>
+        </div>
+        <button type="button" class="pencil" onclick="toggleEditor('holding')">✏️ Edit Monthly Items</button>
+        <div class="editor" id="editor-holding" aria-hidden="true">
+          <div class="item"><input class="item-label" value="Utilities"><input class="item-value small-input" data-kind="fixed" value="150"><select class="item-kind"><option value="fixed">$</option></select><button type="button" class="icon-btn">🗑️</button></div>
+          <div class="item"><input class="item-label" value="Insurance"><input class="item-value small-input" data-kind="fixed" value="100"><select class="item-kind"><option value="fixed">$</option></select><button type="button" class="icon-btn">🗑️</button></div>
+          <div id="holding-add-area"></div>
+          <div style="margin-top:8px;"><button type="button" class="btn" onclick="addItem('holding')">+ Add Item</button></div>
+          <div class="row-actions"><div class="total-display">Monthly Extras: <span id="holdingEditorTotal">$0</span></div><div style="display:flex;gap:8px"><button type="button" class="btn secondary" onclick="cancelEditor('holding')">Cancel</button><button type="button" class="btn" onclick="saveEditor('holding')">Save</button></div></div>
+        </div>
+        <div id="holdingBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
+        <div style="margin-top:6px;font-size:13px"><strong>Total Holding (over <span id="holdMonthsDisplay">6</span> mo):</strong> <span id="holdingTotalDisplay">$0</span> (Includes Interest)</div>
+      </div>
+
       <div class="card step" data-step="7">
+         <div class="muted">Refinance / Financing</div>
+         <div class="subheading">New Loan Terms</div>
+         <div class="row">
+           <div class="field"><label>LTV (% of ARV)</label><input id="refiLtv" type="number" value="75"></div>
+           <div class="field"><label>Interest Rate (%)</label><input id="refiRate" type="number" value="7.0"></div>
+           <div class="field"><label>Amortization (Years)</label><input id="refiTerm" type="number" value="30"></div>
+         </div>
+      </div>
+
+      <div class="card step" data-step="8">
         <div class="muted">Refinance Costs</div>
         <div class="row">
           <div class="field"><label>Refinance Costs</label><input id="refiClosingCosts" type="text" placeholder="$4,000"></div>
@@ -260,17 +273,9 @@
           <div class="row-actions"><div class="total-display">Refi Total: <span id="refiEditorTotal">$0</span></div><div style="display:flex;gap:8px"><button type="button" class="btn secondary" onclick="cancelEditor('refi')">Cancel</button><button type="button" class="btn" onclick="saveEditor('refi')">Save</button></div></div>
         </div>
         <div id="refiBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
-        <div style="margin-top:16px;border-top:1px solid #eee;padding-top:10px;">
-          <div class="subheading">New Loan Terms</div>
-          <div class="row">
-            <div class="field"><label>LTV (% of ARV)</label><input id="refiLtv" type="number" value="75"></div>
-            <div class="field"><label>Interest Rate (%)</label><input id="refiRate" type="number" value="7.0"></div>
-            <div class="field"><label>Amortization (Years)</label><input id="refiTerm" type="number" value="30"></div>
-          </div>
-        </div>
       </div>
 
-      <div class="card step" data-step="8">
+      <div class="card step" data-step="9">
         <div class="muted">Rental Income</div>
         <div class="row">
           <div class="field"><label>Monthly Rent</label><input id="monthlyRent" type="text" placeholder="$2,000"></div>
@@ -301,7 +306,7 @@
         <div id="otherIncomeBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
       </div>
 
-      <div class="card step" data-step="9">
+      <div class="card step" data-step="10">
         <div class="muted">Operating Expenses (Rental Phase)</div>
         <div class="row">
           <div class="field"><label>Monthly Expenses (Manual)</label><input id="operatingExpenses" type="text" placeholder="$500"></div>
@@ -325,7 +330,7 @@
         <div class="row" style="margin-top:10px"><div class="field"><label>Annual Expense Increase (%)</label><input id="annualExpenseIncrease" type="number" value="2"></div></div>
       </div>
 
-      <div class="card step" data-step="10">
+      <div class="card step" data-step="11">
         <div class="muted">Appreciation & Selling Costs</div>
         <div class="row">
           <div class="field"><label>Annual Appreciation (%)</label><input id="appreciation" type="number" value="3"></div>
@@ -333,7 +338,7 @@
         </div>
       </div>
 
-      <div class="card step" data-step="11">
+      <div class="card step" data-step="12">
         <div class="muted">Depreciation</div>
         <div class="row">
           <div class="field"><label>Depreciable Basis ($)</label><input id="depreciationBasis" type="text" placeholder="(Auto-calculated if empty)"></div>
@@ -342,7 +347,7 @@
         <div class="muted-small">Leave Basis empty to use (Purchase + Purchase Costs + Rehab).</div>
       </div>
 
-      <div class="card step" data-step="12">
+      <div class="card step" data-step="13">
         <div class="muted">CapEx Reserve</div>
         <div class="row">
           <div class="field"><label>Monthly CapEx Reserve ($)</label><input id="capexMonthly" type="text" placeholder="$100"></div>
@@ -460,7 +465,7 @@
     });
 
     /* ---------- Navigation ---------- */
-    const totalSteps = 12;
+    const totalSteps = 13; // UPDATED to 13 steps
     let currentStep = 1;
     function showStep(n){
       currentStep = Math.max(1, Math.min(totalSteps, n));
