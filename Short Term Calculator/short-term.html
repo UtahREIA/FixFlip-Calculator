@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>UTAH REIA - Rental Calculator</title>
+  <title>UTAH REIA Short Term Calculator</title>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
@@ -83,7 +83,7 @@
 <body>
   <div class="wrap" id="gateWrap">
     <div class="top"><img src="https://assets.cdn.filesafe.space/DNirEjy0ejVwbHsaBYrn/media/682f680ec314718407baed82.png" alt="UTAH REIA logo"></div>
-    <h1 style="text-align:center;color:var(--blue);margin-top:12px;">Rental Calculator Access</h1>
+    <h1 style="text-align:center;color:var(--blue);margin-top:12px;">Short Term Calculator Access</h1>
     <div class="subtitle" style="margin-bottom:16px;">Enter your phone number to unlock the calculator.</div>
     <div class="card">
       <div class="field"><label>Phone Number</label><input id="gatePhone" type="tel" placeholder="(801) 555-1234" inputmode="tel" style="font-size:16px;padding:12px"></div>
@@ -95,7 +95,7 @@
 
   <div class="wrap" id="calcWrap" style="display:none">
     <div class="top"><img src="https://assets.cdn.filesafe.space/DNirEjy0ejVwbHsaBYrn/media/682f680ec314718407baed82.png" alt="UTAH REIA logo"></div>
-    <h1>UTAH REIA Rental Calculator</h1>
+    <h1>UTAH REIA Short Term Calculator</h1>
     <div class="subtitle">Analyze the cash flow and profitability of buy-and-hold rental properties.</div>
 
     <div id="trialReminder" style="display:none;background:#fffbe6;border:1px solid #ffe58f;color:#ad6800;padding:10px;margin:10px 0 18px 0;font-weight:bold;text-align:center;border-radius:8px;font-size:15px;"></div>
@@ -267,6 +267,35 @@
       </div>
 
       <div class="card step" data-step="8">
+        <div class="muted">Furnishing <span style="font-size:12px;color:#bbb;">(Short Term Rentals)</span></div>
+        <div class="row" style="margin-bottom:8px">
+          <div class="field"><label>Furnishing Costs (Total)</label><input id="furnishing" type="text" placeholder="$5,000"></div>
+          <div class="field" style="align-self:end">
+            <label class="toggle-label">Manual only
+              <label class="switch"><input id="furnishingManualToggle" type="checkbox"><span class="slider"></span></label>
+            </label>
+            <div class="muted-small" style="margin-top:6px">Default: OFF (Use itemized items)</div>
+          </div>
+        </div>
+        <button type="button" class="pencil" onclick="toggleEditor('furnishing')">✏️ Edit Furnishing Breakdown</button>
+        <div class="editor" id="editor-furnishing" aria-hidden="true">
+          <div style="margin-bottom:8px"><div class="subheading">Itemized Furnishing Costs</div></div>
+          <div class="item"><input class="item-label" value="Beds"><input class="item-value small-input" data-kind="fixed" value="1200"><select class="item-kind"><option value="fixed" selected>$</option></select><button type="button" class="icon-btn">🗑️</button></div>
+          <div class="item"><input class="item-label" value="Sofas"><input class="item-value small-input" data-kind="fixed" value="800"><select class="item-kind"><option value="fixed" selected>$</option></select><button type="button" class="icon-btn">🗑️</button></div>
+          <div class="item"><input class="item-label" value="Dining Table"><input class="item-value small-input" data-kind="fixed" value="500"><select class="item-kind"><option value="fixed" selected>$</option></select><button type="button" class="icon-btn">🗑️</button></div>
+          <div class="item"><input class="item-label" value="TVs"><input class="item-value small-input" data-kind="fixed" value="400"><select class="item-kind"><option value="fixed" selected>$</option></select><button type="button" class="icon-btn">🗑️</button></div>
+          <div class="item"><input class="item-label" value="Kitchenware"><input class="item-value small-input" data-kind="fixed" value="300"><select class="item-kind"><option value="fixed" selected>$</option></select><button type="button" class="icon-btn">🗑️</button></div>
+          <div id="furnishing-add-area"></div>
+          <div style="margin-top:8px;"><button type="button" class="btn" onclick="addItem('furnishing')">+ Add Item</button></div>
+          <div class="row-actions">
+            <div class="total-display">Furnishing Total: <span id="furnishingEditorTotal">$0</span></div>
+            <div style="display:flex;gap:8px"><button type="button" class="btn secondary" onclick="cancelEditor('furnishing')">Cancel</button><button type="button" class="btn" onclick="saveEditor('furnishing')">Save</button></div>
+          </div>
+        </div>
+        <div id="furnishingBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
+      </div>
+
+      <div class="card step" data-step="9">
         <div class="muted">Appreciation & Selling Costs</div>
         <div class="row">
           <div class="field"><label>Annual Appreciation (%)</label><input id="appreciation" type="number" value="3"></div>
@@ -274,7 +303,7 @@
         </div>
       </div>
 
-      <div class="card step" data-step="9">
+      <div class="card step" data-step="10">
         <div class="muted">Refinancing* (Optional)(Cash-Out)</div>
         <div style="margin-bottom:15px;">
             <label class="toggle-label" style="font-size:15px;">Include Cash-Out Refinance Scenario?
@@ -312,7 +341,7 @@
         </div>
       </div>
 
-      <div class="card step" data-step="10">
+      <div class="card step" data-step="11">
         <div class="muted">Depreciation</div>
         <div class="row">
           <div class="field"><label>Depreciable Basis ($)</label><input id="depreciationBasis" type="text" placeholder="(Auto-calculated if empty)"></div>
@@ -321,7 +350,7 @@
         <div class="muted-small">Leave Basis empty to use (Purchase Price + Rehab Costs). Land value is not depreciable.</div>
       </div>
 
-      <div class="card step" data-step="11">
+      <div class="card step" data-step="12">
         <div class="muted">CapEx Reserve</div>
         <div class="row">
           <div class="field"><label>Monthly CapEx Reserve ($)</label><input id="capexMonthly" type="text" placeholder="$150"></div>
@@ -329,7 +358,7 @@
         <div class="muted-small">Funds set aside for future major capital expenditures (roof, HVAC, etc.).</div>
       </div>
 
-      <div class="card step" data-step="12">
+      <div class="card step" data-step="13">
           <div class="muted">Analysis Report</div>
           <div style="text-align:center; margin: 20px 0;">
               <p style="color:#666; margin-bottom: 15px;">Review your inputs and click below to generate the final report.</p>
@@ -522,7 +551,7 @@
       $('prevBtn').style.display = currentStep === 1 ? 'none' : 'inline-block';
       
       const nextBtn = $('nextBtn');
-      if(currentStep === totalSteps){ nextBtn.textContent = 'Calculate & View Report'; }
+      if(currentStep === totalSteps){ nextBtn.textContent = 'Finish Analysis'; }
       else { nextBtn.textContent = 'Next →'; }
       
       // Auto-scroll
@@ -911,7 +940,7 @@
     function normalizePhone(raw) { return String(raw||'').replace(/[^\d]/g, '').slice(-10); }
     async function verifyPhoneViaWorkflow(phone) {
       try {
-        const res = await fetch('https://fix-flip-calculator-delta.vercel.app/api/check-phone-rentals', {
+        const res = await fetch('/api/check-phone-short-term', {
           method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({phone:normalizePhone(phone)})
         });
         let d;
@@ -921,7 +950,7 @@
           throw new Error('Server returned invalid response. Please try again or contact support.');
         }
         if(d && d.valid && d.status === 'Active') return {status:'Active'};
-        if(d && d.valid && d.trial && d.trialDaysLeft > 0) return {status:'Trial', daysLeft: d.trialDaysLeft};
+        if(d && d.valid && d.status === 'Trial' && d.trialDaysLeft > 0) return {status:'Trial', daysLeft: d.trialDaysLeft};
         throw new Error('Access denied or trial expired.');
       } catch(e){ throw e; }
     }
