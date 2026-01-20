@@ -386,11 +386,41 @@
     let loans = [];
 
     /* ---------- Helpers ---------- */
-    const $ = id => document.getElementById(id);
-    function unformatCurrency(str){ if(str===undefined||str===null)return 0; if(typeof str==='number')return str; str=String(str); if(!str)return 0; return Number(str.replace(/[^0-9.-]+/g,''))||0; }
-    function formatCurrency(n){ if(isNaN(n))n=0; return '$'+Number(n).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2}); }
-    function debounce(fn,w){let t;return function(...a){clearTimeout(t);t=setTimeout(()=>fn.apply(this,a),w);};}
-    const _debouncedComputeAndRender = debounce(() => { if(typeof computeAndRender === 'function' && currentStep === totalSteps) computeAndRender(); }, 450);
+const $ = id => document.getElementById(id);
+
+function unformatCurrency(str) {
+  if (str === undefined || str === null) return 0;
+  if (typeof str === 'number') return str;
+  str = String(str);
+  if (!str) return 0;
+  return Number(str.replace(/[^0-9.-]+/g, '')) || 0;
+}
+
+// NEW: Use Intl.NumberFormat for professional formatting ($-100 -> -$100.00)
+const usdFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+
+function formatCurrency(n) {
+  if (isNaN(n) || n === null) n = 0;
+  return usdFormatter.format(n);
+}
+
+function debounce(fn, w) {
+  let t;
+  return function(...a) {
+    clearTimeout(t);
+    t = setTimeout(() => fn.apply(this, a), w);
+  };
+}
+
+// Only auto-compute if we are technically looking at the report
+const _debouncedComputeAndRender = debounce(() => {
+  if (typeof computeAndRender === 'function' && currentStep === totalSteps) computeAndRender();
+}, 450);
 
     /* ---------- Initialization ---------- */
     window.addEventListener('load', ()=> {
