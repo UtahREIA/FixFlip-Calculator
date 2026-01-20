@@ -966,9 +966,19 @@ const _debouncedComputeAndRender = debounce(() => {
       $('gateSubmitBtn').innerText = 'Verifying...';
       try {
         const res = await verifyPhoneViaWorkflow(p);
-        if(res.status==='Trial') alert(`Trial Active: ${res.daysLeft} days left.`);
+        if(res.status==='Trial') {
+          alert(`You are on a 30-day free trial. Days left: ${res.daysLeft}.\nContact Utah REIA to become a member and enjoy unlimited access!`);
+        }
         sessionStorage.setItem('utahreia_rental_verified', 'true');
         unlock();
+        // Show persistent reminder for trial users
+        const trialReminder = document.getElementById('trialReminder');
+        if (trialReminder && res.status === 'Trial') {
+          trialReminder.textContent = `You are on a 30-day free trial. Days left: ${res.daysLeft}. Contact Utah REIA to become a member and enjoy unlimited access!`;
+          trialReminder.style.display = 'block';
+        } else if (trialReminder) {
+          trialReminder.style.display = 'none';
+        }
       } catch(e) { alert(e.message); }
       $('gateSubmitBtn').innerText = 'Unlock Calculator';
     };
