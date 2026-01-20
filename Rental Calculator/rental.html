@@ -141,8 +141,11 @@
         <button type="button" class="pencil" onclick="toggleEditor('rehab')">✏️ Edit Rehab Breakdown</button>
         <div class="editor" id="editor-rehab" aria-hidden="true">
           <div style="margin-bottom:8px"><div class="subheading">Itemized Rehab Costs</div></div>
-          <div class="item"><input class="item-label" value="Paint & Carpet"><input class="item-value small-input" data-kind="fixed" value="3500"><select class="item-kind"><option value="fixed" selected>$</option></select><button type="button" class="icon-btn">🗑️</button></div>
-          <div class="item"><input class="item-label" value="Minor Repairs"><input class="item-value small-input" data-kind="fixed" value="1500"><select class="item-kind"><option value="fixed" selected>$</option></select><button type="button" class="icon-btn">🗑️</button></div>
+          <div class="item"><input class="item-label" value="New Carpet"><input class="item-value small-input" data-kind="fixed" value="1500"><select class="item-kind"><option value="fixed" selected>$</option></select><button type="button" class="icon-btn">🗑️</button></div>
+          <div class="item"><input class="item-label" value="Interior Paint"><input class="item-value small-input" data-kind="fixed" value="750"><select class="item-kind"><option value="fixed" selected>$</option></select><button type="button" class="icon-btn">🗑️</button></div>
+          <div class="item"><input class="item-label" value="New Fixtures"><input class="item-value small-input" data-kind="fixed" value="300"><select class="item-kind"><option value="fixed" selected>$</option></select><button type="button" class="icon-btn">🗑️</button></div>
+          <div class="item"><input class="item-label" value="New Appliances"><input class="item-value small-input" data-kind="fixed" value="2500"><select class="item-kind"><option value="fixed" selected>$</option></select><button type="button" class="icon-btn">🗑️</button></div>
+          <div class="item"><input class="item-label" value="Landscaping"><input class="item-value small-input" data-kind="fixed" value="250"><select class="item-kind"><option value="fixed" selected>$</option></select><button type="button" class="icon-btn">🗑️</button></div>
           <div id="rehab-add-area"></div>
           <div style="margin-top:8px;"><button type="button" class="btn" onclick="addItem('rehab')">+ Add Item</button></div>
           <div class="row-actions">
@@ -188,16 +191,25 @@
           <div class="field"><label>Purchase Cost (manual)</label><input id="purchaseClosing" type="text" placeholder="$3,000"></div>
           <div class="field" style="align-self:end"><label class="toggle-label">Manual only<label class="switch"><input id="purchaseManualToggle" type="checkbox"><span class="slider"></span></label></label><div class="muted-small" style="margin-top:6px">Default: OFF</div></div>
         </div>
-        <button type="button" class="pencil" onclick="toggleEditor('purchase')">✏️ Edit Breakdown</button>
-        <div class="editor" id="editor-purchase" aria-hidden="true">
+        <div class="editor" id="editor-purchase" aria-hidden="true" style="display:block;">
           <div style="margin-bottom:8px"><div class="subheading">Itemized Purchase Costs</div></div>
-          <div class="item"><input class="item-label" value="Home Inspection"><input class="item-value small-input" data-kind="fixed" value="450"><select class="item-kind"><option value="fixed" selected>$</option></select><span class="small">Pay Upfront</span><button type="button" class="icon-btn">🗑️</button></div>
-          <div class="item"><input class="item-label" value="Appraisal"><input class="item-value small-input" data-kind="fixed" value="600"><select class="item-kind"><option value="fixed" selected>$</option></select><span class="small">Pay Upfront</span><button type="button" class="icon-btn">🗑️</button></div>
-          <div class="item"><input class="item-label" value="Title & Escrow"><input class="item-value small-input" data-kind="fixed" value="1500"><select class="item-kind"><option value="fixed" selected>$</option></select><span class="small">Pay Upfront</span><button type="button" class="icon-btn">🗑️</button></div>
-          <div class="item"><input class="item-label" value="Loan Points"><input class="item-value small-input" data-kind="pct_loan" value="1"><select class="item-kind"><option value="fixed">$</option><option value="pct_loan" selected>% of Loan</option></select><span class="small">Roll Into Loan</span><button type="button" class="icon-btn">🗑️</button></div>
-          <div id="purchase-add-area"></div>
-          <div style="margin-top:8px;"><button type="button" class="btn" onclick="addItem('purchase')">+ Add Item</button></div>
-          <div class="row-actions"><div class="total-display">Total Upfront: <span id="purchaseEditorTotal">$0</span></div><div style="display:flex;gap:8px"><button type="button" class="btn secondary" onclick="cancelEditor('purchase')">Cancel</button><button type="button" class="btn" onclick="saveEditor('purchase')">Save</button></div></div>
+          <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
+            <thead>
+              <tr style="background:#f6f7f8;font-size:13px;">
+                <th style="text-align:left;padding:6px 8px;">Item</th>
+                <th style="text-align:right;padding:6px 8px;">Amount</th>
+                <th style="text-align:left;padding:6px 8px;">Type</th>
+                <th style="text-align:left;padding:6px 8px;">Paid</th>
+                <th style="padding:6px 8px;"></th>
+              </tr>
+            </thead>
+            <tbody id="purchase-items-tbody">
+            </tbody>
+          </table>
+          <div style="margin-top:8px;"><button type="button" class="btn" id="addPurchaseItemBtn">+ Add Item</button></div>
+          <div class="row-actions" style="margin-top:10px;justify-content:space-between;align-items:center;">
+            <div class="total-display">Total Upfront: <span id="purchaseEditorTotal">$0</span></div>
+          </div>
         </div>
         <div id="purchaseBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
       </div>
@@ -241,11 +253,11 @@
         <button type="button" class="pencil" onclick="toggleEditor('operating')">✏️ Edit Itemized OpEx</button>
         <div class="editor" id="editor-operating" aria-hidden="true">
           <div style="margin-bottom:8px"><div class="subheading">Itemized Operating Expenses</div></div>
-          <div class="item"><input class="item-label" value="Property Taxes"><input class="item-value small-input" data-kind="fixed" value="2400"><select class="item-kind"><option value="fixed" selected>$ (Per Year)</option></select><button type="button" class="icon-btn">🗑️</button></div>
-          <div class="item"><input class="item-label" value="Insurance"><input class="item-value small-input" data-kind="fixed" value="800"><select class="item-kind"><option value="fixed" selected>$ (Per Year)</option></select><button type="button" class="icon-btn">🗑️</button></div>
-          <div class="item"><input class="item-label" value="Property Management"><input class="item-value small-input" data-kind="pct_rent" value="10"><select class="item-kind"><option value="pct_rent" selected>% of Rent</option></select><button type="button" class="icon-btn">🗑️</button></div>
-          <div class="item"><input class="item-label" value="Maintenance"><input class="item-value small-input" data-kind="pct_rent" value="5"><select class="item-kind"><option value="pct_rent" selected>% of Rent</option></select><button type="button" class="icon-btn">🗑️</button></div>
-          <div class="item"><input class="item-label" value="HOA Fees"><input class="item-value small-input" data-kind="fixed" value="0"><select class="item-kind"><option value="fixed" selected>$ (Per Month)</option></select><button type="button" class="icon-btn">🗑️</button></div>
+          <div class="item"><input class="item-label" value="Property Taxes"><input class="item-value small-input" data-kind="fixed" value="1750"><select class="item-kind"><option value="fixed" selected>$ (Per Year)</option></select><button type="button" class="icon-btn">🗑️</button></div>
+          <div class="item"><input class="item-label" value="Insurance"><input class="item-value small-input" data-kind="fixed" value="650"><select class="item-kind"><option value="fixed" selected>$ (Per Year)</option></select><button type="button" class="icon-btn">🗑️</button></div>
+          <div class="item"><input class="item-label" value="Property Management"><input class="item-value small-input" data-kind="pct_rent" value="8"><select class="item-kind"><option value="pct_rent" selected>% of Rent</option></select><button type="button" class="icon-btn">🗑️</button></div>
+          <div class="item"><input class="item-label" value="Maintenance"><input class="item-value small-input" data-kind="pct_rent" value="10"><select class="item-kind"><option value="pct_rent" selected>% of Rent</option></select><button type="button" class="icon-btn">🗑️</button></div>
+          <div class="item"><input class="item-label" value="Capital Reserves"><input class="item-value small-input" data-kind="pct_rent" value="5"><select class="item-kind"><option value="pct_rent" selected>% of Rent</option></select><button type="button" class="icon-btn">🗑️</button></div>
           <div id="operating-add-area"></div>
           <div style="margin-top:8px;"><button type="button" class="btn" onclick="addItem('operating')">+ Add Item</button></div>
           <div class="row-actions"><div class="total-display">OpEx Total: <span id="operatingEditorTotal">$0</span></div><div style="display:flex;gap:8px"><button type="button" class="btn secondary" onclick="cancelEditor('operating')">Cancel</button><button type="button" class="btn" onclick="saveEditor('operating')">Save</button></div></div>
@@ -335,6 +347,93 @@
   </div>
 
   <script>
+        // --- Itemized Purchase Costs UI Logic ---
+        let purchaseItems = [
+          { label: 'Home Inspection', value: 350, kind: 'fixed', paid: 'Upfront' },
+          { label: 'Appraisal', value: 550, kind: 'fixed', paid: 'Upfront' },
+          { label: 'Loan Points', value: 2, kind: 'pct_loan', paid: 'Upfront' },
+          { label: 'Closing Costs', value: 2, kind: 'pct_price', paid: 'Upfront' },
+          { label: 'Attourney Fee', value: 1, kind: 'pct_price', paid: 'Upfront' },
+          { label: 'Test', value: 2, kind: 'pct_price', paid: 'Upfront' }
+        ];
+
+        function renderPurchaseItems() {
+          const tbody = document.getElementById('purchase-items-tbody');
+          if (!tbody) return;
+          tbody.innerHTML = '';
+          purchaseItems.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><input type="text" class="item-label" value="${escapeHtml(item.label)}" data-idx="${idx}" style="width:98%"></td>
+              <td style="text-align:right"><input type="number" class="item-value" value="${item.value}" data-idx="${idx}" style="width:80px;text-align:right"></td>
+              <td>
+                <select class="item-kind" data-idx="${idx}">
+                  <option value="fixed"${item.kind==='fixed'?' selected':''}>$</option>
+                  <option value="pct_loan"${item.kind==='pct_loan'?' selected':''}>% of Loan</option>
+                </select>
+              </td>
+              <td>
+                <select class="item-paid" data-idx="${idx}">
+                  <option value="Upfront"${item.paid==='Upfront'?' selected':''}>Pay Upfront</option>
+                  <option value="Rolled"${item.paid==='Rolled'?' selected':''}>Roll Into Loan</option>
+                </select>
+              </td>
+              <td><button type="button" class="icon-btn" onclick="removePurchaseItem(${idx})">🗑️</button></td>
+            `;
+            tbody.appendChild(tr);
+          });
+          recalcPurchaseEditor();
+        }
+
+        function addPurchaseItem() {
+          purchaseItems.push({ label: '', value: 0, kind: 'fixed', paid: 'Upfront' });
+          renderPurchaseItems();
+        }
+
+        function removePurchaseItem(idx) {
+          purchaseItems.splice(idx, 1);
+          renderPurchaseItems();
+        }
+
+        function recalcPurchaseEditor() {
+          // Calculate total of all 'Upfront' items
+          let total = 0;
+          const initialLoanAmt = typeof computeAggregatedFinancedAmount === 'function' ? computeAggregatedFinancedAmount() : 0;
+          purchaseItems.forEach(item => {
+            let val = Number(item.value) || 0;
+            if(item.kind === 'pct_loan') val = initialLoanAmt * (val/100);
+            if(item.paid === 'Upfront') total += val;
+          });
+          if(document.getElementById('purchaseEditorTotal')) document.getElementById('purchaseEditorTotal').textContent = formatCurrency(total);
+          editorState.purchaseExtrasUpfront = total;
+          if(typeof updateVisibleTotals === 'function') updateVisibleTotals();
+        }
+
+        document.addEventListener('input', function(e) {
+          if(e.target.classList.contains('item-label')) {
+            const idx = e.target.getAttribute('data-idx');
+            purchaseItems[idx].label = e.target.value;
+          } else if(e.target.classList.contains('item-value')) {
+            const idx = e.target.getAttribute('data-idx');
+            purchaseItems[idx].value = e.target.value;
+            recalcPurchaseEditor();
+          } else if(e.target.classList.contains('item-kind')) {
+            const idx = e.target.getAttribute('data-idx');
+            purchaseItems[idx].kind = e.target.value;
+            recalcPurchaseEditor();
+          } else if(e.target.classList.contains('item-paid')) {
+            const idx = e.target.getAttribute('data-idx');
+            purchaseItems[idx].paid = e.target.value;
+            recalcPurchaseEditor();
+          }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+          if(document.getElementById('addPurchaseItemBtn')) {
+            document.getElementById('addPurchaseItemBtn').addEventListener('click', addPurchaseItem);
+          }
+          renderPurchaseItems();
+        });
     /* ---------- Config ---------- */
     const editorState = {
       purchaseExtrasUpfront: 0, purchaseManualBase: 0, purchaseManualOnly: false,
@@ -799,18 +898,23 @@
     }
 
     /* ---------- Phone Verification ---------- */
+
     function normalizePhone(raw) { return String(raw||'').replace(/[^\d]/g, '').slice(-10); }
     async function verifyPhoneViaWorkflow(phone) {
-      // Using a dummy endpoint for demonstration. Replace with actual endpoint.
-      return new Promise(resolve => setTimeout(() => resolve({status:'Active'}), 500));
-      /*
       try {
-        const res = await fetch('https://your-api-endpoint.com/check-phone', {
+        const res = await fetch('https://fix-flip-calculator-delta.vercel.app/api/check-phone-rentals', {
           method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({phone:normalizePhone(phone)})
         });
-        // ... rest of verification logic
+        let d;
+        try {
+          d = await res.json();
+        } catch (jsonErr) {
+          throw new Error('Server returned invalid response. Please try again or contact support.');
+        }
+        if(d && d.valid && d.status === 'Active') return {status:'Active'};
+        if(d && d.valid && d.trial && d.trialDaysLeft > 0) return {status:'Trial', daysLeft: d.trialDaysLeft};
+        throw new Error('Access denied or trial expired.');
       } catch(e){ throw e; }
-      */
     }
 
     // Unlock Logic
@@ -822,7 +926,8 @@
       if(p.length < 10) return alert('Invalid Phone');
       $('gateSubmitBtn').innerText = 'Verifying...';
       try {
-        // const res = await verifyPhoneViaWorkflow(p); // Uncomment to use real verification
+        const res = await verifyPhoneViaWorkflow(p);
+        if(res.status==='Trial') alert(`Trial Active: ${res.daysLeft} days left.`);
         sessionStorage.setItem('utahreia_rental_verified', 'true');
         unlock();
       } catch(e) { alert(e.message); }
