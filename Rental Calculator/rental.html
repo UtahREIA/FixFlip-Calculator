@@ -125,6 +125,12 @@
           <div class="field"><label>After Repair Value (ARV)</label><input id="arv" type="text" inputmode="numeric" placeholder="$350,000"></div>
         </div>
         <div class="muted-small" style="margin-top:8px">ARV is optional for standard rentals but useful if you plan to refinance or sell.</div>
+        <div style="margin-top:12px">
+          <label style="font-weight:600;color:var(--blue);display:block;margin-bottom:8px">How to Estimate ARV - Video</label>
+          <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;">
+            <iframe src="https://www.loom.com/embed/393dcac19b484e07aaadcd6271864f4d" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%"></iframe>
+          </div>
+        </div>
       </div>
 
       <div class="card step" data-step="3">
@@ -157,7 +163,7 @@
       </div>
 
       <div class="card step" data-step="4">
-        <div class="muted">Initial Purchase Financing</div>
+        <div class="muted">Financing</div>
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
           <label class="toggle-label">Use Financing<label class="switch"><input id="useFinancing" type="checkbox" checked><span class="slider"></span></label></label>
           <div style="margin-top:10px;margin-bottom:15px;"><a href="https://retorocapitalinvestments.com/funding" target="_blank" class="btn" style="background:#001F3F;color:#fff;">Get a Loan</a></div>
@@ -191,21 +197,10 @@
           <div class="field"><label>Purchase Cost (manual)</label><input id="purchaseClosing" type="text" placeholder="$3,000"></div>
           <div class="field" style="align-self:end"><label class="toggle-label">Manual only<label class="switch"><input id="purchaseManualToggle" type="checkbox"><span class="slider"></span></label></label><div class="muted-small" style="margin-top:6px">Default: OFF</div></div>
         </div>
-        <div class="editor" id="editor-purchase" aria-hidden="true" style="display:block;">
+        <button type="button" class="pencil" onclick="toggleEditor('purchase')">✏️ Edit Breakdown</button>
+        <div class="editor" id="editor-purchase" aria-hidden="true">
           <div style="margin-bottom:8px"><div class="subheading">Itemized Purchase Costs</div></div>
-          <table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
-            <thead>
-              <tr style="background:#f6f7f8;font-size:13px;">
-                <th style="text-align:left;padding:6px 8px;">Item</th>
-                <th style="text-align:right;padding:6px 8px;">Amount</th>
-                <th style="text-align:left;padding:6px 8px;">Type</th>
-                <th style="text-align:left;padding:6px 8px;">Paid</th>
-                <th style="padding:6px 8px;"></th>
-              </tr>
-            </thead>
-            <tbody id="purchase-items-tbody">
-            </tbody>
-          </table>
+          <div id="purchase-items-area"></div>
           <div style="margin-top:8px;"><button type="button" class="btn" id="addPurchaseItemBtn">+ Add Item</button></div>
           <div class="row-actions" style="margin-top:10px;justify-content:space-between;align-items:center;">
             <div class="total-display">Total Upfront: <span id="purchaseEditorTotal">$0</span></div>
@@ -347,6 +342,32 @@
   </div>
 
   <script>
+            // --- Google Maps Places Autocomplete for Address ---
+            function initAutocomplete(){
+              try{
+                if(!window.google || !google.maps || !google.maps.places) throw new Error('Google Places not available');
+                const input = $('street');
+                if(!input) return;
+                const ac = new google.maps.places.Autocomplete(input, { componentRestrictions: {country:'us'}, types:['address'] });
+                ac.addListener('place_changed', ()=> {
+                  const place = ac.getPlace();
+                  if(!place || !place.address_components) return;
+                  const comps = place.address_components; let number='',route='',city='',state='',postal='';
+                  comps.forEach(c=>{
+                    if(c.types.includes('street_number')) number = c.long_name;
+                    if(c.types.includes('route')) route = c.long_name;
+                    if(c.types.includes('locality')) city = c.long_name;
+                    if(c.types.includes('administrative_area_level_1')) state = c.short_name;
+                    if(c.types.includes('postal_code')) postal = c.long_name;
+                  });
+                  if(number && route) input.value = `${number} ${route}`;
+                  if(city) $('city').value = city;
+                  if(state) $('state').value = state;
+                  if(postal) $('zip').value = postal;
+                });
+              }catch(e){console.error('Autocomplete error',e);}
+            }
+            window.addEventListener('load', initAutocomplete);
         // --- Itemized Purchase Costs UI Logic ---
         let purchaseItems = [
           { label: 'Home Inspection', value: 350, kind: 'fixed', paid: 'Upfront' },
@@ -357,33 +378,32 @@
           { label: 'Test', value: 2, kind: 'pct_price', paid: 'Upfront' }
         ];
 
-        function renderPurchaseItems() {
-          const tbody = document.getElementById('purchase-items-tbody');
-          if (!tbody) return;
-          tbody.innerHTML = '';
-          purchaseItems.forEach((item, idx) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td><input type="text" class="item-label" value="${escapeHtml(item.label)}" data-idx="${idx}" style="width:98%"></td>
-              <td style="text-align:right"><input type="number" class="item-value" value="${item.value}" data-idx="${idx}" style="width:80px;text-align:right"></td>
-              <td>
-                <select class="item-kind" data-idx="${idx}">
-                  <option value="fixed"${item.kind==='fixed'?' selected':''}>$</option>
-                  <option value="pct_loan"${item.kind==='pct_loan'?' selected':''}>% of Loan</option>
-                </select>
-              </td>
-              <td>
-                <select class="item-paid" data-idx="${idx}">
-                  <option value="Upfront"${item.paid==='Upfront'?' selected':''}>Pay Upfront</option>
-                  <option value="Rolled"${item.paid==='Rolled'?' selected':''}>Roll Into Loan</option>
-                </select>
-              </td>
-              <td><button type="button" class="icon-btn" onclick="removePurchaseItem(${idx})">🗑️</button></td>
-            `;
-            tbody.appendChild(tr);
-          });
-          recalcPurchaseEditor();
-        }
+    function renderPurchaseItems() {
+      const area = document.getElementById('purchase-items-area');
+      if (!area) return;
+      area.innerHTML = '';
+      purchaseItems.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <input class="item-label" value="${escapeHtml(item.label)}" data-idx="${idx}" placeholder="Item">
+          <input class="item-value small-input" value="${item.value}" data-idx="${idx}" style="width:110px" placeholder="Amount">
+          <select class="item-kind" data-idx="${idx}">
+            <option value="fixed"${item.kind==='fixed'?' selected':''}>$</option>
+            <option value="pct_loan"${item.kind==='pct_loan'?' selected':''}>% of Loan</option>
+            <option value="pct_price"${item.kind==='pct_price'?' selected':''}>% of Price</option>
+          </select>
+          <select class="item-paid" data-idx="${idx}">
+            <option value="Upfront"${item.paid==='Upfront'?' selected':''}>Pay Upfront</option>
+            <option value="Rolled"${item.paid==='Rolled'?' selected':''}>Roll Into Loan</option>
+            <option value="Pay Upfront"${item.paid==='Pay Upfront'?' selected':''}>Pay Upfront</option>
+          </select>
+          <button type="button" class="icon-btn" onclick="removePurchaseItem(${idx})">🗑️</button>
+        `;
+        area.appendChild(div);
+      });
+      recalcPurchaseEditor();
+    }
 
         function addPurchaseItem() {
           purchaseItems.push({ label: '', value: 0, kind: 'fixed', paid: 'Upfront' });
@@ -396,13 +416,14 @@
         }
 
         function recalcPurchaseEditor() {
-          // Calculate total of all 'Upfront' items
+          // Calculate total of all 'Pay Upfront' items
           let total = 0;
           const initialLoanAmt = typeof computeAggregatedFinancedAmount === 'function' ? computeAggregatedFinancedAmount() : 0;
           purchaseItems.forEach(item => {
             let val = Number(item.value) || 0;
+            // Accept both 'Upfront' and 'Pay Upfront' as valid (for compatibility)
             if(item.kind === 'pct_loan') val = initialLoanAmt * (val/100);
-            if(item.paid === 'Upfront') total += val;
+            if(item.paid === 'Upfront' || item.paid === 'Pay Upfront') total += val;
           });
           if(document.getElementById('purchaseEditorTotal')) document.getElementById('purchaseEditorTotal').textContent = formatCurrency(total);
           editorState.purchaseExtrasUpfront = total;
