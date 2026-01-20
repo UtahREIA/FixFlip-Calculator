@@ -916,8 +916,18 @@
 
       window.chart2 = new Chart($('chartFlow'), {
         type:'doughnut',
-        data: { labels: ['Mortgage P&I', 'Cash Flow'], datasets: [{ data: [finalMonthlyPI, monthlyCashFlow], backgroundColor:['#1a2a4f','#2E8B57'] }] },
-        options: { maintainAspectRatio:false, plugins: { datalabels: { color:'#fff', formatter:(v)=>formatCurrency(v) }, legend:{position:'bottom'} } },
+        data: { 
+ 
+          labels: ['Mortgage P&I', 'Cash Flow'], 
+          datasets: [{ data: [finalMonthlyPI, monthlyCashFlow], backgroundColor:['#1a2a4f','#2E8B57'] }] 
+        },
+        options: { 
+          maintainAspectRatio:false, 
+          plugins: { 
+            datalabels: { color:'#fff', formatter:(v)=>formatCurrency(v) }, 
+            legend:{position:'bottom'} 
+          } 
+        },
         plugins: [ChartDataLabels]
       });
     }
@@ -932,7 +942,7 @@
       const w = pdf.internal.pageSize.getWidth();
       const h = (canvas.height * w) / canvas.width;
       pdf.addImage(img, 'JPEG', 0, 10, w, h);
-      pdf.save('UTAHREIA_Rental_Report.pdf');
+      pdf.save('UTAHREIA_Short_Term_Report.pdf');
     }
 
     /* ---------- Phone Verification ---------- */
@@ -940,7 +950,7 @@
     function normalizePhone(raw) { return String(raw||'').replace(/[^\d]/g, '').slice(-10); }
     async function verifyPhoneViaWorkflow(phone) {
       try {
-        const res = await fetch('/api/check-phone-short-term', {
+        const res = await fetch('https://fix-flip-calculator-delta.vercel.app/api/check-phone-short-term', {
           method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({phone:normalizePhone(phone)})
         });
         let d;
@@ -957,7 +967,7 @@
 
     // Unlock Logic
     const unlock = () => { $('gateWrap').style.display='none'; $('calcWrap').style.display='block'; };
-    if(sessionStorage.getItem('utahreia_rental_verified')) unlock();
+    if(sessionStorage.getItem('utahreia_short_term_verified')) unlock();
 
     $('gateSubmitBtn').onclick = async () => {
       const p = $('gatePhone').value;
@@ -966,7 +976,7 @@
       try {
         const res = await verifyPhoneViaWorkflow(p);
         if(res.status==='Trial') alert(`Trial Active: ${res.daysLeft} days left.`);
-        sessionStorage.setItem('utahreia_rental_verified', 'true');
+        sessionStorage.setItem('utahreia_short_term_verified', 'true');
         unlock();
       } catch(e) { alert(e.message); }
       $('gateSubmitBtn').innerText = 'Unlock Calculator';
