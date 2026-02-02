@@ -72,14 +72,15 @@
     .loan-card { background:#f8fafb; padding:10px; border-radius:8px; display:flex; gap:8px; align-items:center; justify-content:space-between; }
     .loan-info { font-size:13px; color:#333 }
     .loan-actions { display:flex; gap:8px; align-items:center }
-    .radio{display:flex;align-items:center;gap:8px;font-size:13px;opacity:.95}
-    .radio input{accent-color:var(--gold)}
+  
+.radio{display:flex;align-items:center;gap:8px;font-size:13px;opacity:.95}
+.radio input{accent-color:var(--gold)}
 </style>
 </head>
 <body>
 <div class="wrap" id="gateWrap">
 <div class="top"><img alt="UTAH REIA logo" src="https://assets.cdn.filesafe.space/DNirEjy0ejVwbHsaBYrn/media/682f680ec314718407baed82.png"/></div>
-<h1 style="text-align:center;color:var(--blue);margin-top:12px;">Short-Term Calculator Access</h1>
+<h1 style="text-align:center;color:var(--blue);margin-top:12px;">BRRRR Calculator Access</h1>
 <div class="subtitle" style="margin-bottom:16px;">Enter your phone number to unlock the calculator.</div>
 <div class="card">
 <div class="field"><label>Phone Number</label><input id="gatePhone" inputmode="tel" placeholder="(801) 555-1234" style="font-size:16px;padding:12px" type="tel"/></div>
@@ -90,67 +91,68 @@
 </div>
 <div class="wrap" id="calcWrap" style="display:none">
 <div class="top"><img alt="UTAH REIA logo" src="https://assets.cdn.filesafe.space/DNirEjy0ejVwbHsaBYrn/media/682f680ec314718407baed82.png"/></div>
-<h1>UTAH REIA SHORT TERM CALCULATOR</h1>
-<div class="subtitle">Step-by-step analysis for Short Term or Coliving (BRRRR) investments.</div>
+<h1>UTAH REIA BRRRR Calculator</h1>
+<div class="subtitle">Step-by-step analysis for Buy, Rehab, Rent, Refinance, Repeat (BRRRR) investments.</div>
 <div id="trialReminder" style="display:none;background:#fffbe6;border:1px solid #ffe58f;color:#ad6800;padding:10px;margin:10px 0 18px 0;font-weight:bold;text-align:center;border-radius:8px;font-size:15px;"></div>
 <div class="card">
 <div class="step-ind" id="stepIndicator">Step 1 of 13</div>
 </div>
 <div id="stepsArea">
 <div class="card step active" data-step="1">
-  <div class="muted">Property Information</div>
-  <div class="row">
-    <div class="field"><label>Street address</label><input id="street" placeholder="Start typing address..." type="text"/></div>
-    <div class="field"><label>City</label><input id="city" placeholder="City" type="text"/></div>
-    <div class="field"><label>State</label><input id="state" placeholder="UT" type="text"/></div>
-    <div class="field"><label>ZIP code</label><input id="zip" placeholder="ZIP" type="text"/></div>
-  </div>
-  <div class="field"><label>Optional: Features / Description</label><textarea id="features" placeholder="3 bed / 2 bath..."></textarea></div>
+<div class="muted">Property Information</div>
+<div class="row">
+<div class="field"><label>Street address</label><input id="street" placeholder="Start typing address..." type="text"/></div>
+<div class="field"><label>City</label><input id="city" placeholder="City" type="text"/></div>
+<div class="field"><label>State</label><input id="state" placeholder="UT" type="text"/></div>
+<div class="field"><label>ZIP code</label><input id="zip" placeholder="ZIP" type="text"/></div>
+</div>
+<div class="field"><label>Optional: Features / Description</label><textarea id="features" placeholder="3 bed / 2 bath..."></textarea></div>
 </div>
 <div class="card step" data-step="2">
-  <div class="muted">Purchase Price, & ARV</div>
-  <div class="row">
-    <div class="field"><label>Purchase Price</label><input id="purchasePrice" placeholder="$240,000" type="text"/></div>
-    <div class="field"><label>After Repair Value (ARV)</label><input id="arv" inputmode="numeric" placeholder="$350,000" type="text"/></div>
-  </div>
+<div class="muted">Estimates</div>
+<div class="row">
+<div class="field"><label>Purchase Price</label><input id="purchasePrice" placeholder="$240,000" type="text"/></div>
+<div class="field"><label>After Repair Value (ARV)</label><input id="arv" inputmode="numeric" placeholder="$350,000" type="text"/></div>
+</div>
+</div>
 </div>
 <div class="card step" data-step="3">
-  <div class="muted">Rehab Costs</div>
-  <div class="row" style="margin-bottom:8px">
-    <div class="field"><label>Rehab Costs (Total)</label><input id="repairs" placeholder="$40,000" type="text"/></div>
-    <div class="field" style="align-self:end">
-      <label class="toggle-label">Manual only
-        <label class="switch"><input id="rehabManualToggle" type="checkbox"/><span class="slider"></span></label>
-      </label>
-      <div class="muted-small" style="margin-top:6px">Default: OFF (Use itemized items)</div>
-    </div>
-  </div>
-  <button class="pencil" onclick="toggleEditor('rehab')" type="button">✏️ Edit Rehab Breakdown</button>
-  <div aria-hidden="true" class="editor" id="editor-rehab">
-    <div style="margin-bottom:8px"><div class="subheading">Itemized Rehab Costs</div></div>
-    <div class="item"><input class="item-label" value="Exterior Stucco Repair"/><input class="item-value small-input" data-kind="fixed" value="1750"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div class="item"><input class="item-label" value="New North/East Side Fence"/><input class="item-value small-input" data-kind="fixed" value="2800"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div class="item"><input class="item-label" value="Unit 1 - New Windows"/><input class="item-value small-input" data-kind="fixed" value="1800"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div class="item"><input class="item-label" value="Unit 1 - Master Bath Shower"/><input class="item-value small-input" data-kind="fixed" value="2500"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div class="item"><input class="item-label" value="Unit 2 - Stairwell Repair"/><input class="item-value small-input" data-kind="fixed" value="2200"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div class="item"><input class="item-label" value="Unit 1/2 - Full Interior Paint"/><input class="item-value small-input" data-kind="fixed" value="1750"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Unit</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div class="item"><input class="item-label" value="Unit 1/2 - New Carpet"/><input class="item-value small-input" data-kind="fixed" value="2500"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Unit</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div class="item"><input class="item-label" value="Unit 1/2 - New Fixtures"/><input class="item-value small-input" data-kind="fixed" value="750"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Unit</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div class="item"><input class="item-label" value="Unit 1/2 - New Appliances"/><input class="item-value small-input" data-kind="fixed" value="1800"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Unit</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div class="item"><input class="item-label" value="Unit 1/2 - New Water Heaters"/><input class="item-value small-input" data-kind="fixed" value="2000"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Unit</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div class="item"><input class="item-label" value="Landscaping"/><input class="item-value small-input" data-kind="fixed" value="350"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div class="item"><input class="item-label" value="Trash Removal"/><input class="item-value small-input" data-kind="fixed" value="750"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div id="rehab-add-area"></div>
-    <div style="margin-top:8px;"><button class="btn" onclick="addItem('rehab')" type="button">+ Add Item</button></div>
-    <div class="row-actions">
-      <div class="total-display">Rehab Total: <span id="rehabEditorTotal">$0</span></div>
-      <div style="display:flex;gap:8px"><button class="btn secondary" onclick="cancelEditor('rehab')" type="button">Cancel</button><button class="btn" onclick="saveEditor('rehab')" type="button">Save</button></div>
-    </div>
-  </div>
-  <div id="rehabBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
+<div class="muted">Rehab Costs</div>
+<div class="row" style="margin-bottom:8px">
+<div class="field"><label>Rehab Costs (Total)</label><input id="repairs" placeholder="$40,000" type="text"/></div>
+<div class="field" style="align-self:end">
+<label class="toggle-label">Manual only
+              <label class="switch"><input id="rehabManualToggle" type="checkbox"/><span class="slider"></span></label>
+</label>
+<div class="muted-small" style="margin-top:6px">Default: OFF (Use itemized items)</div>
+</div>
+</div>
+<button class="pencil" onclick="toggleEditor('rehab')" type="button">✏️ Edit Rehab Breakdown</button>
+<div aria-hidden="true" class="editor" id="editor-rehab">
+<div style="margin-bottom:8px"><div class="subheading">Itemized Rehab Costs</div></div>
+<div class="item"><input class="item-label" value="Exterior Stucco Repair"/><input class="item-value small-input" data-kind="fixed" value="1750"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="New North/East Side Fence"/><input class="item-value small-input" data-kind="fixed" value="2800"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Unit 1 - New Windows"/><input class="item-value small-input" data-kind="fixed" value="1800"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Unit 1 - Master Bath Shower"/><input class="item-value small-input" data-kind="fixed" value="2500"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Unit 2 - Stairwell Repair"/><input class="item-value small-input" data-kind="fixed" value="2200"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Unit 1/2 - Full Interior Paint"/><input class="item-value small-input" data-kind="fixed" value="1750"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Unit</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Unit 1/2 - New Carpet"/><input class="item-value small-input" data-kind="fixed" value="2500"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Unit</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Unit 1/2 - New Fixtures"/><input class="item-value small-input" data-kind="fixed" value="750"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Unit</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Unit 1/2 - New Appliances"/><input class="item-value small-input" data-kind="fixed" value="1800"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Unit</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Unit 1/2 - New Water Heaters"/><input class="item-value small-input" data-kind="fixed" value="2000"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Unit</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Landscaping"/><input class="item-value small-input" data-kind="fixed" value="350"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Trash Removal"/><input class="item-value small-input" data-kind="fixed" value="750"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
+<div id="rehab-add-area"></div>
+<div style="margin-top:8px;"><button class="btn" onclick="addItem('rehab')" type="button">+ Add Item</button></div>
+<div class="row-actions">
+<div class="total-display">Rehab Total: <span id="rehabEditorTotal">$0</span></div>
+<div style="display:flex;gap:8px"><button class="btn secondary" onclick="cancelEditor('rehab')" type="button">Cancel</button><button class="btn" onclick="saveEditor('rehab')" type="button">Save</button></div>
+</div>
+</div>
+<div id="rehabBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
 </div>
 <div class="card step" data-step="4">
-<div class="muted">Financing</div>
+<div class="muted">Financing &amp; Hold Period</div>
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
 <label class="toggle-label">Use Financing<label class="switch"><input checked="" id="useFinancing" type="checkbox"/><span class="slider"></span></label></label>
 <div style="margin-top:10px;margin-bottom:15px;"><a class="btn" href="https://retorocapitalinvestments.com/funding" style="background:#001F3F;color:#fff;" target="_blank">Get a Loan</a></div>
@@ -175,6 +177,14 @@
 <div class="loan-list" id="loanList"></div>
 <div style="margin-top:12px;font-weight:700">Total Initial Financing: <span id="computedLoanAmount">$0</span></div>
 </div>
+<div style="margin-top:20px; border-top:1px solid #eee; padding-top:12px;">
+<div class="subheading">Hold Period</div>
+<div class="row">
+<div class="field"><label>Holding Timeframe (months)</label>
+<select id="holdingTime"><option value="3">3</option><option selected="" value="6">6</option><option value="9">9</option><option value="12">12</option><option value="18">18</option></select>
+</div>
+</div>
+</div>
 </div>
 <div class="card step" data-step="5">
 <div class="muted">Purchase Cost</div>
@@ -195,6 +205,24 @@
 <div id="purchaseBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
 </div>
 <div class="card step" data-step="6">
+<div class="muted">Monthly Holding Costs</div>
+<div class="subheading">Holding Costs (During Rehab)</div>
+<div class="row">
+<div class="field"><label>Monthly Holding (Manual Base)</label><input id="holdingMonthly" placeholder="$500" type="text"/></div>
+<div class="field" style="align-self:end"><label class="toggle-label">Manual Only<label class="switch"><input id="holdingManualToggle" type="checkbox"/><span class="slider"></span></label></label></div>
+</div>
+<button class="pencil" onclick="toggleEditor('holding')" type="button">✏️ Edit Monthly Items</button>
+<div aria-hidden="true" class="editor" id="editor-holding">
+<div class="item"><input class="item-label" value="Utilities"/><input class="item-value small-input" data-kind="fixed" value="150"/><select class="item-kind"><option selected value="fixed">$ Fixed</option><option value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option></select><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Insurance"/><input class="item-value small-input" data-kind="fixed" value="100"/><select class="item-kind"><option selected value="fixed">$ Fixed</option><option value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option></select><button class="icon-btn" type="button">🗑️</button></div>
+<div id="holding-add-area"></div>
+<div style="margin-top:8px;"><button class="btn" onclick="addItem('holding')" type="button">+ Add Item</button></div>
+<div class="row-actions"><div class="total-display">Monthly Extras: <span id="holdingEditorTotal">$0</span></div><div style="display:flex;gap:8px"><button class="btn secondary" onclick="cancelEditor('holding')" type="button">Cancel</button><button class="btn" onclick="saveEditor('holding')" type="button">Save</button></div></div>
+</div>
+<div id="holdingBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
+<div style="margin-top:6px;font-size:13px"><strong>Total Holding (over <span id="holdMonthsDisplay">6</span> mo):</strong> <span id="holdingTotalDisplay">$0</span> (Includes Interest)</div>
+</div>
+<div class="card step" data-step="7">
 <div class="muted">Refinance / Financing</div>
 <div class="subheading">New Loan Terms</div>
 <div class="row">
@@ -211,17 +239,17 @@
 </div>
 <div class="field" style="align-self:end">
 <label class="toggle-label">Include PMI
-  <label class="switch"><input id="includePmiToggle" type="checkbox"/><span class="slider"></span></label>
+  <label class="switch"><input id="includePmiToggle" type="checkbox"/><span class="slider"></span></label>
 </label>
 <div class="muted-small" style="margin-top:6px">PMI applies to the refi loan when enabled.</div>
 </div>
 <div class="field" id="pmiPctWrap" style="display:none">
-<label>PMI Rate (%)</label>
+<label>PMI Rate (% of loan / year)</label>
 <input id="pmiPct" type="number" value="0.75" step="0.01"/>
 </div>
 </div>
 </div>
-<div class="card step" data-step="7">
+<div class="card step" data-step="8">
 <div class="muted">Refinance Costs</div>
 <div class="row">
 <div class="field"><label>Refinance Costs</label><input id="refiClosingCosts" placeholder="$4,000" type="text"/></div>
@@ -241,7 +269,7 @@
 </div>
 <div id="refiBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
 </div>
-<div class="card step" data-step="8">
+<div class="card step" data-step="9">
 <div class="muted">Rental Income</div>
 <div class="row">
 <div class="field"><label>Monthly Rent</label><input id="monthlyRent" placeholder="$2,000" type="text"/></div>
@@ -271,43 +299,35 @@
 </div>
 <div id="otherIncomeBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
 </div>
-<div class="card step" data-step="9">
-<div class="muted">Operating Expenses, Annual Expense Increase</div>
+<div class="card step" data-step="10">
+<div class="muted">Operating Expenses (Rental Phase)</div>
 <div class="row">
-  <div class="field"><label>Monthly Expenses (Manual)</label><input id="operatingExpenses" placeholder="$500" type="text"/></div>
-  <div class="field" style="align-self:end"><label class="toggle-label">Manual Only<label class="switch"><input id="operatingManualToggle" type="checkbox"/><span class="slider"></span></label></label></div>
+<div class="field"><label>Monthly Expenses (Manual)</label><input id="operatingExpenses" placeholder="$500" type="text"/></div>
+<div class="field" style="align-self:end"><label class="toggle-label">Manual Only<label class="switch"><input id="operatingManualToggle" type="checkbox"/><span class="slider"></span></label></label></div>
 </div>
 <button class="pencil" onclick="toggleEditor('operating')" type="button">✏️ Edit Itemized OpEx</button>
 <div aria-hidden="true" class="editor" id="editor-operating">
-  <div style="margin-bottom:8px"><div class="subheading">Itemized Operating Expenses</div></div>
-  <div class="item"><input class="item-label" value="Property Taxes"/><input class="item-value small-input" data-kind="fixed" value="3250"/><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option><option value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option></select><button class="icon-btn" type="button">🗑️</button></div>
-  <div class="item"><input class="item-label" value="Insurance"/><input class="item-value small-input" data-kind="fixed" value="750"/><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option><option value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option></select><button class="icon-btn" type="button">🗑️</button></div>
-  <div class="item"><input class="item-label" value="Property Management"/><input class="item-value small-input" data-kind="pct_rent" value="8"/><select class="item-kind"><option value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option><option selected value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option></select><button class="icon-btn" type="button">🗑️</button></div>
-  <div class="item"><input class="item-label" value="Maintenance"/><input class="item-value small-input" data-kind="pct_rent" value="8"/><select class="item-kind"><option value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option><option selected value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option></select><button class="icon-btn" type="button">🗑️</button></div>
-  <div class="item"><input class="item-label" value="Common Utilities"/><input class="item-value small-input" data-kind="fixed" value="75"/><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option><option value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option></select><button class="icon-btn" type="button">🗑️</button></div>
-  <div class="item"><input class="item-label" value="Landscaping"/><input class="item-value small-input" data-kind="fixed" value="50"/><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option><option value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option></select><button class="icon-btn" type="button">🗑️</button></div>
-  <div id="operating-add-area"></div>
-  <div style="margin-top:8px;"><button class="btn" onclick="addItem('operating')" type="button">+ Add Item</button></div>
-  <div class="row-actions"><div class="total-display">OpEx Total: <span id="operatingEditorTotal">$0</span></div><div style="display:flex;gap:8px"><button class="btn secondary" onclick="cancelEditor('operating')" type="button">Cancel</button><button class="btn" onclick="saveEditor('operating')" type="button">Save</button></div></div>
+<div style="margin-bottom:8px"><div class="subheading">Itemized Operating Expenses</div></div>
+<div class="item"><input class="item-label" value="Property Taxes"/><input class="item-value small-input" data-kind="fixed" value="3250"/><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option><option value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option></select><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Insurance"/><input class="item-value small-input" data-kind="fixed" value="750"/><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option><option value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option></select><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Property Management"/><input class="item-value small-input" data-kind="pct_rent" value="8"/><select class="item-kind"><option value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option><option selected value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option></select><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Maintenance"/><input class="item-value small-input" data-kind="pct_rent" value="8"/><select class="item-kind"><option value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option><option selected value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option></select><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Common Utilities"/><input class="item-value small-input" data-kind="fixed" value="75"/><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option><option value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option></select><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Landscaping"/><input class="item-value small-input" data-kind="fixed" value="50"/><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option><option value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option></select><button class="icon-btn" type="button">🗑️</button></div>
+<div id="operating-add-area"></div>
+<div style="margin-top:8px;"><button class="btn" onclick="addItem('operating')" type="button">+ Add Item</button></div>
+<div class="row-actions"><div class="total-display">OpEx Total: <span id="operatingEditorTotal">$0</span></div><div style="display:flex;gap:8px"><button class="btn secondary" onclick="cancelEditor('operating')" type="button">Cancel</button><button class="btn" onclick="saveEditor('operating')" type="button">Save</button></div></div>
 </div>
 <div id="operatingBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
 <div class="row" style="margin-top:10px"><div class="field"><label>Annual Expense Increase (%)</label><input id="annualExpenseIncrease" type="number" value="2"/></div></div>
 </div>
-<!-- Furnishing Step -->
-<div class="card step" data-step="10">
-  <div class="muted">Furnishing</div>
-  <div class="row">
-    <div class="field"><label>Furnishing Cost</label><input id="furnishingCost" placeholder="$0" type="text"/></div>
-  </div>
-  <div class="muted-small">Enter the total cost for furnishing the property (beds, furniture, etc).</div>
-  </div>
-  <div class="card step" data-step="11">
-  <div class="muted">Appreciation &amp; Selling Costs</div>
-  <div class="row">
-  <div class="field"><label>Annual Appreciation (%)</label><input id="appreciation" type="number" value="3"/></div>
-  <div class="field"><label>Future Selling Costs (%)</label><input id="sellingCostPct" type="number" value="6"/></div>
-  </div>
-  </div>
+<div class="card step" data-step="11">
+<div class="muted">Appreciation &amp; Selling Costs</div>
+<div class="row">
+<div class="field"><label>Annual Appreciation (%)</label><input id="appreciation" type="number" value="3"/></div>
+<div class="field"><label>Future Selling Costs (% of Price)</label><input id="sellingCostPct" type="number" value="6"/></div>
+</div>
+</div>
 <div class="card step" data-step="12">
 <div class="muted">Depreciation</div>
 <div class="row">
@@ -324,26 +344,21 @@
 <div id="reportContainer" style="margin-top:20px;">
 <p style="text-align:center;color:#666;">Click "Finish Analysis" below to see the report.</p>
 </div>
-  <div class="nav" id="navButtonsFinish" style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;">
-    <button class="btn secondary" id="prevBtnFinish" type="button">← Back</button>
-    <button class="btn" id="finishBtn" type="button">Finish Analysis</button>
-  </div>
 </div>
   <div class="nav" id="navButtons" style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;">
     <button class="btn secondary" id="prevBtn" type="button" style="display:none">← Back</button>
     <button class="btn" id="nextBtn" type="button">Next →</button>
   </div>
   <div id="footerText" style="text-align:center;margin-top:12px;color:var(--muted);font-size:13px">© 2025 UTAH REIA - Estimates are educational only.</div>
-  
 </div>
 <script>
     /* ---------- Config ---------- */
     const editorState = {
       purchaseExtrasUpfront: 0, purchaseManualBase: 0, purchaseManualOnly: false,
       rehabExtras: 0, rehabManualBase: 0, rehabManualOnly: false,
+      holdingMonthlyBase: 0, holdingMonthlyExtras: 0, holdingManualOnly: false, holdingFinanceExtras: 0,
       refiExtras: 0, refiManualBase: 0, refiManualOnly: false,
       operatingMonthlyBase: 0, operatingMonthlyExtras: 0, operatingManualOnly: false,
-      otherIncomeExtras: 0, otherIncomeManualOnly: false,
       purchaseExtrasRolled: 0, financeExtrasUnassigned: 0
     };
     let loans = [];
@@ -357,14 +372,8 @@
 
     /* ---------- Initialization ---------- */
     window.addEventListener('load', ()=> {
-      // CLIENT REQUEST: Ensure all inputs with breakdowns start as empty strings (showing placeholder)
-        ['repairs', 'purchaseClosing', 'refiClosingCosts', 'operatingExpenses', 'otherIncome'].forEach(id => {
-          const el = $(id);
-          if(el) el.value = "";
-        });
-
       // Toggle logic for Manual vs Itemized
-      ['purchase','rehab','refi','operating','otherIncome'].forEach(key => {
+      ['purchase','rehab','holding','refi','operating','otherIncome'].forEach(key => {
         const toggle = $(key+'ManualToggle');
         if(toggle){
           toggle.checked = false;
@@ -398,20 +407,13 @@
       if($('previewLoanBtn')) $('previewLoanBtn').addEventListener('click', calculateLoanPreview);
 
       // Editors
-      attachEditorInit('editor-purchase'); attachEditorInit('editor-rehab'); attachEditorInit('editor-refi'); attachEditorInit('editor-operating'); attachEditorInit('editor-otherIncome');
+      attachEditorInit('editor-purchase'); attachEditorInit('editor-rehab'); attachEditorInit('editor-holding'); attachEditorInit('editor-refi'); attachEditorInit('editor-operating'); attachEditorInit('editor-otherIncome');
 
       // Formatting inputs
       document.querySelectorAll('input[type=text]').forEach(el => {
         if(el.id.toLowerCase().includes('price') || el.id.includes('Cost') || el.id.includes('Rent') || el.id.includes('repairs') || el.id.includes('Amount') || el.id==='arv') {
-          el.addEventListener('focus', ()=> {
-              const currentVal = unformatCurrency(el.value);
-              el.value = currentVal === 0 ? "" : currentVal;
-          });
-          el.addEventListener('blur', ()=> { 
-              const val = unformatCurrency(el.value);
-              el.value = val === 0 ? "" : formatCurrency(val); 
-              updateVisibleTotals(); 
-          });
+          el.addEventListener('focus', ()=> el.value = unformatCurrency(el.value));
+          el.addEventListener('blur', ()=> { el.value = formatCurrency(unformatCurrency(el.value)); updateVisibleTotals(); });
         }
       });
       
@@ -420,8 +422,7 @@
       if($('includePmiToggle')) $('includePmiToggle').addEventListener('change', ()=>{ const w=$('pmiPctWrap'); if(w) w.style.display = $('includePmiToggle').checked ? 'block':'none'; recalcAllEditors(); updateVisibleTotals(); });
        if($('pmiPctWrap') && $('includePmiToggle')) $('pmiPctWrap').style.display = $('includePmiToggle').checked ? 'block':'none';
       if($('pmiPct')) $('pmiPct').addEventListener('input', ()=>{ recalcAllEditors(); updateVisibleTotals(); });
-
-      // Other Income itemize toggle logic
+// Other Income itemize toggle logic
       const otherIncomeToggle = document.getElementById('otherIncomeManualToggle');
       const otherIncomeEditor = document.getElementById('editor-otherIncome');
       const editOtherIncomeBtn = document.getElementById('editOtherIncomeBtn');
@@ -447,12 +448,7 @@
 
       // Global change listener
       document.querySelectorAll('#calcWrap input, #calcWrap select').forEach(el => {
-        el.addEventListener('change', ()=> { 
-            // Only update logic, don't force input box values unless specified
-            recalcAllEditors(); 
-            updateVisibleTotals(); 
-            if($('reportContainer').innerHTML.includes('Analysis Summary')) _debouncedComputeAndRender(); 
-        });
+        el.addEventListener('change', ()=> { recalcAllEditors(); updateVisibleTotals(); if($('reportContainer').innerHTML.includes('Analysis Summary')) _debouncedComputeAndRender(); });
       });
 
       renderLoanList();
@@ -460,24 +456,27 @@
     });
 
     /* ---------- Navigation ---------- */
-    const totalSteps = 13;
+    const totalSteps = 13; // UPDATED to 13 steps
     let currentStep = 1;
     function showStep(n){
       currentStep = Math.max(1, Math.min(totalSteps, n));
       document.querySelectorAll('.step').forEach(el => el.classList.toggle('active', Number(el.dataset.step) === currentStep));
       $('stepIndicator').textContent = `Step ${currentStep} of ${totalSteps}`;
-      // Show/hide nav buttons
-      if ($('navButtons')) $('navButtons').style.display = (currentStep === 13) ? 'none' : 'flex';
-      if ($('navButtonsFinish')) $('navButtonsFinish').style.display = (currentStep === 13) ? 'flex' : 'none';
-      if ($('prevBtn')) $('prevBtn').style.display = currentStep === 1 ? 'none' : 'inline-block';
-      if ($('prevBtnFinish')) $('prevBtnFinish').style.display = currentStep === 1 ? 'none' : 'inline-block';
+      $('prevBtn').style.display = currentStep === 1 ? 'none' : 'inline-block';
+      
+      const nextBtn = $('nextBtn');
+      if(currentStep === totalSteps){ nextBtn.textContent = 'Finish Analysis'; }
+      else { nextBtn.textContent = 'Next →'; }
+      
+      // Auto-scroll
       try{ $('calcWrap').scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
     }
     
-    if ($('prevBtn')) $('prevBtn').addEventListener('click', ()=>showStep(currentStep-1));
-    if ($('nextBtn')) $('nextBtn').addEventListener('click', ()=>showStep(currentStep+1));
-    if ($('prevBtnFinish')) $('prevBtnFinish').addEventListener('click', ()=>showStep(currentStep-1));
-    if ($('finishBtn')) $('finishBtn').addEventListener('click', computeAndRender);
+    $('prevBtn').addEventListener('click', ()=>showStep(currentStep-1));
+    $('nextBtn').addEventListener('click', ()=>{
+      if(currentStep === totalSteps){ computeAndRender(); }
+      else { showStep(currentStep+1); }
+    });
 
     /* ---------- Loan Logic ---------- */
     function addLoanFromInputs(){
@@ -488,6 +487,7 @@
         const rate = Number($('newLoanRate').value)||0;
         const term = Number($('newLoanTerm').value)||0;
         
+        // Robust fetch of base values
         const price = unformatCurrency($('purchasePrice').value);
         const rehab = unformatCurrency($('repairs').value) || editorState.rehabExtras || 0;
         const arv = unformatCurrency($('arv').value);
@@ -511,11 +511,13 @@
 
         loans.push({ id:Date.now(), label, target, type, rate, term, financed:amt, baseFinanced:amt });
         renderLoanList();
+        // Reset inputs
         $('newLoanLabel').value=''; $('newLoanCustomAmount').value='';
       }catch(e){ console.error(e); }
     }
 
     function calculateLoanPreview(){
+      // Logic mirrors addLoanFromInputs but output to preview div
       const target = $('newLoanTarget').value;
       const price = unformatCurrency($('purchasePrice').value);
       const rehab = unformatCurrency($('repairs').value) || editorState.rehabExtras || 0;
@@ -545,6 +547,7 @@
     }
 
     window.removeLoan = function(id){ loans = loans.filter(l=>l.id!==id); renderLoanList(); };
+
     function computeAggregatedFinancedAmount(){ return loans.reduce((a,b)=>a+b.financed,0) + (editorState.financeExtrasUnassigned||0); }
     function updateAggregatedLoanAmountDisplay(){ if($('computedLoanAmount')) $('computedLoanAmount').textContent = formatCurrency(computeAggregatedFinancedAmount()); }
 
@@ -560,10 +563,14 @@
     function addItem(key){
       const area = $(key+'-add-area');
       const div = document.createElement('div'); div.className='item'; div.dataset.itemId=Date.now();
+      
       let extraOpts = '';
+      // Context specific options
       if(key==='operating'){ extraOpts=`<option value="pct_rent">% Rent</option>`; }
       else if(key==='refi'){ extraOpts=`<option value="pct_loan">% New Loan</option>`; }
+
       div.innerHTML = `<input class="item-label" placeholder="Item"><input class="item-value small-input" value="0"><select class="item-kind"><option value="fixed">$</option>${extraOpts}</select><button type="button" class="icon-btn">🗑️</button>`;
+      
       div.querySelector('.icon-btn').onclick = () => { div.remove(); recalcEditor(key); };
       div.querySelector('input').oninput = () => recalcEditor(key);
       div.querySelector('select').onchange = () => recalcEditor(key);
@@ -573,9 +580,13 @@
     function recalcEditor(key){
       const items = Array.from($('editor-'+key).querySelectorAll('.item'));
       let total = 0;
+      
+      // Base values for calculations
       const price = unformatCurrency($('purchasePrice').value);
       const rent = unformatCurrency($('monthlyRent').value);
       const arv = unformatCurrency($('arv').value);
+      
+      // For refi editor pct_loan, we need the *new* loan amount (ARV * LTV)
       const refiLtv = Number($('refiLtv').value) || 75;
       const payoffPrincipal = loans.reduce((a,b)=>a+b.financed,0);
       const refiType = getRefiType();
@@ -589,18 +600,21 @@
         else if(kind === 'pct_price') total += price * (val/100);
         else if(kind === 'pct_rent') {
           const vacRate = Number($('vacancy')?.value)||0;
-          const effRent = (key==='operating') ? Math.max(0, rent - (rent * (vacRate/100))) : rent;
+          const vacancyMonthly = rent * (vacRate/100);
+          const effRent = (key==='operating') ? Math.max(0, rent - vacancyMonthly) : rent;
           total += effRent * (val/100);
         }
         else if(kind === 'pct_arv' && key==='refi') total += arv * (val/100);
         else if(kind === 'pct_loan' && key==='refi') total += newLoanAmt * (val/100);
+        // purchase editor special logic is handled separately if needed, simplified here
         else if(kind === 'pct_loan') total += computeAggregatedFinancedAmount() * (val/100); 
       });
 
       if($(key+'EditorTotal')) $(key+'EditorTotal').textContent = formatCurrency(total);
       
+      // Update State
       if(key==='rehab') editorState.rehabExtras = total;
-      if(key==='purchase') editorState.purchaseExtrasUpfront = total;
+      if(key==='purchase') editorState.purchaseExtrasUpfront = total; // Simplified (rolling logic omitted for brevity in this merged fix)
       if(key==='holding') editorState.holdingMonthlyExtras = total;
       if(key==='refi') editorState.refiExtras = total;
       if(key==='operating') editorState.operatingMonthlyExtras = total;
@@ -609,27 +623,29 @@
       return total;
     }
 
-    // CLIENT REQUEST: Figures only display when clicking SAVE
     function saveEditor(key) {
       const total = recalcEditor(key);
       toggleEditor(key);
+
+      // Always push the saved total into the corresponding input box for that step.
       const map = {
         purchase: 'purchaseClosing',
         rehab: 'repairs',
         operating: 'operatingExpenses',
         refi: 'refiClosingCosts',
         otherIncome: 'otherIncome',
-        holding: 'holdingMonthly'
       };
       const inputId = map[key];
       const inputEl = inputId ? document.getElementById(inputId) : null;
-      if (inputEl) inputEl.value = total === 0 ? "" : formatCurrency(total);
+      if (inputEl) inputEl.value = formatCurrency(total);
+
       updateVisibleTotals();
     }
     function cancelEditor(key){ toggleEditor(key); updateVisibleTotals(); }
 
     function attachEditorInit(id){
       const root = $(id); if(!root)return;
+      // For all editors, attach listeners to initial items
       root.querySelectorAll('.item').forEach(i => {
         i.querySelector('.icon-btn').onclick = ()=>{ i.remove(); recalcEditor(id.split('-')[1]); };
         i.querySelectorAll('input, select').forEach(el => {
@@ -637,24 +653,62 @@
           el.addEventListener('change', ()=>recalcEditor(id.split('-')[1]));
         });
       });
+      // For OpEx, use event delegation so all input/select changes (including dynamically added) trigger recalc
       if(id === 'editor-operating') {
         root.addEventListener('input', function(e) {
-          if(e.target.matches('input, select')) { recalcEditor('operating'); }
+          if(e.target.matches('input, select')) {
+            recalcEditor('operating');
+          }
         });
       }
     }
 
-    function recalcAllEditors(){ ['purchase','rehab','refi','operating','otherIncome'].forEach(k => { if($('editor-'+k)) recalcEditor(k); }); }
+    function recalcAllEditors(){ ['purchase','rehab','holding','refi','operating'].forEach(k => { if($('editor-'+k)) recalcEditor(k); }); }
 
     function updateVisibleTotals(){
-      // Label display logic only (does not force value into input box unless user clicked save)
+      // Rehab
+      const rMan = unformatCurrency($('repairs').value);
+      if(editorState.rehabManualOnly && document.activeElement.id!=='repairs') $('repairs').value = formatCurrency(editorState.rehabManualBase || rMan);
+      if(!editorState.rehabManualOnly && document.activeElement.id!=='repairs') $('repairs').value = formatCurrency(editorState.rehabExtras);
       $('rehabBreakdown').textContent = editorState.rehabManualOnly ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(editorState.rehabExtras)})`;
-      $('purchaseBreakdown').textContent = editorState.purchaseManualOnly ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(editorState.purchaseExtrasUpfront)})`;
-      $('refiBreakdown').textContent = editorState.refiManualOnly ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(editorState.refiExtras)})`;
+
+      // Purchase
+      const pMan = unformatCurrency($('purchaseClosing').value);
+      if(editorState.purchaseManualOnly) $('purchaseClosing').value = formatCurrency(editorState.purchaseManualBase || pMan);
+      else $('purchaseClosing').value = formatCurrency(editorState.purchaseExtrasUpfront);
+
+      // Holding
+      const hMan = unformatCurrency($('holdingMonthly').value);
+      const hMonths = Number($('holdingTime').value)||0;
+      const hBase = editorState.holdingManualOnly ? (editorState.holdingMonthlyBase||hMan) : editorState.holdingMonthlyExtras;
+      if(document.activeElement.id!=='holdingMonthly') $('holdingMonthly').value = formatCurrency(hBase);
+      
+      // Calculate Interest for Holding Display
+      let interest = 0;
+      loans.forEach(l => {
+        if(l.type==='Interest-Only') interest += (l.financed * (l.rate/100)/12) * hMonths;
+        else { /* Amortized approx for holding display */ interest += (l.financed * (l.rate/100)/12) * hMonths; }
+      });
+      $('holdingTotalDisplay').textContent = formatCurrency( (hBase * hMonths) + interest );
+
+      // Refi
+      const refMan = unformatCurrency($('refiClosingCosts').value);
+      if(editorState.refiManualOnly && document.activeElement.id!=='refiClosingCosts') $('refiClosingCosts').value = formatCurrency(editorState.refiManualBase || refMan);
+      if(!editorState.refiManualOnly) $('refiClosingCosts').value = formatCurrency(editorState.refiExtras);
+
+      // OpEx
+      const oMan = unformatCurrency($('operatingExpenses').value);
+      if(editorState.operatingManualOnly && document.activeElement.id!=='operatingExpenses') $('operatingExpenses').value = formatCurrency(editorState.operatingManualBase || oMan);
+      if(!editorState.operatingManualOnly) $('operatingExpenses').value = formatCurrency(editorState.operatingMonthlyExtras);
       $('operatingBreakdown').textContent = editorState.operatingManualOnly ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(editorState.operatingMonthlyExtras)})`;
-      $('otherIncomeBreakdown').textContent = !$(otherIncomeManualToggle)?.checked ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(editorState.otherIncomeExtras)})`;
+
+      // Other Income
+      const oiMan = unformatCurrency($('otherIncome').value);
+      if(editorState.otherIncomeManualOnly && document.activeElement.id!=='otherIncome') $('otherIncome').value = formatCurrency(editorState.otherIncomeManualBase || oiMan);
+      if(!editorState.otherIncomeManualOnly) $('otherIncome').value = formatCurrency(editorState.otherIncomeExtras);
     }
 
+    
     function getRefiType(){
       const el = document.querySelector('input[name="refiType"]:checked');
       return el ? el.value : 'cashout';
@@ -663,42 +717,56 @@
     function computeRefiLoanAmount(arv, ltvPct, payoffPrincipal, refiType){
       const maxLoan = arv * (ltvPct/100);
       if(refiType === 'rateterm'){
+        // No cash-out; loan is limited by payoff and LTV cap.
         const loanAmt = Math.min(maxLoan, payoffPrincipal);
         const cashToBring = Math.max(0, payoffPrincipal - maxLoan);
         return { maxLoan, loanAmt, cashToBring, cashOut: 0 };
       }
+      // Cash-out: take full LTV-based loan; any remainder after payoff/fees is cash out.
       return { maxLoan, loanAmt: maxLoan, cashToBring: 0, cashOut: Math.max(0, maxLoan - payoffPrincipal) };
     }
-
+/* ---------- BRRRR Calculations & Report ---------- */
     function computeAndRender(){
       recalcAllEditors();
       
-
+      // 1. PROJECT COST
       const price = unformatCurrency($('purchasePrice').value);
       const rehab = unformatCurrency($('repairs').value);
       const purchaseClose = unformatCurrency($('purchaseClosing').value);
-      // Removed holdMonths and holdMonthly
-      const furnishing = unformatCurrency($('furnishingCost')?.value);
+      const holdMonths = Number($('holdingTime').value)||0;
+      const holdMonthly = unformatCurrency($('holdingMonthly').value);
+      
+      // Calculate Interest
+      let interestTotal = 0;
+      loans.forEach(l => { interestTotal += (l.financed * (l.rate/100)/12) * holdMonths; });
+      const holdTotal = (holdMonthly * holdMonths) + interestTotal;
+      
+      const allInCost = price + rehab + purchaseClose + holdTotal;
 
-      // No holding costs
-      const holdTotal = 0;
-      // Add furnishing to all-in cost
-      const allInCost = price + rehab + purchaseClose + furnishing;
-
+      // 2. REFINANCE
       const arv = unformatCurrency($('arv').value);
       const ltv = Number($('refiLtv').value)||75;
       const refiType = getRefiType();
       const refiClose = unformatCurrency($('refiClosingCosts').value);
+
+      // Payoff = sum of existing loans (principal)
       const originalLoanPrincipal = loans.reduce((a,b)=>a+b.financed,0);
 
+      // Compute refinance loan amount based on type
       const refiLoanObj = computeRefiLoanAmount(arv, ltv, originalLoanPrincipal, refiType);
       const newLoan = refiLoanObj.loanAmt;
 
+      // Net proceeds (positive = cash out, negative = cash required at closing)
       const netRefiProceeds = newLoan - originalLoanPrincipal - refiClose;
       const bringToClose = Math.max(0, -netRefiProceeds);
       const cashOut = Math.max(0, netRefiProceeds);
-      const cashLeftInDealSimple = allInCost - (newLoan - refiClose);
 
+      // Total Cash Invested (Equity) = AllInCost - OriginalLoans
+      const cashInvestedInitial = allInCost - originalLoanPrincipal;
+
+      // Cash Left in Deal (simple underwriting): Total Cost - (Loan - Fees)
+      const cashLeftInDealSimple = allInCost - (newLoan - refiClose);
+// 3. CASH FLOW
       const rent = unformatCurrency($('monthlyRent').value);
       const otherInc = unformatCurrency($('otherIncome').value);
       const vacancy = rent * ((Number($('vacancy').value)||0)/100);
@@ -707,26 +775,31 @@
       const opEx = unformatCurrency($('operatingExpenses').value);
       const capex = unformatCurrency($('capexMonthly').value);
       
+      // New Mortgage Payment
       const rRate = (Number($('refiRate').value)||7)/100/12;
       const rTerm = (Number($('refiTerm').value)||30)*12;
       const mortgagePI = rRate > 0 ? newLoan * (rRate * Math.pow(1+rRate, rTerm)) / (Math.pow(1+rRate, rTerm) - 1) : 0;
+      const pmiEnabled = Boolean(($('includePmiToggle') && $('includePmiToggle').checked) || ($('pmiEnabled') && $('pmiEnabled').checked));
       const pmiPct = Number($('pmiPct')?.value)||0;
-      const pmiMonthly = ($('includePmiToggle')?.checked && pmiPct>0) ? (newLoan * (pmiPct/100) / 12) : 0;
+      const pmiMonthly = pmiEnabled && pmiPct>0 ? (newLoan * (pmiPct/100) / 12) : 0;
       const mortgage = mortgagePI + pmiMonthly;
       
       const cashFlow = grossIncome - (opEx + capex + mortgage);
       const annualCashFlow = cashFlow * 12;
       
+      
+      // Depreciation (tax benefit estimate)
       const depBasisInput = unformatCurrency($('depreciationBasis')?.value);
       const depYears = Number($('depreciationYears')?.value)||27.5;
-      const depBasis = depBasisInput>0 ? depBasisInput : (price + purchaseClose + rehab);
+      const depBasis = depBasisInput>0 ? depBasisInput : (arv * 0.7);
       const annualDep = depYears>0 ? (depBasis/depYears) : 0;
 
-      const roi = cashLeftInDealSimple > 0 ? (annualCashFlow / cashLeftInDealSimple)*100 : (annualCashFlow > 0 ? 999 : 0);
+const roi = cashLeftInDealSimple > 0 ? (annualCashFlow / cashLeftInDealSimple)*100 : (annualCashFlow > 0 ? 999 : 0); // Infinite if 0 left
 
+      // RENDER
       const html = `
         <div class="results" style="margin-bottom:12px;">
-          <h3 style="margin:0 0 10px;border-bottom:1px solid #ffffff44;padding-bottom:8px">Short Term Analysis Results</h3>
+          <h3 style="margin:0 0 10px;border-bottom:1px solid #ffffff44;padding-bottom:8px">BRRRR Analysis Results</h3>
           <div class="line"><div>ARV</div><div>${formatCurrency(arv)}</div></div>
           <div class="line"><div>Total All-In Cost</div><div>${formatCurrency(allInCost)}</div></div>
           <div class="line"><div>Refi Type</div><div>${refiType==='rateterm'?'Rate & Term':'Cash-Out'}</div></div>
@@ -748,9 +821,8 @@
           <h4>Project Cost Breakdown</h4>
           <div class="line" style="display:flex;justify-content:space-between"><span>Purchase</span><span>${formatCurrency(price)}</span></div>
           <div class="line" style="display:flex;justify-content:space-between"><span>Rehab</span><span>${formatCurrency(rehab)}</span></div>
-          <div class="line" style="display:flex;justify-content:space-between"><span>Furnishing</span><span>${formatCurrency(furnishing)}</span></div>
           <div class="line" style="display:flex;justify-content:space-between"><span>Closing (Buy+Refi)</span><span>${formatCurrency(purchaseClose + refiClose)}</span></div>
-          <!-- Holding removed -->
+          <div class="line" style="display:flex;justify-content:space-between"><span>Holding</span><span>${formatCurrency(holdTotal)}</span></div>
         </div>
 
         <div class="charts">
@@ -763,6 +835,7 @@
       
       $('reportContainer').innerHTML = html;
       
+      // Charts
       if(window.chart1) window.chart1.destroy();
       if(window.chart2) window.chart2.destroy();
       
@@ -781,6 +854,7 @@
       });
     }
 
+    /* ---------- PDF ---------- */
     async function downloadPdfHandler(){
       const el = $('reportContainer');
       const canvas = await html2canvas(el, {scale:2, backgroundColor:'#fff'});
@@ -789,24 +863,29 @@
       const w = pdf.internal.pageSize.getWidth();
       const h = (canvas.height * w) / canvas.width;
       pdf.addImage(img, 'JPEG', 0, 10, w, h);
-      pdf.save('UTAHREIA_SHORT-TERM_Report.pdf');
+      pdf.save('UTAHREIA_BRRRR_Report.pdf');
     }
 
-    /* ---------- Auth Logic ---------- */
+    /* ---------- Phone Verification ---------- */
     function normalizePhone(raw) { return String(raw||'').replace(/[^\d]/g, '').slice(-10); }
     async function verifyPhoneViaWorkflow(phone) {
       try {
-        const res = await fetch('https://fix-flip-calculator-delta.vercel.app/api/check-phone-short-term', {
+        const res = await fetch('https://fix-flip-calculator-delta.vercel.app/api/check-phone-brrrr', {
           method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({phone:normalizePhone(phone)})
         });
         let d;
-        try { d = await res.json(); } catch (jsonErr) { throw new Error('Server error. Please try again.'); }
+        try {
+          d = await res.json();
+        } catch (jsonErr) {
+          throw new Error('Server returned invalid response. Please try again or contact support.');
+        }
         if(d && d.valid && d.status === 'Active') return {status:'Active'};
         if(d && d.valid && d.trial && d.trialDaysLeft > 0) return {status:'Trial', daysLeft: d.trialDaysLeft};
         throw new Error('Access denied or trial expired.');
       } catch(e){ throw e; }
     }
 
+    // Unlock Logic
     const unlock = () => {$('gateWrap').style.display='none'; $('calcWrap').style.display='block';  showStep(1); };
     if(sessionStorage.getItem('utahreia_calc_verified')) unlock();
 
@@ -821,6 +900,7 @@
         }
         sessionStorage.setItem('utahreia_calc_verified', 'true');
         unlock();
+        // Show persistent reminder for trial users
         const trialReminder = document.getElementById('trialReminder');
         if (trialReminder && res.status === 'Trial') {
           trialReminder.textContent = `You are on a 30-day free trial. Days left: ${res.daysLeft}. Contact Utah REIA to become a member and enjoy unlimited access!`;
@@ -830,7 +910,8 @@
       $('gateSubmitBtn').innerText = 'Unlock Calculator';
     };
 
+    /* ---------- Utility ---------- */
     function escapeHtml(s) { return s ? String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])) : ''; }
-</script>
+  </script>
 </body>
 </html>
