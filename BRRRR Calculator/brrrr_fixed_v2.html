@@ -371,13 +371,11 @@
 
     /* ---------- Initialization ---------- */
     window.addEventListener('load', ()=> {
-      // CLIENT REQUEST: Ensure all inputs with breakdowns start as empty strings (showing placeholder)
       ['repairs', 'purchaseClosing', 'holdingMonthly', 'refiClosingCosts', 'operatingExpenses', 'otherIncome'].forEach(id => {
           const el = $(id);
           if(el) el.value = "";
       });
 
-      // Toggle logic for Manual vs Itemized
       ['purchase','rehab','holding','refi','operating','otherIncome'].forEach(key => {
         const toggle = $(key+'ManualToggle');
         if(toggle){
@@ -386,7 +384,6 @@
         }
       });
 
-      // Financing toggle
       const uf = $('useFinancing');
       if(uf){
         uf.addEventListener('change', ()=>{
@@ -395,7 +392,6 @@
         });
       }
 
-      // Loan Target Logic
       const lt = $('newLoanTarget');
       if(lt){
         lt.addEventListener('change', ()=>{
@@ -407,14 +403,11 @@
         });
       }
 
-      // Buttons Step 6
       if($('addLoanBtn')) $('addLoanBtn').addEventListener('click', addLoanFromInputs);
       if($('previewLoanBtn')) $('previewLoanBtn').addEventListener('click', calculateLoanPreview);
 
-      // Editors
       attachEditorInit('editor-purchase'); attachEditorInit('editor-rehab'); attachEditorInit('editor-holding'); attachEditorInit('editor-refi'); attachEditorInit('editor-operating'); attachEditorInit('editor-otherIncome');
 
-      // Formatting inputs
       document.querySelectorAll('input[type=text]').forEach(el => {
         if(el.id.toLowerCase().includes('price') || el.id.includes('Cost') || el.id.includes('Rent') || el.id.includes('repairs') || el.id.includes('Amount') || el.id==='arv') {
           el.addEventListener('focus', ()=> {
@@ -429,13 +422,11 @@
         }
       });
       
-      // Refi type / PMI listeners
       document.querySelectorAll('input[name="refiType"]').forEach(el => el.addEventListener('change', ()=>{ recalcAllEditors(); updateVisibleTotals(); }));
       if($('includePmiToggle')) $('includePmiToggle').addEventListener('change', ()=>{ const w=$('pmiPctWrap'); if(w) w.style.display = $('includePmiToggle').checked ? 'block':'none'; recalcAllEditors(); updateVisibleTotals(); });
-       if($('pmiPctWrap') && $('includePmiToggle')) $('pmiPctWrap').style.display = $('includePmiToggle').checked ? 'block':'none';
+      if($('pmiPctWrap') && $('includePmiToggle')) $('pmiPctWrap').style.display = $('includePmiToggle').checked ? 'block':'none';
       if($('pmiPct')) $('pmiPct').addEventListener('input', ()=>{ recalcAllEditors(); updateVisibleTotals(); });
 
-      // Other Income itemize toggle logic
       const otherIncomeToggle = document.getElementById('otherIncomeManualToggle');
       const otherIncomeEditor = document.getElementById('editor-otherIncome');
       const editOtherIncomeBtn = document.getElementById('editOtherIncomeBtn');
@@ -459,10 +450,8 @@
         updateOtherIncomeEditorVisibility();
       }
 
-      // Global change listener
       document.querySelectorAll('#calcWrap input, #calcWrap select').forEach(el => {
         el.addEventListener('change', ()=> { 
-            // Only update logic, don't force input box values unless specified
             recalcAllEditors(); 
             updateVisibleTotals(); 
             if($('reportContainer').innerHTML.includes('Analysis Summary')) _debouncedComputeAndRender(); 
@@ -481,11 +470,9 @@
       document.querySelectorAll('.step').forEach(el => el.classList.toggle('active', Number(el.dataset.step) === currentStep));
       $('stepIndicator').textContent = `Step ${currentStep} of ${totalSteps}`;
       $('prevBtn').style.display = currentStep === 1 ? 'none' : 'inline-block';
-      
       const nextBtn = $('nextBtn');
       if(currentStep === totalSteps){ nextBtn.textContent = 'Finish Analysis'; }
       else { nextBtn.textContent = 'Next →'; }
-      
       try{ $('calcWrap').scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
     }
     
@@ -503,13 +490,10 @@
         const type = $('newLoanType').value;
         const rate = Number($('newLoanRate').value)||0;
         const term = Number($('newLoanTerm').value)||0;
-        
         const price = unformatCurrency($('purchasePrice').value);
         const rehab = unformatCurrency($('repairs').value) || editorState.rehabExtras || 0;
         const arv = unformatCurrency($('arv').value);
-
         if(price === 0 && target.includes('purchase')){ alert('Please enter Purchase Price in Step 2 first.'); return; }
-
         let amt = 0;
         if(target==='purchase_rehab'){
           const priceDown = (Number($('newLoanPriceDownPct').value)||0)/100;
@@ -524,7 +508,6 @@
         } else {
           amt = unformatCurrency($('newLoanCustomAmount').value);
         }
-
         loans.push({ id:Date.now(), label, target, type, rate, term, financed:amt, baseFinanced:amt });
         renderLoanList();
         $('newLoanLabel').value=''; $('newLoanCustomAmount').value='';
@@ -541,12 +524,11 @@
           const priceDown = (Number($('newLoanPriceDownPct').value)||0)/100;
           const rehabDown = (Number($('newLoanRehabDownPct').value)||0)/100;
           amt = (price * (1 - priceDown)) + (rehab * (1 - rehabDown));
-        } 
+      } 
       else if(target==='purchase'){ amt = price * (1 - (Number($('newLoanDownPct').value)||0)/100); }
       else if(target==='rehab'){ amt = rehab * (1 - (Number($('newLoanDownPct').value)||0)/100); }
       else if(target==='arv'){ amt = arv * (1 - (Number($('newLoanDownPct').value)||0)/100); }
       else { amt = unformatCurrency($('newLoanCustomAmount').value); }
-      
       $('loanPreview').style.display='block';
       $('loanPreviewContent').innerHTML = `Projected Amount: <strong>${formatCurrency(amt)}</strong>`;
     }
@@ -594,8 +576,7 @@
       const arv = unformatCurrency($('arv').value);
       const refiLtv = Number($('refiLtv').value) || 75;
       const payoffPrincipal = loans.reduce((a,b)=>a+b.financed,0);
-      const refiType = getRefiType();
-      const { loanAmt: newLoanAmt } = computeRefiLoanAmount(arv, refiLtv, payoffPrincipal, refiType);
+      const { loanAmt: newLoanAmt } = computeRefiLoanAmount(arv, refiLtv, payoffPrincipal, getRefiType());
 
       items.forEach(i => {
         const val = unformatCurrency(i.querySelector('.item-value').value);
@@ -603,40 +584,22 @@
         if(kind === 'fixed' || kind === 'fixed_month') total += val;
         else if(kind === 'fixed_year') total += (val/12);
         else if(kind === 'pct_price') total += price * (val/100);
-        else if(kind === 'pct_rent') {
-          const vacRate = Number($('vacancy')?.value)||0;
-          const effRent = (key==='operating') ? Math.max(0, rent - (rent * (vacRate/100))) : rent;
-          total += effRent * (val/100);
-        }
+        else if(kind === 'pct_rent') total += rent * (val/100);
         else if(kind === 'pct_arv' && key==='refi') total += arv * (val/100);
         else if(kind === 'pct_loan' && key==='refi') total += newLoanAmt * (val/100);
         else if(kind === 'pct_loan') total += computeAggregatedFinancedAmount() * (val/100); 
       });
 
       if($(key+'EditorTotal')) $(key+'EditorTotal').textContent = formatCurrency(total);
-      
-      if(key==='rehab') editorState.rehabExtras = total;
-      if(key==='purchase') editorState.purchaseExtrasUpfront = total;
-      if(key==='holding') editorState.holdingMonthlyExtras = total;
-      if(key==='refi') editorState.refiExtras = total;
-      if(key==='operating') editorState.operatingMonthlyExtras = total;
-      if(key==='otherIncome') editorState.otherIncomeExtras = total;
-
+      const stateMap = {'rehab':'rehabExtras','purchase':'purchaseExtrasUpfront','holding':'holdingMonthlyExtras','refi':'refiExtras','operating':'operatingMonthlyExtras','otherIncome':'otherIncomeExtras'};
+      if(stateMap[key]) editorState[stateMap[key]] = total;
       return total;
     }
 
-    // CLIENT REQUEST: Figures only display when clicking SAVE
     function saveEditor(key) {
       const total = recalcEditor(key);
       toggleEditor(key);
-      const map = {
-        purchase: 'purchaseClosing',
-        rehab: 'repairs',
-        operating: 'operatingExpenses',
-        refi: 'refiClosingCosts',
-        otherIncome: 'otherIncome',
-        holding: 'holdingMonthly'
-      };
+      const map = {purchase: 'purchaseClosing',rehab: 'repairs',operating: 'operatingExpenses',refi: 'refiClosingCosts',otherIncome: 'otherIncome',holding: 'holdingMonthly'};
       const inputId = map[key];
       const inputEl = inputId ? document.getElementById(inputId) : null;
       if (inputEl) inputEl.value = total === 0 ? "" : formatCurrency(total);
@@ -653,31 +616,22 @@
           el.addEventListener('change', ()=>recalcEditor(id.split('-')[1]));
         });
       });
-      if(id === 'editor-operating') {
-        root.addEventListener('input', function(e) {
-          if(e.target.matches('input, select')) { recalcEditor('operating'); }
-        });
-      }
     }
 
     function recalcAllEditors(){ ['purchase','rehab','holding','refi','operating','otherIncome'].forEach(k => { if($('editor-'+k)) recalcEditor(k); }); }
 
     function updateVisibleTotals(){
-      // Label display logic only (does not force value into input box unless user clicked save)
       $('rehabBreakdown').textContent = editorState.rehabManualOnly ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(editorState.rehabExtras)})`;
       $('purchaseBreakdown').textContent = editorState.purchaseManualOnly ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(editorState.purchaseExtrasUpfront)})`;
       $('holdingBreakdown').textContent = editorState.holdingManualOnly ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(editorState.holdingMonthlyExtras)})`;
       $('refiBreakdown').textContent = editorState.refiManualOnly ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(editorState.refiExtras)})`;
       $('operatingBreakdown').textContent = editorState.operatingManualOnly ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(editorState.operatingMonthlyExtras)})`;
-      $('otherIncomeBreakdown').textContent = !$(otherIncomeManualToggle)?.checked ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(editorState.otherIncomeExtras)})`;
+      $('otherIncomeBreakdown').textContent = !$('otherIncomeManualToggle')?.checked ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(editorState.otherIncomeExtras)})`;
 
       const hMonths = Number($('holdingTime').value)||0;
       const currentHMonthlyVal = unformatCurrency($('holdingMonthly').value);
-      
       let interest = 0;
-      loans.forEach(l => {
-        interest += (l.financed * (l.rate/100)/12) * hMonths;
-      });
+      loans.forEach(l => { interest += (l.financed * (l.rate/100)/12) * hMonths; });
       $('holdingTotalDisplay').textContent = formatCurrency( (currentHMonthlyVal * hMonths) + interest );
       if($('holdMonthsDisplay')) $('holdMonthsDisplay').textContent = hMonths;
     }
@@ -699,38 +653,35 @@
 
     function computeAndRender(){
       recalcAllEditors();
-      
       const price = unformatCurrency($('purchasePrice').value);
       const rehab = unformatCurrency($('repairs').value);
       const purchaseClose = unformatCurrency($('purchaseClosing').value);
       const holdMonths = Number($('holdingTime').value)||0;
       const holdMonthly = unformatCurrency($('holdingMonthly').value);
+      const initialLoanPrincipal = loans.reduce((a,b)=>a+b.financed,0);
       
       let interestTotal = 0;
       loans.forEach(l => { interestTotal += (l.financed * (l.rate/100)/12) * holdMonths; });
       const holdTotal = (holdMonthly * holdMonths) + interestTotal;
-      
-      const allInCost = price + rehab + purchaseClose + holdTotal;
+      const totalProjectCost = price + rehab + purchaseClose + holdTotal;
+      const totalCashInvested = totalProjectCost - initialLoanPrincipal;
 
       const arv = unformatCurrency($('arv').value);
       const ltv = Number($('refiLtv').value)||75;
       const refiType = getRefiType();
       const refiClose = unformatCurrency($('refiClosingCosts').value);
-      const originalLoanPrincipal = loans.reduce((a,b)=>a+b.financed,0);
-
-      const refiLoanObj = computeRefiLoanAmount(arv, ltv, originalLoanPrincipal, refiType);
+      const refiLoanObj = computeRefiLoanAmount(arv, ltv, initialLoanPrincipal, refiType);
       const newLoan = refiLoanObj.loanAmt;
 
-      const netRefiProceeds = newLoan - originalLoanPrincipal - refiClose;
+      const netRefiProceeds = newLoan - initialLoanPrincipal - refiClose;
+      const cashLeftInDealSimple = totalCashInvested - netRefiProceeds;
       const bringToClose = Math.max(0, -netRefiProceeds);
       const cashOut = Math.max(0, netRefiProceeds);
-      const cashLeftInDealSimple = allInCost - (newLoan - refiClose);
 
       const rent = unformatCurrency($('monthlyRent').value);
       const otherInc = unformatCurrency($('otherIncome').value);
       const vacancy = rent * ((Number($('vacancy').value)||0)/100);
       const grossIncome = rent + otherInc - vacancy;
-      
       const opEx = unformatCurrency($('operatingExpenses').value);
       const capex = unformatCurrency($('capexMonthly').value);
       
@@ -743,25 +694,32 @@
       
       const cashFlow = grossIncome - (opEx + capex + mortgage);
       const annualCashFlow = cashFlow * 12;
-      
-      const depBasisInput = unformatCurrency($('depreciationBasis')?.value);
-      const depYears = Number($('depreciationYears')?.value)||27.5;
-      const depBasis = depBasisInput>0 ? depBasisInput : (price + purchaseClose + rehab);
-      const annualDep = depYears>0 ? (depBasis/depYears) : 0;
-
       const roi = cashLeftInDealSimple > 0 ? (annualCashFlow / cashLeftInDealSimple)*100 : (annualCashFlow > 0 ? 999 : 0);
+      
+      const depBasis = unformatCurrency($('depreciationBasis')?.value) || (arv * 0.7);
+      const annualDep = depBasis / (Number($('depreciationYears')?.value)||27.5);
+
+      const projectionYears = 5;
+      const projMonths = projectionYears * 12;
+      const rentGrowth = Number($('annualRentIncrease').value) || 0;
+      const expenseGrowth = Number($('annualExpenseIncrease').value) || 0;
+      let projLabels = [], projRent = [], projExpenses = [], projCashflow = [];
+      let curRent = rent, curExpenses = opEx + capex + mortgage + vacancy;
+      for(let m=1;m<=projMonths;m++){
+        if(m>1 && (m-1)%12===0) { curRent *= (1 + rentGrowth/100); curExpenses *= (1 + expenseGrowth/100); }
+        projLabels.push(`M${m}`); projRent.push(curRent); projExpenses.push(curExpenses); projCashflow.push(curRent - curExpenses);
+      }
 
       const html = `
         <div class="results" style="margin-bottom:12px;">
-          <h3 style="margin:0 0 10px;border-bottom:1px solid #ffffff44;padding-bottom:8px">BRRRR Analysis Results</h3>
+          <h3 style="margin:0 0 10px;border-bottom:1px solid #ffffff44;padding-bottom:8px">BRRRR Analysis Report</h3>
           <div class="line"><div>ARV</div><div>${formatCurrency(arv)}</div></div>
-          <div class="line"><div>Total All-In Cost</div><div>${formatCurrency(allInCost)}</div></div>
+          <div class="line"><div>Total All-In Cost</div><div>${formatCurrency(totalProjectCost)}</div></div>
           <div class="line"><div>Refi Type</div><div>${refiType==='rateterm'?'Rate & Term':'Cash-Out'}</div></div>
           <div class="line"><div>New Loan (${ltv}%)</div><div>${formatCurrency(newLoan)}</div></div>
           <div class="line"><div>Refi Fees</div><div>-${formatCurrency(refiClose)}</div></div>
           <div class="line"><div>${bringToClose>0?'Cash Required at Refi':'Cash Out at Refi'}</div><div>${bringToClose>0?'-'+formatCurrency(bringToClose):formatCurrency(cashOut)}</div></div>
           <div class="line" style="font-weight:700;color:var(--gold);margin-top:4px"><div>Cash Left In Deal</div><div>${formatCurrency(cashLeftInDealSimple)}</div></div>
-          
           <div style="margin-top:12px;border-top:1px solid #ffffff44;padding-top:8px"></div>
           <div class="line"><div>Monthly Rent</div><div>${formatCurrency(rent)}</div></div>
           <div class="line"><div>New Mortgage (P&I + PMI)</div><div>-${formatCurrency(mortgage)}</div></div>
@@ -770,7 +728,6 @@
           <div class="line"><div>Cash on Cash ROI</div><div>${roi>900 ? 'Infinite' : roi.toFixed(2)+'%'}</div></div>
           <div class="line"><div>Annual Depreciation (est.)</div><div>${formatCurrency(annualDep)}</div></div>
         </div>
-        
         <div class="card">
           <h4>Project Cost Breakdown</h4>
           <div class="line" style="display:flex;justify-content:space-between"><span>Purchase</span><span>${formatCurrency(price)}</span></div>
@@ -778,33 +735,21 @@
           <div class="line" style="display:flex;justify-content:space-between"><span>Closing (Buy+Refi)</span><span>${formatCurrency(purchaseClose + refiClose)}</span></div>
           <div class="line" style="display:flex;justify-content:space-between"><span>Holding</span><span>${formatCurrency(holdTotal)}</span></div>
         </div>
-
         <div class="charts">
-          <div class="chart-card"><h4>Equity vs Loan</h4><canvas id="chartEquity"></canvas></div>
-          <div class="chart-card"><h4>Monthly Cash Flow</h4><canvas id="chartFlow"></canvas></div>
+          <div class="chart-card" style="height:220px;max-width:300px;"><h4>Equity vs Loan</h4><canvas id="chartEquity" style="height:180px!important;max-width:280px!important;"></canvas></div>
+          <div class="chart-card" style="height:220px;max-width:300px;"><h4>Monthly Cash Flow</h4><canvas id="chartFlow" style="height:180px!important;max-width:280px!important;"></canvas></div>
         </div>
-        
+        <div class="chart-card" style="margin-top:18px"><h4>Annualized Projections (5 Years)</h4><canvas id="chartProjection"></canvas></div>
         <button type="button" class="btn secondary" style="margin-top:16px;width:100%" onclick="downloadPdfHandler()">Download PDF Report</button>
       `;
-      
       $('reportContainer').innerHTML = html;
       
       if(window.chart1) window.chart1.destroy();
       if(window.chart2) window.chart2.destroy();
-      
-      window.chart1 = new Chart($('chartEquity'), {
-        type:'pie',
-        data: { labels: ['New Loan', 'Equity Created'], datasets: [{ data: [newLoan, arv-newLoan], backgroundColor:['#1a2a4f','#2E8B57'] }] },
-        options: { plugins: { datalabels: { color:'#fff', formatter:(v)=>formatCurrency(v) }, legend:{position:'bottom'} } },
-        plugins: [ChartDataLabels]
-      });
-      
-      window.chart2 = new Chart($('chartFlow'), {
-        type:'doughnut',
-        data: { labels: ['Expenses', 'Cash Flow'], datasets: [{ data: [opEx+capex+vacancy+mortgage, cashFlow], backgroundColor:['#b00020','#2E8B57'] }] },
-        options: { plugins: { datalabels: { color:'#fff', formatter:(v)=>formatCurrency(v) }, legend:{position:'bottom'} } },
-        plugins: [ChartDataLabels]
-      });
+      if(window.chart3) window.chart3.destroy();
+      window.chart1 = new Chart($('chartEquity'), { type:'pie', data: { labels: ['New Loan', 'Equity Created'], datasets: [{ data: [newLoan, arv-newLoan], backgroundColor:['#1a2a4f','#2E8B57'] }] }, options: { plugins: { datalabels: { color:'#fff', formatter:(v)=>formatCurrency(v) }, legend:{position:'bottom'} }, responsive: true, maintainAspectRatio: false }, plugins: [ChartDataLabels] });
+      window.chart2 = new Chart($('chartFlow'), { type:'doughnut', data: { labels: ['Expenses', 'Cash Flow'], datasets: [{ data: [opEx+capex+vacancy+mortgage, cashFlow], backgroundColor:['#b00020','#2E8B57'] }] }, options: { plugins: { datalabels: { color:'#fff', formatter:(v)=>formatCurrency(v) }, legend:{position:'bottom'} }, responsive: true, maintainAspectRatio: false }, plugins: [ChartDataLabels] });
+      window.chart3 = new Chart($('chartProjection'), { type: 'line', data: { labels: projLabels, datasets: [{ label: 'Gross Income', data: projRent, borderColor: '#00e6e6', backgroundColor: 'rgba(0,230,230,0.1)', fill: false, tension: 0.1 }, { label: 'Total Expenses', data: projExpenses, borderColor: '#ff4444', backgroundColor: 'rgba(255,68,68,0.1)', fill: false, tension: 0.1 }, { label: 'Net Cashflow', data: projCashflow, borderColor: '#00cc44', backgroundColor: 'rgba(0,204,68,0.1)', fill: false, tension: 0.1 }] }, options: { responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'BRRRR Cashflow Summary' }, datalabels: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: function(value){ return formatCurrency(value); } } } } } });
     }
 
     async function downloadPdfHandler(){
@@ -833,7 +778,7 @@
       } catch(e){ throw e; }
     }
 
-    const unlock = () => {$('gateWrap').style.display='none'; $('calcWrap').style.display='block';  showStep(1); };
+    const unlock = () => {$('gateWrap').style.display='none'; $('calcWrap').style.display='block'; showStep(1); };
     if(sessionStorage.getItem('utahreia_calc_verified')) unlock();
 
     $('gateSubmitBtn').onclick = async () => {
