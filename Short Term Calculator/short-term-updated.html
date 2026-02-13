@@ -256,15 +256,17 @@
 <div class="field"><label>Monthly Rent</label><input id="monthlyRent" placeholder="$2,000" type="text"/></div>
 <div class="field"><label>Vacancy Rate (%)</label><input id="vacancy" type="number" value="50"/></div>
 <div class="field">
-<label>Other Income</label>
-<div style="display:flex;align-items:center;gap:8px;">
-  <input id="otherIncome" placeholder="$0" style="flex:1;" type="text">
-  <label class="toggle-label" style="margin-bottom:0;white-space:nowrap;">
+<label>Other Income (Monthly)</label>
+<input id="otherIncome" placeholder="$0" type="text">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px;flex-wrap:wrap;">
+  <label class="toggle-label" style="margin-bottom:0;">
     <span>Itemize</span>
     <label class="switch"><input id="otherIncomeManualToggle" type="checkbox"/><span class="slider"></span></label>
   </label>
-  <button class="pencil" id="editOtherIncomeBtn" style="margin-left:8px;display:none;" type="button">✏️ Edit Breakdown</button>
-  <span id="otherIncomeEditorTotalBox" style="display:none;margin-left:8px;font-weight:600;color:#2E8B57"></span>
+  <button class="pencil" id="editOtherIncomeBtn" style="display:none;" type="button">✏️ Edit Breakdown</button>
+</div>
+<div style="margin-top:6px;min-height:20px;">
+  <span id="otherIncomeEditorTotalBox" style="display:none;font-weight:600;color:#2E8B57;font-size:14px;"></span>
 </div>
 <div class="muted-small" style="margin-top:4px">Enable to itemize other income. Disable to enter a total amount.</div>
 </div>
@@ -306,6 +308,7 @@
    <div class="item"><input class="item-label" value="Permits"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option></select><button class="icon-btn" type="button">🗑️</button></div>
    <div class="item"><input class="item-label" value="Turnover"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option></select><button class="icon-btn" type="button">🗑️</button></div>
    <div class="item"><input class="item-label" value="Reserves"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option></select><button class="icon-btn" type="button">🗑️</button></div>
+   <div class="item"><input class="item-label" value="Furniture Replacement (STR)"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option><option value="pct_rent">% of Rent</option></select><button class="icon-btn" type="button">🗑️</button></div>
   <div id="operating-add-area"></div>
   <div style="margin-top:8px;"><button class="btn" onclick="addItem('operating')" type="button">+ Add Item</button></div>
   <div class="row-actions"><div class="total-display">OpEx Total: <span id="operatingEditorTotal">$0</span></div><div style="display:flex;gap:8px"><button class="btn secondary" onclick="cancelEditor('operating')" type="button">Cancel</button><button class="btn" onclick="saveEditor('operating')" type="button">Save</button></div></div>
@@ -743,8 +746,18 @@ if($('capexType')) {
         else if(kind === 'pct_arv' && key==='refi') total += arv * (val/100);
       });
       if($(key+'EditorTotal')) $(key+'EditorTotal').textContent = formatCurrency(total);
-      const stateKey = key === 'furnishing' ? 'furnishingExtras' : key + 'Extras';
-      editorState[stateKey] = total;
+      // Use consistent naming for editorState keys
+      if(key === 'furnishing') {
+        editorState.furnishingExtras = total;
+      } else if(key === 'operating') {
+        editorState.operatingMonthlyExtras = total;
+      } else if(key === 'purchase') {
+        editorState.purchaseExtrasUpfront = total;
+      } else if(key === 'otherIncome') {
+        editorState.otherIncomeExtras = total;
+      } else {
+        editorState[key + 'Extras'] = total;
+      }
       return total;
     }
 
@@ -838,7 +851,18 @@ switch(capexType) {
       const rRate = (Number($('refiRate').value)||7)/100/12;
       const rTerm = (Number($('refiTerm').value)||30)*12;
       const mortgage = rRate > 0 ? newLoan * (rRate * Math.pow(1+rRate, rTerm)) / (Math.pow(1+rRate, rTerm) - 1) : 0;
-      const totalExpenses = vacancyAmount + opEx + capex + mortgage;
+      
+      // Add PMI if enabled and LTV > 80%
+      let pmi = 0;
+      if($('includePmiToggle') && $('includePmiToggle').checked) {
+        const ltvRatio = (newLoan / arv) * 100;
+        if(ltvRatio > 80) {
+          const pmiRate = (Number($('pmiPct').value) || 0.75) / 100 / 12;
+          pmi = newLoan * pmiRate;
+        }
+      }
+      
+      const totalExpenses = vacancyAmount + opEx + capex + mortgage + pmi;
 const cashFlow = grossIncome - totalExpenses;
 
       const annualCashFlow = cashFlow * 12;
@@ -851,7 +875,7 @@ const cashFlow = grossIncome - totalExpenses;
       const projLabels = Array.from({length: years}, (_, i) => `Year ${i+1}`);
       let projCashFlowArr = [];
       let projEquityArr = [];
-      let curRent = rent, curOpEx = opEx, curCapEx = capex, curARV = arv;
+      let curRent = rent, curOtherInc = otherInc, curOpEx = opEx, curCapEx = capex, curARV = arv;
       const rentInc = Number($('annualRentIncrease').value)||0;
       const expInc = Number($('annualExpenseIncrease').value)||0;
       const appreciation = Number($('appreciation').value)||0;
@@ -859,13 +883,14 @@ const cashFlow = grossIncome - totalExpenses;
       for(let y=1; y<=years; y++){
   if(y>1){
       curRent *= (1 + rentInc/100);
+      curOtherInc *= (1 + rentInc/100); // Other income increases at same rate as rent
       curOpEx *= (1 + expInc/100);
       curCapEx *= (1 + expInc/100);
       curARV *= (1 + appreciation/100);
   }
   const yVacancy = curRent * vacancyPct;
-  const yGross = curRent + otherInc; // ← CORRECT: Don't deduct vacancy
-  const yExpenses = yVacancy + curOpEx + curCapEx + mortgage; // ← Include vacancy as expense
+  const yGross = curRent + curOtherInc; // Use increasing other income
+  const yExpenses = yVacancy + curOpEx + curCapEx + mortgage + pmi; // Include both mortgage and PMI
   const yCF = yGross - yExpenses;
   projCashFlowArr.push(Math.round(yCF * 12));
   projEquityArr.push(Math.round(curARV - newLoan));
@@ -894,6 +919,7 @@ const cashFlow = grossIncome - totalExpenses;
     <div class="line"><div>Operating Expenses</div><div>-${formatCurrency(opEx)}</div></div>
     <div class="line"><div>CapEx Reserve</div><div>-${formatCurrency(capex)}</div></div>
     <div class="line"><div>Mortgage</div><div>-${formatCurrency(mortgage)}</div></div>
+    ${pmi > 0 ? `<div class="line"><div>PMI</div><div>-${formatCurrency(pmi)}</div></div>` : ''}
     <div class="line" style="font-weight:700;color:var(--green);font-size:15px;margin-top:4px">
       <div>Net Monthly Cash Flow</div><div>${formatCurrency(cashFlow)}</div>
     </div>
