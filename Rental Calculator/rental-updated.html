@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title>UTAH REIA - SHORT-TERM Calculator</title>
+<title>UTAH REIA - Rental Calculator</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -81,7 +81,7 @@
 <body>
 <div class="wrap" id="gateWrap">
 <div class="top"><img alt="UTAH REIA logo" src="https://assets.cdn.filesafe.space/DNirEjy0ejVwbHsaBYrn/media/682f680ec314718407baed82.png"/></div>
-<h1 style="text-align:center;color:var(--blue);margin-top:12px;">Short-Term Calculator Access</h1>
+<h1 style="text-align:center;color:var(--blue);margin-top:12px;">Rental Calculator Access</h1>
 <div class="subtitle" style="margin-bottom:16px;">Enter your phone number to unlock the calculator.</div>
 <div class="card">
 <div class="field"><label>Phone Number</label><input id="gatePhone" inputmode="tel" placeholder="(801) 555-1234" style="font-size:16px;padding:12px" type="tel"/></div>
@@ -92,8 +92,8 @@
 </div>
 <div class="wrap" id="calcWrap" style="display:none">
 <div class="top"><img alt="UTAH REIA logo" src="https://assets.cdn.filesafe.space/DNirEjy0ejVwbHsaBYrn/media/682f680ec314718407baed82.png"/></div>
-<h1>UTAH REIA SHORT TERM CALCULATOR</h1>
-<div class="subtitle">Step-by-step analysis for Short Term or Coliving (BRRRR) investments.</div>
+<h1>UTAH REIA RENTAL CALCULATOR</h1>
+<div class="subtitle">Step-by-step analysis for Rental Property (BRRRR) investments.</div>
 <div id="trialReminder" style="display:none;background:#fffbe6;border:1px solid #ffe58f;color:#ad6800;padding:10px;margin:10px 0 18px 0;font-weight:bold;text-align:center;border-radius:8px;font-size:15px;"></div>
 <div class="card">
 <div class="step-ind" id="stepIndicator">Step 1 of 13</div>
@@ -109,7 +109,6 @@
   </div>
   <div class="row">
     <div class="field"><label>Square Footage (optional)</label><input id="squareFootage" placeholder="e.g. 1500" type="number" min="0"/></div>
-    <div class="field"><label>Bedrooms (optional)</label><input id="bedrooms" placeholder="e.g. 3" type="number" min="0" step="1"/></div>
   </div>
   <div class="field"><label>Optional: Features / Description</label><textarea id="features" placeholder="3 bed / 2 bath..."></textarea></div>
 </div>
@@ -200,9 +199,11 @@
 <button class="pencil" onclick="toggleEditor('purchase')" type="button">✏️ Edit Breakdown</button>
 <div aria-hidden="true" class="editor" id="editor-purchase">
 <div style="margin-bottom:8px"><div class="subheading">Itemized Purchase Costs</div></div>
-<div class="item"><input class="item-label" value="Home Inspection"/><input class="item-value small-input" data-kind="fixed" value="400"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><select class="item-pay"><option selected value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select><select class="item-loan-target" style="display:none;width:150px;"></select><button class="icon-btn" type="button">🗑️</button></div>
-<div class="item"><input class="item-label" value="Loan Points"/><input class="item-value small-input" data-kind="pct_loan" value="2"/><select class="item-kind"><option value="fixed">Fixed</option><option selected value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><select class="item-pay"><option selected value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select><select class="item-loan-target" style="display:none;width:150px;"></select><button class="icon-btn" type="button">🗑️</button></div>
-<div class="item"><input class="item-label" value="Closing Costs"/><input class="item-value small-input" data-kind="fixed" value="2000"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><select class="item-pay"><option selected value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select><select class="item-loan-target" style="display:none;width:150px;"></select><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Appraisal"/><input class="item-value small-input" data-kind="fixed" value="500"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><select class="item-pay"><option selected value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select><select class="item-loan-target" style="display:none;width:150px;"></select><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Inspection"/><input class="item-value small-input" data-kind="fixed" value="400"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><select class="item-pay"><option selected value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select><select class="item-loan-target" style="display:none;width:150px;"></select><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Title & Escrow"/><input class="item-value small-input" data-kind="pct_price" value="1.5"/><select class="item-kind"><option value="fixed">Fixed</option><option selected value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><select class="item-pay"><option selected value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select><select class="item-loan-target" style="display:none;width:150px;"></select><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Loan Origination Fee"/><input class="item-value small-input" data-kind="pct_loan" value="1"/><select class="item-kind"><option value="fixed">Fixed</option><option selected value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><select class="item-pay"><option selected value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select><select class="item-loan-target" style="display:none;width:150px;"></select><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Loan Doc Fees"/><input class="item-value small-input" data-kind="fixed" value="500"/><select class="item-kind"><option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_price">% of Price</option></select><select class="item-pay"><option selected value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select><select class="item-loan-target" style="display:none;width:150px;"></select><button class="icon-btn" type="button">🗑️</button></div>
 <div id="purchase-add-area"></div>
 <div style="margin-top:8px;"><button class="btn" onclick="addItem('purchase')" type="button">+ Add Item</button></div>
 <div class="row-actions"><div class="total-display">Total Upfront: <span id="purchaseEditorTotal">$0</span></div><div style="display:flex;gap:8px"><button class="btn secondary" onclick="cancelEditor('purchase')" type="button">Cancel</button><button class="btn" onclick="saveEditor('purchase')" type="button">Save</button></div></div>
@@ -210,6 +211,26 @@
 <div id="purchaseBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
 </div>
 <div class="card step" data-step="6">
+<div class="muted">Monthly Holding Costs</div>
+<div class="subheading">Holding Costs (Before Tenant / During Rehab)</div>
+<div class="row">
+<div class="field"><label>Monthly Holding (Manual Base)</label><input id="holdingMonthly" placeholder="$500" type="text"/></div>
+<div class="field" style="align-self:end"><label class="toggle-label">Manual Only<label class="switch"><input id="holdingManualToggle" type="checkbox"/><span class="slider"></span></label></label></div>
+</div>
+<div class="field"><label>Holding Timeframe (months)</label><input id="holdingTime" type="number" value="1" min="1" step="1" placeholder="1"/></div>
+<button class="pencil" onclick="toggleEditor('holding')" type="button">✏️ Edit Monthly Items</button>
+<div aria-hidden="true" class="editor" id="editor-holding">
+<div class="item"><input class="item-label" value="Property Tax"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Insurance"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Utilities"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button class="icon-btn" type="button">🗑️</button></div>
+<div id="holding-add-area"></div>
+<div style="margin-top:8px;"><button class="btn" onclick="addItem('holding')" type="button">+ Add Item</button></div>
+<div class="row-actions"><div class="total-display">Monthly Extras: <span id="holdingEditorTotal">$0</span></div><div style="display:flex;gap:8px"><button class="btn secondary" onclick="cancelEditor('holding')" type="button">Cancel</button><button class="btn" onclick="saveEditor('holding')" type="button">Save</button></div></div>
+</div>
+<div id="holdingBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
+<div style="margin-top:6px;font-size:13px"><strong>Total Holding (over <span id="holdMonthsDisplay">1</span> mo):</strong> <span id="holdingTotalDisplay">$0</span> (Includes loan interest if applicable)</div>
+</div>
+<div class="card step" data-step="7">
 <div class="muted">Refinance / Financing</div>
 <div class="subheading">New Loan Terms</div>
 <div class="row">
@@ -236,7 +257,7 @@
 </div>
 </div>
 </div>
-<div class="card step" data-step="7">
+<div class="card step" data-step="8">
 <div class="muted">Refinance Costs</div>
 <div class="row">
 <div class="field"><label>Refinance Costs</label><input id="refiClosingCosts" placeholder="$4,000" type="text"/></div>
@@ -256,11 +277,11 @@
 </div>
 <div id="refiBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
 </div>
-<div class="card step" data-step="8">
+<div class="card step" data-step="9">
 <div class="muted">Rental Income</div>
 <div class="row">
 <div class="field"><label>Monthly Rent</label><input id="monthlyRent" placeholder="$2,000" type="text"/></div>
-<div class="field"><label>Vacancy Rate (%)</label><input id="vacancy" type="number" value="50"/></div>
+<div class="field"><label>Vacancy Rate (%)</label><input id="vacancy" type="number" value="5"/></div>
 <div class="field">
 <label>Other Income (Monthly)</label>
 <input id="otherIncome" placeholder="$0" type="text">
@@ -292,7 +313,7 @@
 </div>
 <div id="otherIncomeBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
 </div>
-<div class="card step" data-step="9">
+<div class="card step" data-step="10">
 <div class="muted">Operating Expenses, Annual Expense Increase</div>
 <div class="row">
   <div class="field"><label>Monthly Expenses (Manual)</label><input id="operatingExpenses" placeholder="$500" type="text"/></div>
@@ -322,38 +343,6 @@
 <div id="operatingBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
 <div class="row" style="margin-top:10px"><div class="field"><label>Annual Expense Increase (%)</label><input id="annualExpenseIncrease" type="number" value="2"/></div></div>
 </div>
-<!-- Furnishing Step -->
-<div class="card step" data-step="10">
-  <div class="muted">Furnishing <span style="color:#2E8B57;font-weight:600">(STR-Specific)</span></div>
-  <div class="row" style="margin-bottom:8px">
-    <div class="field"><label>Furnishing Cost (manual)</label><input id="furnishingCost" placeholder="Leave blank to auto-estimate" type="text"/></div>
-    <div class="field" style="align-self:end">
-      <label class="toggle-label">Manual only
-        <label class="switch"><input id="furnishingManualToggle" type="checkbox"/><span class="slider"></span></label>
-      </label>
-      <div class="muted-small" style="margin-top:6px">Default: OFF (Use itemized items)</div>
-    </div>
-  </div>
-  <div id="furnishingAutoEstimate" style="margin:6px 0 10px;padding:8px 12px;background:#f0f8ff;border-radius:8px;border:1px solid #cce5ff;font-size:13px;color:#0066aa;display:none"></div>
-  <button class="pencil" onclick="toggleEditor('furnishing')" type="button">✏️ Edit Furnishing Breakdown</button>
-  <div aria-hidden="true" class="editor" id="editor-furnishing">
-    <div style="margin-bottom:8px"><div class="subheading">Itemized Furnishing Costs (STR-Specific)</div></div>
-    <div class="item"><input class="item-label" value="Beds"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-kind"><option selected value="fixed">Fixed</option></select><span class="small">Per Unit</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div class="item"><input class="item-label" value="Sofas"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-kind"><option selected value="fixed">Fixed</option></select><span class="small">Per Unit</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div class="item"><input class="item-label" value="Linens"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-kind"><option selected value="fixed">Fixed</option></select><span class="small">Per Unit</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div class="item"><input class="item-label" value="Kitchenware"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-kind"><option selected value="fixed">Fixed</option></select><span class="small">Per Unit</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div class="item"><input class="item-label" value="TVs"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-kind"><option selected value="fixed">Fixed</option></select><span class="small">Per Unit</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div class="item"><input class="item-label" value="Decor"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-kind"><option selected value="fixed">Fixed</option></select><span class="small">Per Unit</span><button class="icon-btn" type="button">🗑️</button></div>
-    <div id="furnishing-add-area"></div>
-    <div style="margin-top:8px;"><button class="btn" onclick="addItem('furnishing')" type="button">+ Add Item</button></div>
-    <div class="row-actions">
-      <div class="total-display">Furnishing Total: <span id="furnishingEditorTotal">$0</span></div>
-      <div style="display:flex;gap:8px"><button class="btn secondary" onclick="cancelEditor('furnishing')" type="button">Cancel</button><button class="btn" onclick="saveEditor('furnishing')" type="button">Save</button></div>
-    </div>
-  </div>
-  <div id="furnishingBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
-  <div class="muted-small">Leave blank to auto-estimate based on bedrooms (~$4,000/bed) or square footage (~$20/sqft). Or enter manually / use the itemized breakdown.</div>
-  </div>
   <div class="card step" data-step="11">
   <div class="muted">Appreciation &amp; Selling Costs</div>
   <div class="row">
@@ -367,7 +356,7 @@
 <div class="field"><label>Depreciable Basis ($)</label><input id="depreciationBasis" placeholder="(Auto-calculated if empty)" type="text"/></div>
 <div class="field"><label>Recovery Period (Years)</label><input id="depreciationYears" type="number" value="27.5"/></div>
 </div>
-<div class="muted-small">Leave Basis empty to use (Purchase + Purchase Costs + Rehab). Note: Furnishings are depreciated separately as 5-year personal property and are excluded from this basis.</div>
+<div class="muted-small">Leave Basis empty to use (Purchase + Purchase Costs + Rehab).</div>
 </div>
 <div class="card step" data-step="13">
   <div class="muted">CapEx Reserve</div>
@@ -407,15 +396,16 @@
 </div>
 <script>
     /* ---------- Config ---------- */
+    const $ = id => document.getElementById(id);
 
     // Unlock calculator logic handled below via verifyPhoneViaWorkflow
     const editorState = {
       purchaseExtrasUpfront: 0, purchaseManualBase: 0, purchaseManualOnly: false,
       rehabExtras: 0, rehabManualBase: 0, rehabManualOnly: false,
+      holdingMonthlyBase: 0, holdingMonthlyExtras: 0, holdingManualOnly: false,
       refiExtras: 0, refiManualBase: 0, refiManualOnly: false,
       operatingMonthlyBase: 0, operatingMonthlyExtras: 0, operatingManualOnly: false,
       otherIncomeExtras: 0, otherIncomeManualOnly: false,
-      furnishingExtras: 0, furnishingManualOnly: false,
       purchaseExtrasRolled: 0, refiExtrasRolled: 0, financeExtrasUnassigned: 0
     };
     let loans = [];
@@ -544,8 +534,56 @@
       });
     };
 
-    /* ---------- Helpers ---------- */
-    const $ = id => document.getElementById(id);
+    window.wireAllHoldingItems = function() {
+      const holdingEditor = $('editor-holding');
+      if(!holdingEditor) return;
+      holdingEditor.querySelectorAll('.item').forEach(item => {
+        const typeSelect = item.querySelector('.item-type');
+        const kindSelect = item.querySelector('.item-kind');
+        const afterVacWrapper = item.querySelector('.after-vacancy-wrapper');
+        if(!typeSelect || !kindSelect || !afterVacWrapper) return;
+        const newTypeSelect = typeSelect.cloneNode(true);
+        typeSelect.replaceWith(newTypeSelect);
+        const newKindSelect = kindSelect.cloneNode(true);
+        kindSelect.replaceWith(newKindSelect);
+        newTypeSelect.addEventListener('change', function() {
+          const currentItem = this.closest('.item');
+          const currentKindSelect = currentItem.querySelector('.item-kind');
+          const currentAfterVacWrapper = currentItem.querySelector('.after-vacancy-wrapper');
+          if(this.value === 'fixed') {
+            currentKindSelect.style.display = 'none';
+            currentKindSelect.innerHTML = '';
+            if(currentAfterVacWrapper) currentAfterVacWrapper.style.display = 'none';
+          } else {
+            currentKindSelect.style.display = 'inline-block';
+            currentKindSelect.innerHTML = '<option selected value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option>';
+            if(currentAfterVacWrapper && currentKindSelect.value === 'pct_rent') currentAfterVacWrapper.style.display = 'inline-flex';
+          }
+          recalcEditor('holding');
+        });
+        newKindSelect.addEventListener('change', function() {
+          const currentItem = this.closest('.item');
+          const currentTypeSelect = currentItem.querySelector('.item-type');
+          const currentAfterVacWrapper = currentItem.querySelector('.after-vacancy-wrapper');
+          if(currentAfterVacWrapper && currentTypeSelect.value === 'percent' && this.value === 'pct_rent') currentAfterVacWrapper.style.display = 'inline-flex';
+          else if(currentAfterVacWrapper) currentAfterVacWrapper.style.display = 'none';
+          recalcEditor('holding');
+        });
+        const afterVacCheck = afterVacWrapper.querySelector('.after-vacancy-check');
+        if(afterVacCheck) {
+          const newCheck = afterVacCheck.cloneNode(true);
+          afterVacCheck.replaceWith(newCheck);
+          newCheck.addEventListener('change', () => recalcEditor('holding'));
+        }
+        if(newTypeSelect.value === 'percent') {
+          newKindSelect.style.display = 'inline-block';
+          if(newKindSelect.value === 'pct_rent') afterVacWrapper.style.display = 'inline-flex';
+        } else {
+          newKindSelect.style.display = 'none';
+          afterVacWrapper.style.display = 'none';
+        }
+      });
+    };
     function unformatCurrency(str){ if(str===undefined||str===null)return 0; if(typeof str==='number')return str; str=String(str); if(!str)return 0; return Number(str.replace(/[^0-9.-]+/g,''))||0; }
     function formatCurrency(n){ if(isNaN(n))n=0; return '$'+Number(n).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2}); }
     function debounce(fn,w){let t;return function(...a){clearTimeout(t);t=setTimeout(()=>fn.apply(this,a),w);};}
@@ -586,12 +624,12 @@
                 rehabBypass.addEventListener('change', updateRehabBypassUI);
                 updateRehabBypassUI();
               }
-        ['repairs', 'purchaseClosing', 'refiClosingCosts', 'operatingExpenses', 'otherIncome', 'furnishingCost'].forEach(id => {
+        ['repairs', 'purchaseClosing', 'holdingMonthly', 'refiClosingCosts', 'operatingExpenses', 'otherIncome'].forEach(id => {
           const el = $(id);
           if(el) el.value = "";
         });
 
-      ['purchase','rehab','refi','operating','otherIncome', 'furnishing'].forEach(key => {
+      ['purchase','rehab','holding','refi','operating','otherIncome'].forEach(key => {
         const toggle = $(key+'ManualToggle');
         if(toggle){
           toggle.checked = false;
@@ -599,10 +637,23 @@
         }
       });
       
+      // Wire holding inputs
+      ['holdingTime','holdingMonthly'].forEach(id => {
+        const el = $(id);
+        if(el) el.addEventListener('input', updateVisibleTotals);
+      });
+
+      // Cross-step auto-recalc: when rent or price changes, recalc editors that use % of Rent / % of Price
+      ['monthlyRent', 'purchasePrice', 'arv'].forEach(id => {
+        const el = $(id);
+        if(el) el.addEventListener('input', () => { recalcAllEditors(); updateVisibleTotals(); });
+      });
+
       // Initialize wire functions
       setTimeout(() => {
         wireAllPurchaseAndRefiItems();
         wireAllOperatingItems();
+        wireAllHoldingItems();
       }, 200);
 
       const uf = $('useFinancing');
@@ -638,7 +689,7 @@
       if($('addLoanBtn')) $('addLoanBtn').addEventListener('click', addLoanFromInputs);
       if($('previewLoanBtn')) $('previewLoanBtn').addEventListener('click', calculateLoanPreview);
 
-      attachEditorInit('editor-purchase'); attachEditorInit('editor-rehab'); attachEditorInit('editor-refi'); attachEditorInit('editor-operating'); attachEditorInit('editor-otherIncome'); attachEditorInit('editor-furnishing');
+      attachEditorInit('editor-purchase'); attachEditorInit('editor-rehab'); attachEditorInit('editor-refi'); attachEditorInit('editor-operating'); attachEditorInit('editor-otherIncome'); attachEditorInit('editor-holding');
 
       document.querySelectorAll('input[type=text]').forEach(el => {
         if(el.id.toLowerCase().includes('price') || el.id.includes('Cost') || el.id.includes('Rent') || el.id.includes('repairs') || el.id.includes('Amount') || el.id==='arv') {
@@ -699,65 +750,36 @@
       if (purchasePriceEl) purchasePriceEl.addEventListener('input', renderLoanList);
       if (arvEl) arvEl.addEventListener('input', renderLoanList);
       if (useFinancingEl) useFinancingEl.addEventListener('change', renderLoanList);
-
-      // Cross-step auto-recalc: when rent or price changes, recalc editors that use % of Rent / % of Price
-      ['monthlyRent', 'purchasePrice', 'arv'].forEach(id => {
-        const el = $(id);
-        if(el) el.addEventListener('input', () => { recalcAllEditors(); updateVisibleTotals(); });
-      });
-      // Update furnishing auto-estimate when bedrooms or sqft changes
-      ['bedrooms', 'squareFootage', 'furnishingCost'].forEach(id => {
-        const el = $(id);
-        if(el) el.addEventListener('input', updateFurnishingEstimate);
-      });
     });
 
     // CapEx type dropdown handler
-if($('capexType')) {
-  $('capexType').addEventListener('change', ()=>{
-    const type = $('capexType').value;
-    const label = $('capexLabel');
-    const input = $('capexMonthly');
-    switch(type) {
-      case 'pct_rent':
-        label.textContent = 'CapEx Reserve (% of Rent)';
-        input.placeholder = '5';
-        break;
-      case 'pct_price':
-        label.textContent = 'CapEx Reserve (% of Price)';
-        input.placeholder = '0.5';
-        break;
-      case 'per_month':
-        label.textContent = 'CapEx Reserve ($ per Month)';
-        input.placeholder = '100';
-        break;
-      case 'per_year':
-        label.textContent = 'CapEx Reserve ($ per Year)';
-        input.placeholder = '1200';
-        break;
-    }
-  });
-}
-
-    function updateFurnishingEstimate() {
-      const manualVal = unformatCurrency($('furnishingCost')?.value);
-      if(manualVal > 0) { if($('furnishingAutoEstimate')) $('furnishingAutoEstimate').style.display='none'; return; }
-      const beds = Number($('bedrooms')?.value)||0;
-      const sqft = Number($('squareFootage')?.value)||0;
-      const autoEstDiv = $('furnishingAutoEstimate');
-      if(!autoEstDiv) return;
-      if(beds > 0) {
-        const est = beds * 4000;
-        autoEstDiv.textContent = `💡 Auto-estimated furnishing: ${formatCurrency(est)} (based on ${beds} bedrooms × $4,000/bed). Enter a manual amount above to override.`;
-        autoEstDiv.style.display = 'block';
-      } else if(sqft > 0) {
-        const est = sqft * 20;
-        autoEstDiv.textContent = `💡 Auto-estimated furnishing: ${formatCurrency(est)} (based on ${sqft.toLocaleString()} sqft × $20/sqft). Enter a manual amount above to override.`;
-        autoEstDiv.style.display = 'block';
-      } else {
-        autoEstDiv.style.display = 'none';
+    document.addEventListener('DOMContentLoaded', function() {
+      if($('capexType')) {
+        $('capexType').addEventListener('change', ()=>{
+          const type = $('capexType').value;
+          const label = $('capexLabel');
+          const input = $('capexMonthly');
+          switch(type) {
+            case 'pct_rent':
+              label.textContent = 'CapEx Reserve (% of Rent)';
+              input.placeholder = '5';
+              break;
+            case 'pct_price':
+              label.textContent = 'CapEx Reserve (% of Price)';
+              input.placeholder = '0.5';
+              break;
+            case 'per_month':
+              label.textContent = 'CapEx Reserve ($ per Month)';
+              input.placeholder = '100';
+              break;
+            case 'per_year':
+              label.textContent = 'CapEx Reserve ($ per Year)';
+              input.placeholder = '1200';
+              break;
+          }
+        });
       }
-    }
+    });
 
     /* ---------- Navigation ---------- */
     const totalSteps = 13;
@@ -781,19 +803,19 @@ if($('capexType')) {
 
     $('prevBtn').addEventListener('click', function(e) {
       if(arvIsBlank()) {
-        // ARV blank: step 6 → step 2 (skipped 3,4,5)
-        if(currentStep === 6) { showStep(2); return; }
+        // ARV blank: step 7 → step 2 (skipped 3,4,5,6)
+        if(currentStep === 7) { showStep(2); return; }
       } else {
-        // ARV filled: step 6 → step 2 if no rehab (original skip logic)
-        if(currentStep === 6) {
+        // ARV filled: step 4 → step 2 if no rehab, else step 3
+        if(currentStep === 4) {
           const rehabBypass = $('rehabBypassToggle');
           if(rehabBypass && !rehabBypass.checked) { showStep(2); return; }
         }
-        // step 5 (Purchase Cost) → step 4 or step 2 if no rehab
-        if(currentStep === 5) {
-          const rehabBypass = $('rehabBypassToggle');
-          if(rehabBypass && !rehabBypass.checked) { showStep(4); return; }
+        // step 6 (Holding) → step 5 (Purchase Cost)
+        if(currentStep === 6) {
+          showStep(5); return;
         }
+        // step 7 → step 6 normally
       }
       showStep(currentStep - 1);
     });
@@ -803,8 +825,8 @@ if($('capexType')) {
       nextBtn.addEventListener('click', function(e) {
         if(currentStep === 2) {
           if(arvIsBlank()) {
-            // No ARV: skip rehab (3), financing (4), purchase cost (5) → go to refi (6)
-            showStep(6); return;
+            // No ARV: skip rehab (3), financing (4), purchase cost (5), holding (6) → go to refi (7)
+            showStep(7); return;
           }
           const rehabBypass = $('rehabBypassToggle');
           if(rehabBypass && !rehabBypass.checked) {
@@ -883,7 +905,7 @@ if($('capexType')) {
         </div>`).join('');
       updateAggregatedLoanAmountDisplay();
       wireAllPurchaseAndRefiItems();
-      // Cross-step recalc: % of Loan items in rehab/purchase update when loan changes
+      // Recalc all editors cross-step (% of Loan items in rehab/purchase update when loan changes)
       recalcAllEditors();
       updateVisibleTotals();
     }
@@ -926,6 +948,16 @@ if($('capexType')) {
     kindOptions = `<option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_arv">% of ARV</option>`;
     extraElements = `<select class="item-pay"><option selected value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select><select class="item-loan-target" style="display:none;width:150px;"></select>`;
   }
+  else if(key==='holding'){
+    div.innerHTML = `<input class="item-label" placeholder="Item"><input class="item-value small-input" value="0"><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button type="button" class="icon-btn">🗑️</button>`;
+    div.querySelector('.icon-btn').onclick = () => { div.remove(); recalcEditor(key); };
+    div.querySelector('.item-value').oninput = () => recalcEditor(key);
+    div.querySelector('.item-label').oninput = () => recalcEditor(key);
+    area.appendChild(div);
+    wireAllHoldingItems();
+    recalcEditor(key);
+    return;
+  }
   else if(key==='operating'){ 
     // Exact static HTML for new OpEx items
     div.innerHTML = `<input class="item-label" placeholder="Item"><input class="item-value small-input" value="0"><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option><option value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button type="button" class="icon-btn">🗑️</button>`;
@@ -938,10 +970,6 @@ if($('capexType')) {
     wireAllOperatingItems();
     recalcEditor(key);
     return;
-  }
-  else if(key==='furnishing'){ 
-    kindOptions = `<option selected value="fixed">Fixed</option>`;
-    extraElements = `<span class="small">Per Unit</span>`;
   }
   else if(key==='otherIncome'){ 
     kindOptions = `<option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option>`;
@@ -1000,13 +1028,19 @@ if($('capexType')) {
         else if(kind === 'fixed_year') itemTotal = (val/12);
         else if(kind === 'pct_price') itemTotal = price * (val/100);
         else if(kind === 'pct_rent') itemTotal = effectiveRent * (val/100);
-        else if(kind === 'pct_arv' && key==='refi') itemTotal = arv * (val/100);
-        else if(kind === 'pct_loan' && key==='purchase') {
-          // Use the Total Initial Financing from Step 4 for % of Loan
+        else if(kind === 'pct_arv') {
+          // Use effective ARV: if ARV blank, fall back to purchase price
+          const effectiveArv = arv || price;
+          itemTotal = effectiveArv * (val/100);
+        }
+        else if(kind === 'pct_loan') {
+          // Use effective loan: aggregated financed amount, or purchase price if ARV skipped
           let loanAmount = 0;
           if (typeof computeAggregatedFinancedAmount === 'function') {
             loanAmount = computeAggregatedFinancedAmount();
           }
+          // If no loan set yet (ARV skipped), fall back to purchase price
+          if (!loanAmount) loanAmount = price;
           itemTotal = loanAmount * (val/100);
         }
 
@@ -1026,10 +1060,10 @@ if($('capexType')) {
       if($(key+'EditorTotal')) $(key+'EditorTotal').textContent = formatCurrency(upfrontTotal);
 
       // Use consistent naming for editorState keys
-      if(key === 'furnishing') {
-        editorState.furnishingExtras = total;
-      } else if(key === 'operating') {
+      if(key === 'operating') {
         editorState.operatingMonthlyExtras = total;
+      } else if(key === 'holding') {
+        editorState.holdingMonthlyExtras = upfrontTotal;
       } else if(key === 'purchase') {
         editorState.purchaseExtrasUpfront = upfrontTotal;
         editorState.purchaseExtrasRolled = rolledTotal;
@@ -1049,7 +1083,7 @@ if($('capexType')) {
     function saveEditor(key) {
       const total = recalcEditor(key);
       toggleEditor(key);
-      const map = { purchase: 'purchaseClosing', rehab: 'repairs', operating: 'operatingExpenses', refi: 'refiClosingCosts', otherIncome: 'otherIncome', furnishing: 'furnishingCost' };
+      const map = { purchase: 'purchaseClosing', rehab: 'repairs', holding: 'holdingMonthly', operating: 'operatingExpenses', refi: 'refiClosingCosts', otherIncome: 'otherIncome' };
       let displayTotal = total;
       // For refi or purchase, only show upfront total in the input box
       if (key === 'refi') {
@@ -1067,11 +1101,17 @@ if($('capexType')) {
       root.addEventListener('input', (e) => { if(e.target.matches('input, select')) recalcEditor(id.split('-')[1]); });
     }
 
-    function recalcAllEditors(){ ['purchase','rehab','refi','operating','otherIncome','furnishing'].forEach(k => { if($('editor-'+k)) recalcEditor(k); }); }
+    function recalcAllEditors(){ ['purchase','rehab','holding','refi','operating','otherIncome'].forEach(k => { if($('editor-'+k)) recalcEditor(k); }); }
 
     function updateVisibleTotals(){
-      if($('furnishingBreakdown')) $('furnishingBreakdown').textContent = $('furnishingManualToggle')?.checked ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(editorState.furnishingExtras)})`;
       if($('rehabBreakdown')) $('rehabBreakdown').textContent = editorState.rehabManualOnly ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(editorState.rehabExtras)})`;
+      if($('holdingBreakdown')) $('holdingBreakdown').textContent = editorState.holdingManualOnly ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(editorState.holdingMonthlyExtras)})`;
+      // Update holding summary display
+      const holdMonths = Number($('holdingTime')?.value)||0;
+      const holdMonthly = unformatCurrency($('holdingMonthly')?.value);
+      const holdTotalVal = holdMonthly * holdMonths;
+      if($('holdMonthsDisplay')) $('holdMonthsDisplay').textContent = holdMonths;
+      if($('holdingTotalDisplay')) $('holdingTotalDisplay').textContent = formatCurrency(holdTotalVal);
       if($('purchaseBreakdown')) {
         const purchaseUpfront = editorState.purchaseExtrasUpfront || 0;
         $('purchaseBreakdown').textContent = editorState.purchaseManualOnly ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(purchaseUpfront)})`;
@@ -1092,12 +1132,14 @@ if($('capexType')) {
     }
 
     function computeRefiLoanAmount(arv, ltvPct, payoffPrincipal, refiType){
-      const maxLoan = arv * (ltvPct/100);
+      // Default ARV to purchase price if blank
+      const effectiveArv = arv || unformatCurrency($('purchasePrice').value);
+      const maxLoan = effectiveArv * (ltvPct/100);
       if(refiType === 'rateterm'){
         const loanAmt = Math.min(maxLoan, payoffPrincipal);
-        return { maxLoan, loanAmt, cashToBring: Math.max(0, payoffPrincipal - maxLoan), cashOut: 0 };
+        return { maxLoan, loanAmt, cashToBring: Math.max(0, payoffPrincipal - maxLoan), cashOut: 0, effectiveArv };
       }
-      return { maxLoan, loanAmt: maxLoan, cashToBring: 0, cashOut: Math.max(0, maxLoan - payoffPrincipal) };
+      return { maxLoan, loanAmt: maxLoan, cashToBring: 0, cashOut: Math.max(0, maxLoan - payoffPrincipal), effectiveArv };
     }
 
     function computeAndRender(){
@@ -1105,49 +1147,29 @@ if($('capexType')) {
       const price = unformatCurrency($('purchasePrice').value);
       const rehab = unformatCurrency($('repairs').value);
       const purchaseClose = unformatCurrency($('purchaseClosing').value);
-      const furnishingManual = unformatCurrency($('furnishingCost').value);
-      const sqftForFurnish = Number($('squareFootage').value) || 0;
-      const bedsForFurnish = Number($('bedrooms').value) || 0;
-      let furnishingAutoEstimated = false;
-      let furnishing = furnishingManual;
-      if(furnishing === 0) {
-        if(bedsForFurnish > 0) {
-          furnishing = bedsForFurnish * 4000;
-          furnishingAutoEstimated = true;
-        } else if(sqftForFurnish > 0) {
-          furnishing = sqftForFurnish * 20;
-          furnishingAutoEstimated = true;
-        }
-      }
-      // Show auto-estimate hint on the furnishing step
-      const autoEstDiv = $('furnishingAutoEstimate');
-      if(autoEstDiv) {
-        if(furnishingAutoEstimated) {
-          const basis = bedsForFurnish > 0 ? `${bedsForFurnish} bedrooms × $4,000/bed` : `${sqftForFurnish.toLocaleString()} sqft × $20/sqft`;
-          autoEstDiv.textContent = `💡 Auto-estimated furnishing: ${formatCurrency(furnishing)} (based on ${basis}). Enter a manual amount above to override.`;
-          autoEstDiv.style.display = 'block';
-        } else {
-          autoEstDiv.style.display = 'none';
-        }
-      }
+      const holdMonths = Number($('holdingTime')?.value)||0;
+      const holdMonthly = unformatCurrency($('holdingMonthly')?.value);
+      const holdTotal = holdMonthly * holdMonths;
       const initialLoanPrincipalRaw = computeAggregatedFinancedAmount();
+      // If ARV is blank, the user skipped financing (step 4) — purchase price is the effective loan
       const arvRaw = unformatCurrency($('arv').value);
-      // If ARV is blank, user skipped financing — purchase price is the effective loan
       const initialLoanPrincipal = (initialLoanPrincipalRaw === 0 && arvRaw === 0) ? price : initialLoanPrincipalRaw;
-      const allInCost = price + rehab + purchaseClose;
-      // Furnishing is NOT financed — it comes out of pocket, so it increases cash needed
+      const allInCost = price + rehab + purchaseClose + holdTotal;
       const totalCashInvested = allInCost - initialLoanPrincipal;
 
       const arv = unformatCurrency($('arv').value);
-      const effectiveArv = arv || price;
       const ltv = Number($('refiLtv').value)||75;
       const refiType = getRefiType();
       const refiClose = unformatCurrency($('refiClosingCosts').value);
-      const refiLoanObj = computeRefiLoanAmount(effectiveArv, ltv, initialLoanPrincipal, refiType);
+      const refiLoanObj = computeRefiLoanAmount(arv, ltv, initialLoanPrincipal, refiType);
       const newLoan = refiLoanObj.loanAmt;
+      const effectiveArv = refiLoanObj.effectiveArv;
 
-      // Cash to Close = down payment + closing costs + furnishing (furnishing is an upfront out-of-pocket cost)
-      const cashToClose = Math.max(0, allInCost - newLoan) + refiClose + furnishing;
+      // Cash Left In Deal = Down Payment + Closing Costs
+      const downPayment = Math.max(0, price - initialLoanPrincipal + rehab * 0); // simplified
+      const cashLeftInDeal = Math.max(0, allInCost - newLoan) + refiClose;
+      // More accurate: total cash out of pocket = (all-in cost - loan amount) + refi closing costs
+      const cashToClose = Math.max(0, allInCost - newLoan) + refiClose;
 
       const rent = unformatCurrency($('monthlyRent').value);
 const otherInc = unformatCurrency($('otherIncome').value);
@@ -1250,12 +1272,11 @@ const cashFlow = grossIncome - totalExpenses;
 
       const html = `
   <div class="results" style="margin-bottom:12px;">
-    <h3 style="margin:0 0 10px;border-bottom:1px solid #ffffff44;padding-bottom:8px">Short-Term Rental Analysis Report</h3>
+    <h3 style="margin:0 0 10px;border-bottom:1px solid #ffffff44;padding-bottom:8px">Rental Property Analysis Report</h3>
     
     <!-- Project Summary -->
     <div class="line"><div>ARV</div><div>${formatCurrency(effectiveArv)}${!arv ? ' <span style="font-size:11px;opacity:.7">(= Purchase Price)</span>' : ''}</div></div>
-    <div class="line"><div>Total All-In Cost (excl. furnishing)</div><div>${formatCurrency(allInCost)}</div></div>
-    ${furnishing > 0 ? `<div class="line"><div>Furnishing Cost${furnishingAutoEstimated ? ' <span style="font-size:11px;opacity:.7">(auto-est.)</span>' : ''}</div><div>${formatCurrency(furnishing)}</div></div>` : ''}
+    <div class="line"><div>Total All-In Cost</div><div>${formatCurrency(allInCost)}</div></div>
     
     <!-- Loan Details -->
     <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ffffff44"></div>
@@ -1268,14 +1289,14 @@ const cashFlow = grossIncome - totalExpenses;
     <div class="line"><div>Purchase Price</div><div>${formatCurrency(price)}</div></div>
     <div class="line"><div>Rehab Costs</div><div>${formatCurrency(rehab)}</div></div>
     <div class="line"><div>Purchase Closing Costs</div><div>${formatCurrency(purchaseClose)}</div></div>
-    ${furnishing > 0 ? `<div class="line"><div>Furnishing Cost${furnishingAutoEstimated ? ' <span style="font-size:11px;opacity:.7">(auto-est.)</span>' : ''}</div><div>${formatCurrency(furnishing)}</div></div>` : ''}
+    ${holdTotal > 0 ? `<div class="line"><div>Holding Costs (${holdMonths} mo)</div><div>${formatCurrency(holdTotal)}</div></div>` : ''}
     <div class="line"><div>Initial Loans (Step 4)</div><div>-${formatCurrency(initialLoanPrincipal)}</div></div>
     ${(editorState.refiExtrasRolled||0) > 0 ? `<div class="line"><div>Refi Costs Rolled Into Loan</div><div>-${formatCurrency(editorState.refiExtrasRolled)}</div></div>` : ''}
     <div class="line" style="font-weight:600"><div>Total Financed (Loans)</div><div>-${formatCurrency(initialLoanPrincipal + (editorState.refiExtrasRolled||0))}</div></div>
-    <div class="line"><div>Loan/Refi Costs (Upfront)</div><div>-${formatCurrency(refiClose)}</div></div>
+    <div class="line"><div>Refinance/Loan Costs (Upfront)</div><div>-${formatCurrency(refiClose)}</div></div>
     ${refiLoanObj.cashOut > 0 ? `<div class="line" style="color:var(--green)"><div>Cash Out</div><div>+${formatCurrency(refiLoanObj.cashOut)}</div></div>` : ''}
     ${refiLoanObj.cashToBring > 0 ? `<div class="line" style="color:#ff6b6b"><div>Additional Cash Required</div><div>-${formatCurrency(refiLoanObj.cashToBring)}</div></div>` : ''}
-    <div class="line" style="font-weight:700;color:var(--gold)"><div>Cash to Close (Down Payment + Closing Costs + Furnishing)</div><div>${formatCurrency(cashToClose)}</div></div>
+    <div class="line" style="font-weight:700;color:var(--gold)"><div>Cash to Close (Down Payment + Closing Costs)</div><div>${formatCurrency(cashToClose)}</div></div>
     
     <!-- Monthly Cash Flow Breakdown -->
     <div style="margin-top:12px;border-top:1px solid #ffffff44;padding-top:8px"></div>
@@ -1314,7 +1335,7 @@ const cashFlow = grossIncome - totalExpenses;
 `;
       
       $('reportContainer').innerHTML = html;
-      renderCharts(newLoan, arv, totalExpenses, Math.max(0, cashFlow), projLabels, projGrossArr, projExpensesArr, projCashFlowArr, projEquityArr);
+      renderCharts(newLoan, effectiveArv, totalExpenses, Math.max(0, cashFlow), projLabels, projGrossArr, projExpensesArr, projCashFlowArr, projEquityArr);
     }
 
     function renderCharts(loan, arv, exp, flow, labels, grossData, expData, cfData, eqData){
@@ -1418,14 +1439,14 @@ const cashFlow = grossIncome - totalExpenses;
       const x = (pageWidth - renderWidth) / 2;
       const y = (pageHeight - renderHeight) / 2;
       pdf.addImage(img, 'JPEG', x, y, renderWidth, renderHeight);
-      pdf.save('Short_Term_Report.pdf');
+      pdf.save('Rental_Property_Report.pdf');
     }
 
     /* ---------- Auth Logic ---------- */
     function normalizePhone(raw) { return String(raw||'').replace(/[^\d]/g, '').slice(-10); }
     async function verifyPhoneViaWorkflow(phone) {
       try {
-        const res = await fetch('https://fix-flip-calculator-delta.vercel.app/api/check-phone-short-term', {
+        const res = await fetch('https://fix-flip-calculator-delta.vercel.app/api/check-phone-rentals', {
           method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({phone:normalizePhone(phone)})
         });
         let d;

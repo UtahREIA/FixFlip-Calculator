@@ -107,7 +107,10 @@
 <div class="field"><label>State</label><input id="state" placeholder="UT" type="text"/></div>
 <div class="field"><label>ZIP code</label><input id="zip" placeholder="ZIP" type="text"/></div>
 </div>
-<div class="field"><label>Optional: Features / Description</label><textarea id="features" placeholder="3 bed / 2 bath..."></textarea></div>
+  <div class="row">
+    <div class="field"><label>Square Footage (optional)</label><input id="squareFootage" placeholder="e.g. 1500" type="number" min="0"/></div>
+  </div>
+  <div class="field"><label>Optional: Features / Description</label><textarea id="features" placeholder="3 bed / 2 bath..."></textarea></div>
 </div>
 <div class="card step" data-step="2">
 <div class="muted">Estimates</div>
@@ -297,6 +300,9 @@
 <div class="item"><input class="item-label" value="Parking"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
 <div class="item"><input class="item-label" value="Laundry"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
 <div class="item"><input class="item-label" value="Storage Rental"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-kind"><option value="fixed_month">$ (Per Month)</option><option selected value="fixed_year">$ (Per Year)</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Cleaning Fees"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Pet Fees"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Platform-based Income"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-kind"><option selected value="fixed_month">$ (Per Month)</option><option value="fixed_year">$ (Per Year)</option></select><span class="small">Per Building</span><button class="icon-btn" type="button">🗑️</button></div>
 <div id="otherIncome-add-area"></div>
 <div style="margin-top:8px;"><button class="btn" onclick="addItem('otherIncome')" type="button">+ Add Item</button></div>
 <div class="row-actions"><div class="total-display">Other Income Total: <span id="otherIncomeEditorTotal">$0</span></div><div style="display:flex;gap:8px"><button class="btn secondary" onclick="cancelEditor('otherIncome')" type="button">Cancel</button><button class="btn" onclick="saveEditor('otherIncome')" type="button">Save</button></div></div>
@@ -527,6 +533,17 @@
 
       renderLoanList();
       updateVisibleTotals();
+
+      // Cross-step auto-recalc: when rent, price or ARV changes, recalc editors that use % of Rent / % of Price / % of Loan
+      ['monthlyRent', 'purchasePrice', 'arv'].forEach(id => {
+        const el = $(id);
+        if(el) el.addEventListener('input', () => { recalcAllEditors(); updateVisibleTotals(); });
+      });
+      // Also recalc when purchase price or arv changes (affects loan amounts → % of Loan in other editors)
+      ['purchasePrice', 'arv'].forEach(id => {
+        const el = $(id);
+        if(el) el.addEventListener('input', renderLoanList);
+      });
     });
 
     /* ---------- Navigation ---------- */
@@ -610,6 +627,9 @@
       
       // Refresh loan target dropdowns
       wireAllPurchaseAndRefiItems();
+      // Cross-step recalc: % of Loan items in rehab/purchase/holding update when loan changes
+      recalcAllEditors();
+      updateVisibleTotals();
     }
 
     window.removeLoan = function(id){ loans = loans.filter(l=>l.id!==id); renderLoanList(); };
@@ -1086,6 +1106,12 @@
       const depBasis = unformatCurrency($('depreciationBasis')?.value) || (arv * 0.7);
       const annualDep = depBasis / (Number($('depreciationYears')?.value)||27.5);
 
+      // Square footage calculations
+      const sqft = Number($('squareFootage')?.value) || 0;
+      const costPerSqft = sqft > 0 ? price / sqft : 0;
+      const rehabPerSqft = sqft > 0 ? rehab / sqft : 0;
+      const arvPerSqft = sqft > 0 ? arv / sqft : 0;
+
       const projectionYears = 30;
       const rentGrowth = Number($('annualRentIncrease').value) || 0;
       const expenseGrowth = Number($('annualExpenseIncrease').value) || 0;
@@ -1122,31 +1148,56 @@
       const html = `
         <div class="results" style="margin-bottom:12px;">
           <h3 style="margin:0 0 10px;border-bottom:1px solid #ffffff44;padding-bottom:8px">BRRRR Analysis Report</h3>
+          
+          <!-- Project Summary -->
           <div class="line"><div>ARV</div><div>${formatCurrency(arv)}</div></div>
           <div class="line"><div>Total All-In Cost</div><div>${formatCurrency(totalProjectCost)}</div></div>
+          
+          <!-- Project Cost Breakdown -->
+          <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ffffff44"></div>
+          <div style="font-weight:600;margin-bottom:6px">Project Cost Breakdown:</div>
+          <div class="line"><div>Purchase Price</div><div>${formatCurrency(price)}</div></div>
+          <div class="line"><div>Rehab Costs</div><div>${formatCurrency(rehab)}</div></div>
+          <div class="line"><div>Purchase Closing Costs</div><div>${formatCurrency(purchaseClose)}</div></div>
+          <div class="line"><div>Holding Costs (${holdMonths} months)</div><div>${formatCurrency(holdTotal)}</div></div>
+          <div class="line"><div>Total Financed (Loans)</div><div>-${formatCurrency(initialLoanPrincipal + (editorState.purchaseExtrasRolled||0) + (editorState.refiExtrasRolled||0))}</div></div>
+          <div class="line" style="font-weight:700;padding-top:4px"><div>Total Cash Invested</div><div>${formatCurrency(totalCashInvested)}</div></div>
+
+          <!-- Refi Summary -->
+          <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ffffff44"></div>
+          <div style="font-weight:600;margin-bottom:6px">Refinance Summary:</div>
           <div class="line"><div>Refi Type</div><div>${refiType==='rateterm'?'Rate & Term':'Cash-Out'}</div></div>
-          <div class="line"><div>New Loan (${ltv}%)</div><div>${formatCurrency(newLoan)}</div></div>
-          <div class="line"><div>Refi Fees</div><div>-${formatCurrency(refiClose)}</div></div>
-          <div class="line"><div>${bringToClose>0?'Cash Required at Refi':'Cash Out at Refi'}</div><div>${bringToClose>0?'-'+formatCurrency(bringToClose):formatCurrency(cashOut)}</div></div>
+          <div class="line"><div>New Loan Amount (${ltv}% LTV)</div><div>${formatCurrency(newLoan)}</div></div>
+          <div class="line"><div>Interest Rate</div><div>${(Number($('refiRate').value)||7).toFixed(2)}%</div></div>
+          <div class="line"><div>Monthly Payment (P&I${pmiMonthly>0?' + PMI':''})</div><div>${formatCurrency(mortgage)}</div></div>
+          <div class="line"><div>Refi Closing Costs</div><div>-${formatCurrency(refiClose)}</div></div>
+          ${bringToClose > 0 ? `<div class="line" style="color:#ff6b6b"><div>Cash Required at Refi</div><div>-${formatCurrency(bringToClose)}</div></div>` : ''}
+          ${cashOut > 0 ? `<div class="line" style="color:var(--green)"><div>Cash Out at Refi</div><div>+${formatCurrency(cashOut)}</div></div>` : ''}
           <div class="line" style="font-weight:700;color:var(--gold);margin-top:4px"><div>Cash Left In Deal</div><div>${formatCurrency(cashLeftInDealSimple)}</div></div>
+
+          <!-- Monthly Cash Flow -->
           <div style="margin-top:12px;border-top:1px solid #ffffff44;padding-top:8px"></div>
+          <div style="font-weight:600;margin-bottom:6px">Monthly Cash Flow:</div>
           <div class="line"><div>Monthly Rent</div><div>${formatCurrency(rent)}</div></div>
-          <div class="line"><div>Vacancy (${(vacancyPct*100).toFixed(1)}%)</div><div>-${formatCurrency(vacancyAmount)}</div></div>
+          <div class="line"><div>Other Income</div><div>${formatCurrency(otherInc)}</div></div>
+          <div class="line" style="color:#b00020"><div>Vacancy (${(vacancyPct*100).toFixed(1)}%)</div><div>-${formatCurrency(vacancyAmount)}</div></div>
           <div class="line"><div>Operating Expenses</div><div>-${formatCurrency(opEx)}</div></div>
           <div class="line"><div>CapEx Reserve</div><div>-${formatCurrency(capex)}</div></div>
           <div class="line"><div>New Mortgage (P&I${pmiMonthly>0?' + PMI':''})</div><div>-${formatCurrency(mortgage)}</div></div>
-          <div class="line" style="font-weight:700;color:var(--green)"><div>Monthly Cash Flow</div><div>${formatCurrency(cashFlow)}</div></div>
+          <div class="line" style="font-weight:700;color:${cashFlow>=0?'var(--green)':'#b00020'};font-size:15px;margin-top:4px"><div>Net Monthly Cash Flow</div><div>${formatCurrency(cashFlow)}</div></div>
+
+          <!-- ROI & Depreciation -->
+          <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ffffff44"></div>
+          <div class="line"><div>Annual Cash Flow</div><div>${formatCurrency(cashFlow*12)}</div></div>
           <div class="line"><div>Cash on Cash ROI</div><div>${roi>900 ? 'Infinite' : roi.toFixed(2)+'%'}</div></div>
           <div class="line"><div>Annual Depreciation (est.)</div><div>${formatCurrency(annualDep)}</div></div>
-        </div>
-        <div class="card">
-          <h4>Project Cost Breakdown</h4>
-          <div class="line" style="display:flex;justify-content:space-between"><span>Purchase</span><span>${formatCurrency(price)}</span></div>
-          <div class="line" style="display:flex;justify-content:space-between"><span>Rehab</span><span>${formatCurrency(rehab)}</span></div>
-          <div class="line" style="display:flex;justify-content:space-between"><span>Purchase Closing</span><span>${formatCurrency(purchaseClose)}</span></div>
-          <div class="line" style="display:flex;justify-content:space-between"><span>Holding (${holdMonths} months)</span><span>${formatCurrency(holdTotal)}</span></div>
-          <div class="line" style="display:flex;justify-content:space-between"><span>Refi Closing</span><span>${formatCurrency(refiClose)}</span></div>
-          <div class="line" style="display:flex;justify-content:space-between;font-weight:700;border-top:1px solid #ddd;padding-top:6px;margin-top:6px"><span>Total Project Cost</span><span>${formatCurrency(totalProjectCost)}</span></div>
+          ${sqft > 0 ? `
+          <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ffffff44"></div>
+          <div style="font-weight:600;margin-bottom:6px">Cost Per Square Foot (${sqft.toLocaleString()} sqft):</div>
+          <div class="line"><div>Purchase Cost / sqft</div><div>${formatCurrency(costPerSqft)}</div></div>
+          ${rehab > 0 ? `<div class="line"><div>Renovation Cost / sqft</div><div>${formatCurrency(rehabPerSqft)}</div></div>` : ''}
+          <div class="line"><div>ARV / sqft</div><div>${formatCurrency(arvPerSqft)}</div></div>
+          ` : ''}
         </div>
         <div class="charts">
           <div class="chart-card" style="height:220px;max-width:300px;"><h4>Equity vs Loan</h4><canvas id="chartEquity" style="height:180px!important;max-width:280px!important;"></canvas></div>

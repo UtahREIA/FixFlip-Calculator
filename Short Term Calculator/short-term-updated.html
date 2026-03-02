@@ -107,6 +107,10 @@
     <div class="field"><label>State</label><input id="state" placeholder="UT" type="text"/></div>
     <div class="field"><label>ZIP code</label><input id="zip" placeholder="ZIP" type="text"/></div>
   </div>
+  <div class="row">
+    <div class="field"><label>Square Footage (optional)</label><input id="squareFootage" placeholder="e.g. 1500" type="number" min="0"/></div>
+    <div class="field"><label>Bedrooms (optional)</label><input id="bedrooms" placeholder="e.g. 3" type="number" min="0" step="1"/></div>
+  </div>
   <div class="field"><label>Optional: Features / Description</label><textarea id="features" placeholder="3 bed / 2 bath..."></textarea></div>
 </div>
 <div class="card step" data-step="2">
@@ -322,7 +326,7 @@
 <div class="card step" data-step="10">
   <div class="muted">Furnishing <span style="color:#2E8B57;font-weight:600">(STR-Specific)</span></div>
   <div class="row" style="margin-bottom:8px">
-    <div class="field"><label>Furnishing Cost (manual)</label><input id="furnishingCost" placeholder="$0" type="text"/></div>
+    <div class="field"><label>Furnishing Cost (manual)</label><input id="furnishingCost" placeholder="Leave blank to auto-estimate" type="text"/></div>
     <div class="field" style="align-self:end">
       <label class="toggle-label">Manual only
         <label class="switch"><input id="furnishingManualToggle" type="checkbox"/><span class="slider"></span></label>
@@ -330,6 +334,7 @@
       <div class="muted-small" style="margin-top:6px">Default: OFF (Use itemized items)</div>
     </div>
   </div>
+  <div id="furnishingAutoEstimate" style="margin:6px 0 10px;padding:8px 12px;background:#f0f8ff;border-radius:8px;border:1px solid #cce5ff;font-size:13px;color:#0066aa;display:none"></div>
   <button class="pencil" onclick="toggleEditor('furnishing')" type="button">✏️ Edit Furnishing Breakdown</button>
   <div aria-hidden="true" class="editor" id="editor-furnishing">
     <div style="margin-bottom:8px"><div class="subheading">Itemized Furnishing Costs (STR-Specific)</div></div>
@@ -347,7 +352,7 @@
     </div>
   </div>
   <div id="furnishingBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
-  <div class="muted-small">Enter the total cost for furnishing the property (beds, furniture, etc), or use the itemized breakdown for STR-specific details.</div>
+  <div class="muted-small">Leave blank to auto-estimate based on bedrooms (~$4,000/bed) or square footage (~$20/sqft). Or enter manually / use the itemized breakdown.</div>
   </div>
   <div class="card step" data-step="11">
   <div class="muted">Appreciation &amp; Selling Costs</div>
@@ -403,30 +408,7 @@
 <script>
     /* ---------- Config ---------- */
 
-    // Unlock calculator logic
-    window.addEventListener('DOMContentLoaded', function() {
-      var gateBtn = document.getElementById('gateSubmitBtn');
-      var gatePhone = document.getElementById('gatePhone');
-      var gateWrap = document.getElementById('gateWrap');
-      var calcWrap = document.getElementById('calcWrap');
-      var gateMessage = document.getElementById('gateMessage');
-      if (gateBtn && gatePhone && gateWrap && calcWrap) {
-        gateBtn.addEventListener('click', function() {
-          var phone = gatePhone.value.trim();
-          // Simple phone validation (at least 7 digits)
-          var digits = phone.replace(/\D/g, '');
-          if (digits.length < 7) {
-            if (gateMessage) gateMessage.textContent = 'Please enter a valid phone number.';
-            return;
-          }
-          if (gateMessage) gateMessage.textContent = '';
-          gateWrap.style.display = 'none';
-          calcWrap.style.display = '';
-          // Optionally, scroll to calculator
-          try { calcWrap.scrollIntoView({behavior:'smooth',block:'start'}); } catch(e) {}
-        });
-      }
-    });
+    // Unlock calculator logic handled below via verifyPhoneViaWorkflow
     const editorState = {
       purchaseExtrasUpfront: 0, purchaseManualBase: 0, purchaseManualOnly: false,
       rehabExtras: 0, rehabManualBase: 0, rehabManualOnly: false,
@@ -680,10 +662,23 @@
       const otherIncomeEditor = document.getElementById('editor-otherIncome');
       const editOtherIncomeBtn = document.getElementById('editOtherIncomeBtn');
       if(otherIncomeToggle && otherIncomeEditor && editOtherIncomeBtn) {
-        otherIncomeToggle.addEventListener('change', () => {
-             otherIncomeEditor.style.display = otherIncomeToggle.checked ? 'block' : 'none';
-             editOtherIncomeBtn.style.display = otherIncomeToggle.checked ? 'inline-flex' : 'none';
+        function updateOtherIncomeEditorVisibility() {
+          if(otherIncomeToggle.checked) {
+            otherIncomeEditor.style.display = 'block';
+            otherIncomeEditor.setAttribute('aria-hidden', 'false');
+            editOtherIncomeBtn.style.display = 'inline-flex';
+          } else {
+            otherIncomeEditor.style.display = 'none';
+            otherIncomeEditor.setAttribute('aria-hidden', 'true');
+            editOtherIncomeBtn.style.display = 'none';
+          }
+        }
+        otherIncomeToggle.addEventListener('change', updateOtherIncomeEditorVisibility);
+        editOtherIncomeBtn.addEventListener('click', ()=>{
+          otherIncomeEditor.style.display = (otherIncomeEditor.style.display==='block'?'none':'block');
+          otherIncomeEditor.setAttribute('aria-hidden', otherIncomeEditor.style.display==='block'?'false':'true');
         });
+        updateOtherIncomeEditorVisibility();
       }
 
       document.querySelectorAll('#calcWrap input, #calcWrap select').forEach(el => {
@@ -704,6 +699,17 @@
       if (purchasePriceEl) purchasePriceEl.addEventListener('input', renderLoanList);
       if (arvEl) arvEl.addEventListener('input', renderLoanList);
       if (useFinancingEl) useFinancingEl.addEventListener('change', renderLoanList);
+
+      // Cross-step auto-recalc: when rent or price changes, recalc editors that use % of Rent / % of Price
+      ['monthlyRent', 'purchasePrice', 'arv'].forEach(id => {
+        const el = $(id);
+        if(el) el.addEventListener('input', () => { recalcAllEditors(); updateVisibleTotals(); });
+      });
+      // Update furnishing auto-estimate when bedrooms or sqft changes
+      ['bedrooms', 'squareFootage', 'furnishingCost'].forEach(id => {
+        const el = $(id);
+        if(el) el.addEventListener('input', updateFurnishingEstimate);
+      });
     });
 
     // CapEx type dropdown handler
@@ -733,6 +739,26 @@ if($('capexType')) {
   });
 }
 
+    function updateFurnishingEstimate() {
+      const manualVal = unformatCurrency($('furnishingCost')?.value);
+      if(manualVal > 0) { if($('furnishingAutoEstimate')) $('furnishingAutoEstimate').style.display='none'; return; }
+      const beds = Number($('bedrooms')?.value)||0;
+      const sqft = Number($('squareFootage')?.value)||0;
+      const autoEstDiv = $('furnishingAutoEstimate');
+      if(!autoEstDiv) return;
+      if(beds > 0) {
+        const est = beds * 4000;
+        autoEstDiv.textContent = `💡 Auto-estimated furnishing: ${formatCurrency(est)} (based on ${beds} bedrooms × $4,000/bed). Enter a manual amount above to override.`;
+        autoEstDiv.style.display = 'block';
+      } else if(sqft > 0) {
+        const est = sqft * 20;
+        autoEstDiv.textContent = `💡 Auto-estimated furnishing: ${formatCurrency(est)} (based on ${sqft.toLocaleString()} sqft × $20/sqft). Enter a manual amount above to override.`;
+        autoEstDiv.style.display = 'block';
+      } else {
+        autoEstDiv.style.display = 'none';
+      }
+    }
+
     /* ---------- Navigation ---------- */
     const totalSteps = 13;
     let currentStep = 1;
@@ -748,31 +774,47 @@ if($('capexType')) {
       try{ $('calcWrap').scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
     }
     
+    function arvIsBlank() {
+      const arvVal = ($('arv') && $('arv').value) ? $('arv').value.trim() : '';
+      return arvVal === '' || unformatCurrency(arvVal) === 0;
+    }
+
     $('prevBtn').addEventListener('click', function(e) {
-      // Custom skip: on step 6, if rehab bypass is OFF, go back to step 2 not step 5
-      if(currentStep === 6) {
-        const rehabBypass = document.getElementById('rehabBypassToggle');
-        if(rehabBypass && !rehabBypass.checked) {
-          showStep(2);
-          return;
+      if(arvIsBlank()) {
+        // ARV blank: step 6 → step 2 (skipped 3,4,5)
+        if(currentStep === 6) { showStep(2); return; }
+      } else {
+        // ARV filled: step 6 → step 2 if no rehab (original skip logic)
+        if(currentStep === 6) {
+          const rehabBypass = $('rehabBypassToggle');
+          if(rehabBypass && !rehabBypass.checked) { showStep(2); return; }
+        }
+        // step 5 (Purchase Cost) → step 4 or step 2 if no rehab
+        if(currentStep === 5) {
+          const rehabBypass = $('rehabBypassToggle');
+          if(rehabBypass && !rehabBypass.checked) { showStep(4); return; }
         }
       }
       showStep(currentStep - 1);
     });
-        // Custom next button logic for step 2
-        const nextBtn = $('nextBtn');
-        if(nextBtn) {
-          nextBtn.addEventListener('click', function(e) {
-            if(currentStep === 2) {
-              const rehabBypass = $('rehabBypassToggle');
-              if(rehabBypass && !rehabBypass.checked) {
-                showStep(6);
-                return;
-              }
-            }
-            showStep(currentStep + 1);
-          });
+
+    const nextBtn = $('nextBtn');
+    if(nextBtn) {
+      nextBtn.addEventListener('click', function(e) {
+        if(currentStep === 2) {
+          if(arvIsBlank()) {
+            // No ARV: skip rehab (3), financing (4), purchase cost (5) → go to refi (6)
+            showStep(6); return;
+          }
+          const rehabBypass = $('rehabBypassToggle');
+          if(rehabBypass && !rehabBypass.checked) {
+            // Has ARV, no rehab: skip rehab (3) → go to financing (4)
+            showStep(4); return;
+          }
         }
+        showStep(currentStep + 1);
+      });
+    }
     $('prevBtnFinish').addEventListener('click', ()=>showStep(currentStep-1));
     $('finishBtn').addEventListener('click', computeAndRender);
 
@@ -841,6 +883,9 @@ if($('capexType')) {
         </div>`).join('');
       updateAggregatedLoanAmountDisplay();
       wireAllPurchaseAndRefiItems();
+      // Cross-step recalc: % of Loan items in rehab/purchase update when loan changes
+      recalcAllEditors();
+      updateVisibleTotals();
     }
 
     window.removeLoan = function(id){ loans = loans.filter(l=>l.id!==id); renderLoanList(); };
@@ -955,13 +1000,19 @@ if($('capexType')) {
         else if(kind === 'fixed_year') itemTotal = (val/12);
         else if(kind === 'pct_price') itemTotal = price * (val/100);
         else if(kind === 'pct_rent') itemTotal = effectiveRent * (val/100);
-        else if(kind === 'pct_arv' && key==='refi') itemTotal = arv * (val/100);
-        else if(kind === 'pct_loan' && key==='purchase') {
-          // Use the Total Initial Financing from Step 4 for % of Loan
+        else if(kind === 'pct_arv') {
+          // Use effective ARV: if ARV blank, fall back to purchase price
+          const effectiveArv = arv || price;
+          itemTotal = effectiveArv * (val/100);
+        }
+        else if(kind === 'pct_loan') {
+          // Use effective loan: aggregated financed amount, or purchase price if ARV skipped
           let loanAmount = 0;
           if (typeof computeAggregatedFinancedAmount === 'function') {
             loanAmount = computeAggregatedFinancedAmount();
           }
+          // If no loan set yet (ARV skipped), fall back to purchase price
+          if (!loanAmount) loanAmount = price;
           itemTotal = loanAmount * (val/100);
         }
 
@@ -1060,20 +1111,49 @@ if($('capexType')) {
       const price = unformatCurrency($('purchasePrice').value);
       const rehab = unformatCurrency($('repairs').value);
       const purchaseClose = unformatCurrency($('purchaseClosing').value);
-      const furnishing = unformatCurrency($('furnishingCost').value);
-      const initialLoanPrincipal = computeAggregatedFinancedAmount();
-      const allInCost = price + rehab + purchaseClose + furnishing;
+      const furnishingManual = unformatCurrency($('furnishingCost').value);
+      const sqftForFurnish = Number($('squareFootage').value) || 0;
+      const bedsForFurnish = Number($('bedrooms').value) || 0;
+      let furnishingAutoEstimated = false;
+      let furnishing = furnishingManual;
+      if(furnishing === 0) {
+        if(bedsForFurnish > 0) {
+          furnishing = bedsForFurnish * 4000;
+          furnishingAutoEstimated = true;
+        } else if(sqftForFurnish > 0) {
+          furnishing = sqftForFurnish * 20;
+          furnishingAutoEstimated = true;
+        }
+      }
+      // Show auto-estimate hint on the furnishing step
+      const autoEstDiv = $('furnishingAutoEstimate');
+      if(autoEstDiv) {
+        if(furnishingAutoEstimated) {
+          const basis = bedsForFurnish > 0 ? `${bedsForFurnish} bedrooms × $4,000/bed` : `${sqftForFurnish.toLocaleString()} sqft × $20/sqft`;
+          autoEstDiv.textContent = `💡 Auto-estimated furnishing: ${formatCurrency(furnishing)} (based on ${basis}). Enter a manual amount above to override.`;
+          autoEstDiv.style.display = 'block';
+        } else {
+          autoEstDiv.style.display = 'none';
+        }
+      }
+      const initialLoanPrincipalRaw = computeAggregatedFinancedAmount();
+      const arvRaw = unformatCurrency($('arv').value);
+      // If ARV is blank, user skipped financing — purchase price is the effective loan
+      const initialLoanPrincipal = (initialLoanPrincipalRaw === 0 && arvRaw === 0) ? price : initialLoanPrincipalRaw;
+      const allInCost = price + rehab + purchaseClose;
+      // Furnishing is NOT financed — it comes out of pocket, so it increases cash needed
       const totalCashInvested = allInCost - initialLoanPrincipal;
 
       const arv = unformatCurrency($('arv').value);
+      const effectiveArv = arv || price;
       const ltv = Number($('refiLtv').value)||75;
       const refiType = getRefiType();
       const refiClose = unformatCurrency($('refiClosingCosts').value);
-      const refiLoanObj = computeRefiLoanAmount(arv, ltv, initialLoanPrincipal, refiType);
+      const refiLoanObj = computeRefiLoanAmount(effectiveArv, ltv, initialLoanPrincipal, refiType);
       const newLoan = refiLoanObj.loanAmt;
 
-      const netRefiProceeds = newLoan - initialLoanPrincipal - refiClose;
-      const cashLeftInDeal = totalCashInvested - netRefiProceeds;
+      // Cash to Close = down payment + closing costs + furnishing (furnishing is an upfront out-of-pocket cost)
+      const cashToClose = Math.max(0, allInCost - newLoan) + refiClose + furnishing;
 
       const rent = unformatCurrency($('monthlyRent').value);
 const otherInc = unformatCurrency($('otherIncome').value);
@@ -1111,7 +1191,7 @@ switch(capexType) {
       // Add PMI if enabled and LTV > 80%
       let pmi = 0;
       if($('includePmiToggle') && $('includePmiToggle').checked) {
-        const ltvRatio = (actualLoan / arv) * 100;
+        const ltvRatio = (actualLoan / effectiveArv) * 100;
         if(ltvRatio > 80) {
           const pmiRate = (Number($('pmiPct').value) || 0.75) / 100 / 12;
           pmi = actualLoan * pmiRate;
@@ -1122,16 +1202,24 @@ switch(capexType) {
 const cashFlow = grossIncome - totalExpenses;
 
       const annualCashFlow = cashFlow * 12;
-      const roi = cashLeftInDeal > 0 ? (annualCashFlow / cashLeftInDeal)*100 : (annualCashFlow > 0 ? 999 : 0);
+      const roi = cashToClose > 0 ? (annualCashFlow / cashToClose)*100 : (annualCashFlow > 0 ? 999 : 0);
       const depBasis = unformatCurrency($('depreciationBasis').value) || (price + rehab + purchaseClose);
       const annualDep = depBasis / (Number($('depreciationYears').value) || 27.5);
+
+      // Square footage calculations
+      const sqft = Number($('squareFootage').value) || 0;
+      const costPerSqft = sqft > 0 ? price / sqft : 0;
+      const rehabPerSqft = sqft > 0 ? rehab / sqft : 0;
+      const arvPerSqft = sqft > 0 ? effectiveArv / sqft : 0;
 
       // 30-Year Projection logic
       const years = 30;
       const projLabels = Array.from({length: years}, (_, i) => `Year ${i+1}`);
+      let projGrossArr = [];
+      let projExpensesArr = [];
       let projCashFlowArr = [];
       let projEquityArr = [];
-      let curRent = rent, curOtherInc = otherInc, curOpEx = opEx, curCapEx = capex, curARV = arv;
+      let curRent = rent, curOtherInc = otherInc, curOpEx = opEx, curCapEx = capex, curARV = effectiveArv;
       const rentInc = Number($('annualRentIncrease').value)||0;
       const expInc = Number($('annualExpenseIncrease').value)||0;
       const appreciation = Number($('appreciation').value)||0;
@@ -1155,12 +1243,14 @@ const cashFlow = grossIncome - totalExpenses;
   }
   
   const yVacancy = curRent * vacancyPct;
-  const yGross = curRent + curOtherInc;
-  const yExpenses = yVacancy + curOpEx + curCapEx + mortgage + pmi;
+  const yGross = (curRent + curOtherInc - yVacancy) * 12;
+  const yExpenses = (curOpEx + curCapEx + mortgage + (pmi||0)) * 12;
   const yCF = yGross - yExpenses;
   const equity = curARV - loanBalance;
   
-  projCashFlowArr.push(Math.round(yCF * 12));
+  projGrossArr.push(Math.round(yGross));
+  projExpensesArr.push(Math.round(yExpenses));
+  projCashFlowArr.push(Math.round(yCF));
   projEquityArr.push(Math.round(equity));
 }
 
@@ -1169,24 +1259,29 @@ const cashFlow = grossIncome - totalExpenses;
     <h3 style="margin:0 0 10px;border-bottom:1px solid #ffffff44;padding-bottom:8px">Short-Term Rental Analysis Report</h3>
     
     <!-- Project Summary -->
-    <div class="line"><div>ARV</div><div>${formatCurrency(arv)}</div></div>
-    <div class="line"><div>Total All-In Cost</div><div>${formatCurrency(allInCost)}</div></div>
+    <div class="line"><div>ARV</div><div>${formatCurrency(effectiveArv)}${!arv ? ' <span style="font-size:11px;opacity:.7">(= Purchase Price)</span>' : ''}</div></div>
+    <div class="line"><div>Total All-In Cost (excl. furnishing)</div><div>${formatCurrency(allInCost)}</div></div>
+    ${furnishing > 0 ? `<div class="line"><div>Furnishing Cost${furnishingAutoEstimated ? ' <span style="font-size:11px;opacity:.7">(auto-est.)</span>' : ''}</div><div>${formatCurrency(furnishing)}</div></div>` : ''}
     
-    <!-- Refinance Details -->
+    <!-- Loan Details -->
     <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ffffff44"></div>
-    <div style="font-weight:600;margin-bottom:6px">Refinance Summary:</div>
-    <div class="line"><div>Refinance Type</div><div>${refiType==='rateterm'?'Rate & Term':'Cash-Out'}</div></div>
+    <div style="font-weight:600;margin-bottom:6px">Loan Summary:</div>
     <div class="line"><div>New Loan Amount (${ltv}% LTV)</div><div>${formatCurrency(actualLoan)}</div></div>
     <div class="line"><div>Interest Rate</div><div>${(Number($('refiRate').value)||7).toFixed(2)}%</div></div>
     <div class="line"><div>Monthly Payment (P&I)</div><div>${formatCurrency(mortgage)}</div></div>
     ${pmi > 0 ? `<div class="line"><div>Monthly PMI</div><div>${formatCurrency(pmi)}</div></div>` : ''}
     <div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.1)"></div>
-    <div class="line"><div>Initial Loan Payoff</div><div>${formatCurrency(initialLoanPrincipal)}</div></div>
-    <div class="line"><div>Refinance Closing Costs</div><div>-${formatCurrency(refiClose)}</div></div>
+    <div class="line"><div>Purchase Price</div><div>${formatCurrency(price)}</div></div>
+    <div class="line"><div>Rehab Costs</div><div>${formatCurrency(rehab)}</div></div>
+    <div class="line"><div>Purchase Closing Costs</div><div>${formatCurrency(purchaseClose)}</div></div>
+    ${furnishing > 0 ? `<div class="line"><div>Furnishing Cost${furnishingAutoEstimated ? ' <span style="font-size:11px;opacity:.7">(auto-est.)</span>' : ''}</div><div>${formatCurrency(furnishing)}</div></div>` : ''}
+    <div class="line"><div>Initial Loans (Step 4)</div><div>-${formatCurrency(initialLoanPrincipal)}</div></div>
+    ${(editorState.refiExtrasRolled||0) > 0 ? `<div class="line"><div>Refi Costs Rolled Into Loan</div><div>-${formatCurrency(editorState.refiExtrasRolled)}</div></div>` : ''}
+    <div class="line" style="font-weight:600"><div>Total Financed (Loans)</div><div>-${formatCurrency(initialLoanPrincipal + (editorState.refiExtrasRolled||0))}</div></div>
+    <div class="line"><div>Loan/Refi Costs (Upfront)</div><div>-${formatCurrency(refiClose)}</div></div>
     ${refiLoanObj.cashOut > 0 ? `<div class="line" style="color:var(--green)"><div>Cash Out</div><div>+${formatCurrency(refiLoanObj.cashOut)}</div></div>` : ''}
-    ${refiLoanObj.cashToBring > 0 ? `<div class="line" style="color:#ff6b6b"><div>Cash to Bring</div><div>-${formatCurrency(refiLoanObj.cashToBring)}</div></div>` : ''}
-    <div class="line" style="font-weight:700;border-top:1px solid rgba(255,255,255,0.2);padding-top:6px;margin-top:4px"><div>Net Refinance Proceeds</div><div>${formatCurrency(netRefiProceeds)}</div></div>
-    <div class="line" style="font-weight:700;color:var(--gold)"><div>Cash Left In Deal</div><div>${formatCurrency(cashLeftInDeal)}</div></div>
+    ${refiLoanObj.cashToBring > 0 ? `<div class="line" style="color:#ff6b6b"><div>Additional Cash Required</div><div>-${formatCurrency(refiLoanObj.cashToBring)}</div></div>` : ''}
+    <div class="line" style="font-weight:700;color:var(--gold)"><div>Cash to Close (Down Payment + Closing Costs + Furnishing)</div><div>${formatCurrency(cashToClose)}</div></div>
     
     <!-- Monthly Cash Flow Breakdown -->
     <div style="margin-top:12px;border-top:1px solid #ffffff44;padding-top:8px"></div>
@@ -1196,8 +1291,7 @@ const cashFlow = grossIncome - totalExpenses;
     <div class="line" style="color:#b00020"><div>Vacancy (${(vacancyPct*100).toFixed(1)}%)</div><div>-${formatCurrency(vacancyAmount)}</div></div>
     <div class="line"><div>Operating Expenses</div><div>-${formatCurrency(opEx)}</div></div>
     <div class="line"><div>CapEx Reserve</div><div>-${formatCurrency(capex)}</div></div>
-    <div class="line"><div>Mortgage</div><div>-${formatCurrency(mortgage)}</div></div>
-    ${pmi > 0 ? `<div class="line"><div>PMI</div><div>-${formatCurrency(pmi)}</div></div>` : ''}
+    <div class="line"><div>Mortgage (P&I${pmi>0?' + PMI':''})</div><div>-${formatCurrency(mortgage + pmi)}</div></div>
     <div class="line" style="font-weight:700;color:${cashFlow >= 0 ? 'var(--green)' : '#b00020'};font-size:15px;margin-top:4px">
       <div>Net Monthly Cash Flow</div><div>${formatCurrency(cashFlow)}</div>
     </div>
@@ -1206,6 +1300,13 @@ const cashFlow = grossIncome - totalExpenses;
     <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ffffff44"></div>
     <div class="line"><div>Cash-on-Cash ROI</div><div>${roi>900 ? 'Infinite' : roi.toFixed(2)+'%'}</div></div>
     <div class="line"><div>Annual Depreciation</div><div>${formatCurrency(annualDep)}</div></div>
+    ${sqft > 0 ? `
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ffffff44"></div>
+    <div style="font-weight:600;margin-bottom:6px">Cost Per Square Foot (${sqft.toLocaleString()} sqft):</div>
+    <div class="line"><div>Purchase Cost / sqft</div><div>${formatCurrency(costPerSqft)}</div></div>
+    ${rehab > 0 ? `<div class="line"><div>Renovation Cost / sqft</div><div>${formatCurrency(rehabPerSqft)}</div></div>` : ''}
+    <div class="line"><div>ARV / sqft</div><div>${formatCurrency(arvPerSqft)}</div></div>
+    ` : ''}
   </div>
   
   <div class="charts">
@@ -1213,19 +1314,21 @@ const cashFlow = grossIncome - totalExpenses;
     <div class="chart-card"><h4>Monthly Breakdown</h4><canvas id="chartFlow"></canvas></div>
   </div>
   <div class="chart-card" style="margin-top:16px"><h4>Cashflow Summary (30 Years)</h4><canvas id="chartProjection"></canvas></div>
+  <div class="chart-card" style="margin-top:16px"><h4>Equity Over Time (30 Years)</h4><canvas id="chartEquity30"></canvas></div>
   
   <button type="button" class="btn secondary" style="width:100%;margin-top:10px" onclick="downloadPdfHandler()">Download PDF Report</button>
 `;
       
       $('reportContainer').innerHTML = html;
-      renderCharts(newLoan, arv, totalExpenses, Math.max(0, cashFlow), projLabels, projCashFlowArr, projEquityArr);
+      renderCharts(newLoan, arv, totalExpenses, Math.max(0, cashFlow), projLabels, projGrossArr, projExpensesArr, projCashFlowArr, projEquityArr);
     }
 
-    function renderCharts(loan, arv, exp, flow, labels, cfData, eqData){
+    function renderCharts(loan, arv, exp, flow, labels, grossData, expData, cfData, eqData){
 
       if(window.chart1) window.chart1.destroy();
       if(window.chart2) window.chart2.destroy();
       if(window.chart3) window.chart3.destroy();
+      if(window.chart4) window.chart4.destroy();
 
 
       // Reduce chart size for PDF/A4 fit
@@ -1270,16 +1373,26 @@ const cashFlow = grossIncome - totalExpenses;
         data: {
           labels: labels,
           datasets: [
-            { label: 'Annual Cash Flow', data: cfData, borderColor: '#2E8B57', backgroundColor: 'rgba(46,139,87,0.1)', yAxisID: 'y' },
-            { label: 'Equity', data: eqData, borderColor: '#1a2a4f', backgroundColor: 'rgba(26,42,79,0.1)', yAxisID: 'y1' }
+            { label: 'Gross Income', data: grossData, borderColor: '#00e6e6', backgroundColor: 'rgba(0,230,230,0.1)', fill: false, tension: 0.1 },
+            { label: 'Total Expenses', data: expData, borderColor: '#ff4444', backgroundColor: 'rgba(255,68,68,0.1)', fill: false, tension: 0.1 },
+            { label: 'Net Cashflow', data: cfData, borderColor: '#00cc44', backgroundColor: 'rgba(0,204,68,0.1)', fill: false, tension: 0.1 }
           ]
         },
         options: {
-          scales: {
-            y: { type: 'linear', position: 'left', title: { display: true, text: 'Cash Flow' } },
-            y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Equity' } }
-          }
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            title: { display: true, text: 'Cashflow Summary (30 Years)' },
+            datalabels: { display: false }
+          },
+          scales: { y: { beginAtZero: true, ticks: { callback: function(value){ return formatCurrency(value); } } } }
         }
+      });
+
+      window.chart4 = new Chart($('chartEquity30'), {
+        type: 'line',
+        data: { labels: labels, datasets: [{ label: 'Equity', data: eqData, borderColor: '#2E8B57', backgroundColor: 'rgba(46,139,87,0.2)', fill: true, tension: 0.1 }] },
+        options: { responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Equity Growth Over Time' }, datalabels: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: function(value){ return formatCurrency(value); } } } } }
       });
       
 
@@ -1339,15 +1452,14 @@ const cashFlow = grossIncome - totalExpenses;
       try {
         const res = await verifyPhoneViaWorkflow(p);
         if(res.status==='Trial') {
-          alert(`You are on a 30-day free trial. Days left: ${res.daysLeft}.\nContact Utah REIA to become a member and enjoy unlimited access!`);
+          const trialReminder = document.getElementById('trialReminder');
+          if (trialReminder) {
+            trialReminder.textContent = `⚠️ You are on a 30-day free trial. Days left: ${res.daysLeft}. Contact Utah REIA to become a member and enjoy unlimited access!`;
+            trialReminder.style.display = 'block';
+          }
         }
         sessionStorage.setItem('utahreia_calc_verified', 'true');
         unlock();
-        const trialReminder = document.getElementById('trialReminder');
-        if (trialReminder && res.status === 'Trial') {
-          trialReminder.textContent = `You are on a 30-day free trial. Days left: ${res.daysLeft}. Contact Utah REIA to become a member and enjoy unlimited access!`;
-          trialReminder.style.display = 'block';
-        }
       } catch(e) { alert(e.message); }
       $('gateSubmitBtn').innerText = 'Unlock Calculator';
     };
