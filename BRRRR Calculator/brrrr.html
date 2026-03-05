@@ -175,7 +175,7 @@
 </div>
 <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
 <button class="btn" id="previewLoanBtn" style="background:#001F3F;color:#fff" type="button">Preview Loan</button>
-<button class="btn" id="addLoanBtn" type="button">Add a Loan</button>
+<button class="btn" id="addLoanBtn" type="button">Add This Loan</button>
 </div>
 <div id="loanPreview" style="margin-top:10px;padding:10px;background:#f0f8ff;border-radius:8px;display:none"><strong>Preview:</strong><div id="loanPreviewContent"></div></div>
 <div class="loan-list" id="loanList"></div>
@@ -212,22 +212,22 @@
 </div>
 <div class="card step" data-step="6">
 <div class="muted">Monthly Holding Costs</div>
-<div class="subheading">Holding Costs (During Rehab)</div>
+<div class="subheading">Holding Costs (Before Tenant / During Rehab)</div>
 <div class="row">
 <div class="field"><label>Monthly Holding (Manual Base)</label><input id="holdingMonthly" placeholder="$500" type="text"/></div>
 <div class="field" style="align-self:end"><label class="toggle-label">Manual Only<label class="switch"><input id="holdingManualToggle" type="checkbox"/><span class="slider"></span></label></label></div>
 </div>
 <button class="pencil" onclick="toggleEditor('holding')" type="button">✏️ Edit Monthly Items</button>
 <div aria-hidden="true" class="editor" id="editor-holding">
-<div class="item"><input class="item-label" value="Property Tax"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button class="icon-btn" type="button">🗑️</button></div>
-<div class="item"><input class="item-label" value="Insurance"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button class="icon-btn" type="button">🗑️</button></div>
-<div class="item"><input class="item-label" value="Utilities"/><input class="item-value small-input" data-kind="fixed" value="150"/><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Property Tax"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-freq"><option selected value="per_month">Per Month</option><option value="per_year">Per Year</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Insurance"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-freq"><option selected value="per_month">Per Month</option><option value="per_year">Per Year</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Utilities"/><input class="item-value small-input" data-kind="fixed" value="150"/><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-freq"><option selected value="per_month">Per Month</option><option value="per_year">Per Year</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button class="icon-btn" type="button">🗑️</button></div>
 <div id="holding-add-area"></div>
 <div style="margin-top:8px;"><button class="btn" onclick="addItem('holding')" type="button">+ Add Item</button></div>
 <div class="row-actions"><div class="total-display">Monthly Extras: <span id="holdingEditorTotal">$0</span></div><div style="display:flex;gap:8px"><button class="btn secondary" onclick="cancelEditor('holding')" type="button">Cancel</button><button class="btn" onclick="saveEditor('holding')" type="button">Save</button></div></div>
 </div>
 <div id="holdingBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
-<div style="margin-top:6px;font-size:13px"><strong>Total Holding (over <span id="holdMonthsDisplay">6</span> mo):</strong> <span id="holdingTotalDisplay">$0</span> (Includes Interest)</div>
+<div style="margin-top:6px;font-size:13px"><strong>Total Holding (over <span id="holdMonthsDisplay">6</span> mo):</strong> <span id="holdingTotalDisplay">$0</span> (Includes loan interest if applicable)</div>
 </div>
 <div class="card step" data-step="7">
 <div class="muted">Refinance / Financing</div>
@@ -661,7 +661,7 @@
       }
       else if(key==='holding'){ 
         kindOptions = ``;
-        extraElements = `<select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span>`;
+        extraElements = `<select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-freq"><option selected value="per_month">Per Month</option><option value="per_year">Per Year</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span>`;
       }
       else if(key==='refi'){ 
         kindOptions = `<option selected value="fixed">Fixed</option><option value="pct_loan">% of Loan</option><option value="pct_arv">% of ARV</option>`;
@@ -740,7 +740,9 @@
               if(kind === 'fixed_month') itemValue = val;
               else if(kind === 'fixed_year') itemValue = (val/12);
             } else {
-              itemValue = val;
+              // holding: respect Per Month / Per Year
+              const freqEl = i.querySelector('.item-freq');
+              itemValue = (freqEl && freqEl.value === 'per_year') ? val / 12 : val;
             }
           } else {
             if(kind === 'pct_rent') {
@@ -883,16 +885,19 @@
           const currentKindSelect = currentItem.querySelector('.item-kind');
           const currentAfterVacWrapper = currentItem.querySelector('.after-vacancy-wrapper');
           
+          const freqSel = currentItem.querySelector('.item-freq');
           if(this.value === 'fixed') {
             currentKindSelect.style.display = 'none';
             currentKindSelect.innerHTML = '';
             if(currentAfterVacWrapper) currentAfterVacWrapper.style.display = 'none';
+            if(freqSel) freqSel.style.display = 'inline-block';
           } else {
             currentKindSelect.style.display = 'inline-block';
             currentKindSelect.innerHTML = '<option selected value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option>';
             if(currentAfterVacWrapper && currentKindSelect.value === 'pct_rent') {
               currentAfterVacWrapper.style.display = 'inline-flex';
             }
+            if(freqSel) freqSel.style.display = 'none';
           }
           recalcEditor('holding');
         });
@@ -917,14 +922,22 @@
           newCheck.addEventListener('change', () => recalcEditor('holding'));
         }
         
+        const freqSelectEl = item.querySelector('.item-freq');
+        if(freqSelectEl) {
+          const newFreqSel = freqSelectEl.cloneNode(true);
+          freqSelectEl.replaceWith(newFreqSel);
+          newFreqSel.addEventListener('change', () => recalcEditor('holding'));
+        }
         if(newTypeSelect.value === 'percent') {
           newKindSelect.style.display = 'inline-block';
           if(newKindSelect.value === 'pct_rent') {
             afterVacWrapper.style.display = 'inline-flex';
           }
+          if(freqSelectEl) freqSelectEl.style.display = 'none';
         } else {
           newKindSelect.style.display = 'none';
           afterVacWrapper.style.display = 'none';
+          if(freqSelectEl) freqSelectEl.style.display = 'inline-block';
         }
       });
     };
@@ -1013,9 +1026,12 @@
 
       const hMonths = Number($('holdingTime').value)||0;
       const currentHMonthlyVal = unformatCurrency($('holdingMonthly').value);
+      const holdingMonthlyToUse = editorState.holdingManualOnly
+        ? (currentHMonthlyVal||0)
+        : (editorState.holdingMonthlyExtras||currentHMonthlyVal||0);
       let interest = 0;
       loans.forEach(l => { interest += (l.financed * (l.rate/100)/12) * hMonths; });
-      $('holdingTotalDisplay').textContent = formatCurrency( (currentHMonthlyVal * hMonths) + interest );
+      $('holdingTotalDisplay').textContent = formatCurrency( (holdingMonthlyToUse * hMonths) + interest );
       if($('holdMonthsDisplay')) $('holdMonthsDisplay').textContent = hMonths;
     }
 
@@ -1146,77 +1162,142 @@
       }
 
       const html = `
-        <div class="results" style="margin-bottom:12px;">
-          <h3 style="margin:0 0 10px;border-bottom:1px solid #ffffff44;padding-bottom:8px">BRRRR Analysis Report</h3>
-          
-          <!-- Project Summary -->
-          <div class="line"><div>ARV</div><div>${formatCurrency(arv)}</div></div>
-          <div class="line"><div>Total All-In Cost</div><div>${formatCurrency(totalProjectCost)}</div></div>
-          
-          <!-- Project Cost Breakdown -->
-          <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ffffff44"></div>
-          <div style="font-weight:600;margin-bottom:6px">Project Cost Breakdown:</div>
-          <div class="line"><div>Purchase Price</div><div>${formatCurrency(price)}</div></div>
-          <div class="line"><div>Rehab Costs</div><div>${formatCurrency(rehab)}</div></div>
-          <div class="line"><div>Purchase Closing Costs</div><div>${formatCurrency(purchaseClose)}</div></div>
-          <div class="line"><div>Holding Costs (${holdMonths} months)</div><div>${formatCurrency(holdTotal)}</div></div>
-          <div class="line"><div>Total Financed (Loans)</div><div>-${formatCurrency(initialLoanPrincipal + (editorState.purchaseExtrasRolled||0) + (editorState.refiExtrasRolled||0))}</div></div>
-          <div class="line" style="font-weight:700;padding-top:4px"><div>Total Cash Invested</div><div>${formatCurrency(totalCashInvested)}</div></div>
+  <div class="results" style="margin-bottom:12px;">
+    <h3 style="margin:0 0 10px;border-bottom:1px solid #ffffff44;padding-bottom:8px">BRRRR Analysis Report</h3>
 
-          <!-- Refi Summary -->
-          <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ffffff44"></div>
-          <div style="font-weight:600;margin-bottom:6px">Refinance Summary:</div>
-          <div class="line"><div>Refi Type</div><div>${refiType==='rateterm'?'Rate & Term':'Cash-Out'}</div></div>
-          <div class="line"><div>New Loan Amount (${ltv}% LTV)</div><div>${formatCurrency(newLoan)}</div></div>
-          <div class="line"><div>Interest Rate</div><div>${(Number($('refiRate').value)||7).toFixed(2)}%</div></div>
-          <div class="line"><div>Monthly Payment (P&I${pmiMonthly>0?' + PMI':''})</div><div>${formatCurrency(mortgage)}</div></div>
-          <div class="line"><div>Refi Closing Costs</div><div>-${formatCurrency(refiClose)}</div></div>
-          ${bringToClose > 0 ? `<div class="line" style="color:#ff6b6b"><div>Cash Required at Refi</div><div>-${formatCurrency(bringToClose)}</div></div>` : ''}
-          ${cashOut > 0 ? `<div class="line" style="color:var(--green)"><div>Cash Out at Refi</div><div>+${formatCurrency(cashOut)}</div></div>` : ''}
-          <div class="line" style="font-weight:700;color:var(--gold);margin-top:4px"><div>Cash Left In Deal</div><div>${formatCurrency(cashLeftInDealSimple)}</div></div>
+    <!-- Project Summary -->
+    <div class="line"><div>ARV</div><div>${formatCurrency(arv)}</div></div>
+    <div class="line"><div>Total All-In Cost</div><div>${formatCurrency(totalProjectCost)}</div></div>
 
-          <!-- Monthly Cash Flow -->
-          <div style="margin-top:12px;border-top:1px solid #ffffff44;padding-top:8px"></div>
-          <div style="font-weight:600;margin-bottom:6px">Monthly Cash Flow:</div>
-          <div class="line"><div>Monthly Rent</div><div>${formatCurrency(rent)}</div></div>
-          <div class="line"><div>Other Income</div><div>${formatCurrency(otherInc)}</div></div>
-          <div class="line" style="color:#b00020"><div>Vacancy (${(vacancyPct*100).toFixed(1)}%)</div><div>-${formatCurrency(vacancyAmount)}</div></div>
-          <div class="line"><div>Operating Expenses</div><div>-${formatCurrency(opEx)}</div></div>
-          <div class="line"><div>CapEx Reserve</div><div>-${formatCurrency(capex)}</div></div>
-          <div class="line"><div>New Mortgage (P&I${pmiMonthly>0?' + PMI':''})</div><div>-${formatCurrency(mortgage)}</div></div>
-          <div class="line" style="font-weight:700;color:${cashFlow>=0?'var(--green)':'#b00020'};font-size:15px;margin-top:4px"><div>Net Monthly Cash Flow</div><div>${formatCurrency(cashFlow)}</div></div>
+    <!-- Loan Summary -->
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ffffff44"></div>
+    <div style="font-weight:600;margin-bottom:6px">Loan Summary:</div>
+    <div class="line"><div>New Loan Amount (${ltv}% LTV)</div><div>${formatCurrency(newLoan)}</div></div>
+    <div class="line"><div>Interest Rate</div><div>${(Number($('refiRate').value)||7).toFixed(2)}%</div></div>
+    <div class="line"><div>Monthly Payment (P&I${pmiMonthly>0?' + PMI':''})</div><div>${formatCurrency(mortgage)}</div></div>
+    ${pmiMonthly > 0 ? `<div class="line"><div>Monthly PMI</div><div>${formatCurrency(pmiMonthly)}</div></div>` : ''}
 
-          <!-- ROI & Depreciation -->
-          <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ffffff44"></div>
-          <div class="line"><div>Annual Cash Flow</div><div>${formatCurrency(cashFlow*12)}</div></div>
-          <div class="line"><div>Cash on Cash ROI</div><div>${roi>900 ? 'Infinite' : roi.toFixed(2)+'%'}</div></div>
-          <div class="line"><div>Annual Depreciation (est.)</div><div>${formatCurrency(annualDep)}</div></div>
-          ${sqft > 0 ? `
-          <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ffffff44"></div>
-          <div style="font-weight:600;margin-bottom:6px">Cost Per Square Foot (${sqft.toLocaleString()} sqft):</div>
-          <div class="line"><div>Purchase Cost / sqft</div><div>${formatCurrency(costPerSqft)}</div></div>
-          ${rehab > 0 ? `<div class="line"><div>Renovation Cost / sqft</div><div>${formatCurrency(rehabPerSqft)}</div></div>` : ''}
-          <div class="line"><div>ARV / sqft</div><div>${formatCurrency(arvPerSqft)}</div></div>
-          ` : ''}
-        </div>
-        <div class="charts">
-          <div class="chart-card" style="height:220px;max-width:300px;"><h4>Equity vs Loan</h4><canvas id="chartEquity" style="height:180px!important;max-width:280px!important;"></canvas></div>
-          <div class="chart-card" style="height:220px;max-width:300px;"><h4>Monthly Cash Flow</h4><canvas id="chartFlow" style="height:180px!important;max-width:280px!important;"></canvas></div>
-        </div>
-        <div class="chart-card" style="margin-top:18px"><h4>Cashflow Summary (30 Years)</h4><canvas id="chartProjection"></canvas></div>
-        <div class="chart-card" style="margin-top:18px"><h4>Equity Over Time (30 Years)</h4><canvas id="chartEquity30"></canvas></div>
-        <button type="button" class="btn secondary" style="margin-top:16px;width:100%" onclick="downloadPdfHandler()">Download PDF Report</button>
-      `;
+    <!-- Project Cost Breakdown -->
+    <div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.1)"></div>
+    <div class="line"><div>Purchase Price</div><div>${formatCurrency(price)}</div></div>
+    <div class="line"><div>Rehab Costs</div><div>${formatCurrency(rehab)}</div></div>
+    <div class="line"><div>Purchase Closing Costs</div><div>${formatCurrency(purchaseClose)}</div></div>
+    <div class="line"><div>Holding Costs (${holdMonths} mo)</div><div>${formatCurrency(holdTotal)}</div></div>
+    <div class="line"><div>Initial Loans (Step 4)</div><div>-${formatCurrency(initialLoanPrincipal)}</div></div>
+    ${(editorState.refiExtrasRolled||0) > 0 ? `<div class="line"><div>Refi Costs Rolled Into Loan</div><div>-${formatCurrency(editorState.refiExtrasRolled)}</div></div>` : ''}
+    <div class="line" style="font-weight:600"><div>Total Financed (Loans)</div><div>-${formatCurrency(initialLoanPrincipal + (editorState.refiExtrasRolled||0))}</div></div>
+
+    <!-- Refi Summary -->
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ffffff44"></div>
+    <div style="font-weight:600;margin-bottom:6px">Refinance Summary:</div>
+    <div class="line"><div>Refi Type</div><div>${refiType==='rateterm'?'Rate & Term':'Cash-Out'}</div></div>
+    <div class="line"><div>Refi Closing Costs</div><div>-${formatCurrency(refiClose)}</div></div>
+    ${bringToClose > 0 ? `<div class="line" style="color:#ff6b6b"><div>Cash Required at Refi</div><div>-${formatCurrency(bringToClose)}</div></div>` : ''}
+    ${cashOut > 0 ? `<div class="line" style="color:var(--green)"><div>Cash Out at Refi</div><div>+${formatCurrency(cashOut)}</div></div>` : ''}
+    <div class="line" style="font-weight:700;color:var(--gold)"><div>Cash Left In Deal</div><div>${formatCurrency(cashLeftInDealSimple)}</div></div>
+
+    <!-- Monthly Cash Flow Breakdown -->
+    <div style="margin-top:12px;border-top:1px solid #ffffff44;padding-top:8px"></div>
+    <div style="font-weight:600;margin-bottom:6px">Monthly Breakdown:</div>
+    <div class="line"><div>Rental Income</div><div>${formatCurrency(rent)}</div></div>
+    <div class="line"><div>Other Income</div><div>${formatCurrency(otherInc)}</div></div>
+    <div class="line" style="color:#b00020"><div>Vacancy (${(vacancyPct*100).toFixed(1)}%)</div><div>-${formatCurrency(vacancyAmount)}</div></div>
+    <div class="line"><div>Operating Expenses</div><div>-${formatCurrency(opEx)}</div></div>
+    <div class="line"><div>CapEx Reserve</div><div>-${formatCurrency(capex)}</div></div>
+    <div class="line"><div>Mortgage (P&I${pmiMonthly>0?' + PMI':''})</div><div>-${formatCurrency(mortgage)}</div></div>
+    <div class="line" style="font-weight:700;color:${cashFlow>=0?'var(--green)':'#b00020'};font-size:15px;margin-top:4px">
+      <div>Net Monthly Cash Flow</div><div>${formatCurrency(cashFlow)}</div>
+    </div>
+
+    <!-- ROI -->
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ffffff44"></div>
+    <div class="line"><div>Annual Cash Flow</div><div>${formatCurrency(cashFlow*12)}</div></div>
+    <div class="line"><div>Cash-on-Cash ROI</div><div>${roi>900 ? 'Infinite' : roi.toFixed(2)+'%'}</div></div>
+    <div class="line"><div>Annual Depreciation</div><div>${formatCurrency(annualDep)}</div></div>
+    ${sqft > 0 ? `
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid #ffffff44"></div>
+    <div style="font-weight:600;margin-bottom:6px">Cost Per Square Foot (${sqft.toLocaleString()} sqft):</div>
+    <div class="line"><div>Purchase Cost / sqft</div><div>${formatCurrency(costPerSqft)}</div></div>
+    ${rehab > 0 ? `<div class="line"><div>Renovation Cost / sqft</div><div>${formatCurrency(rehabPerSqft)}</div></div>` : ''}
+    <div class="line"><div>ARV / sqft</div><div>${formatCurrency(arvPerSqft)}</div></div>
+    ` : ''}
+  </div>
+
+  <div class="charts">
+    <div class="chart-card"><h4>Equity vs Loan</h4><canvas id="chartEquity"></canvas></div>
+    <div class="chart-card"><h4>Monthly Breakdown</h4><canvas id="chartFlow"></canvas></div>
+  </div>
+  <div class="chart-card" style="margin-top:16px"><h4>Cashflow Summary (30 Years)</h4><canvas id="chartProjection"></canvas></div>
+  <div class="chart-card" style="margin-top:16px"><h4>Equity Over Time (30 Years)</h4><canvas id="chartEquity30"></canvas></div>
+
+  <button type="button" class="btn secondary" style="width:100%;margin-top:10px" onclick="downloadPdfHandler()">Download PDF Report</button>
+`;
+
       $('reportContainer').innerHTML = html;
-      
+      renderCharts(newLoan, arv, totalExpenses, Math.max(0, cashFlow), projLabels, projRent, projExpenses, projCashflow, projEquity);
+    }
+
+    function renderCharts(loan, arv, exp, flow, labels, grossData, expData, cfData, eqData){
       if(window.chart1) window.chart1.destroy();
       if(window.chart2) window.chart2.destroy();
       if(window.chart3) window.chart3.destroy();
       if(window.chart4) window.chart4.destroy();
-      window.chart1 = new Chart($('chartEquity'), { type:'pie', data: { labels: ['New Loan', 'Equity Created'], datasets: [{ data: [newLoan, arv-newLoan], backgroundColor:['#1a2a4f','#2E8B57'] }] }, options: { plugins: { datalabels: { color:'#fff', formatter:(v)=>formatCurrency(v) }, legend:{position:'bottom'} }, responsive: true, maintainAspectRatio: false }, plugins: [ChartDataLabels] });
-      window.chart2 = new Chart($('chartFlow'), { type:'doughnut', data: { labels: ['Expenses', 'Cash Flow'], datasets: [{ data: [totalExpenses, Math.max(0,cashFlow)], backgroundColor:['#b00020','#2E8B57'] }] }, options: { plugins: { datalabels: { color:'#fff', formatter:(v)=>formatCurrency(v) }, legend:{position:'bottom'} }, responsive: true, maintainAspectRatio: false }, plugins: [ChartDataLabels] });
-      window.chart3 = new Chart($('chartProjection'), { type: 'line', data: { labels: projLabels, datasets: [{ label: 'Gross Income', data: projRent, borderColor: '#00e6e6', backgroundColor: 'rgba(0,230,230,0.1)', fill: false, tension: 0.1 }, { label: 'Total Expenses', data: projExpenses, borderColor: '#ff4444', backgroundColor: 'rgba(255,68,68,0.1)', fill: false, tension: 0.1 }, { label: 'Net Cashflow', data: projCashflow, borderColor: '#00cc44', backgroundColor: 'rgba(0,204,68,0.1)', fill: false, tension: 0.1 }] }, options: { responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Cashflow Summary (30 Years)' }, datalabels: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: function(value){ return formatCurrency(value); } } } } } });
-      window.chart4 = new Chart($('chartEquity30'), { type: 'line', data: { labels: projLabels, datasets: [{ label: 'Equity', data: projEquity, borderColor: '#2E8B57', backgroundColor: 'rgba(46,139,87,0.2)', fill: true, tension: 0.1 }] }, options: { responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Equity Growth Over Time' }, datalabels: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: function(value){ return formatCurrency(value); } } } } } });
+
+      const pieOptions = {
+        plugins: { legend: { position: 'bottom' }, datalabels: { color: '#fff', formatter: v => formatCurrency(v) } },
+        responsive: false,
+        maintainAspectRatio: false,
+        width: 120,
+        height: 100
+      };
+
+      const chartEquityCanvas = $('chartEquity');
+      const loanVal = Number(loan);
+      const arvVal = Number(arv);
+      if (chartEquityCanvas && !isNaN(loanVal) && !isNaN(arvVal)) {
+        try {
+          window.chart1 = new Chart(chartEquityCanvas, {
+            type:'pie',
+            data: { labels: ['Loan', 'Equity'], datasets: [{ data: [loanVal, Math.max(0, arvVal-loanVal)], backgroundColor:['#1a2a4f','#2E8B57'] }] },
+            options: pieOptions,
+            plugins: [ChartDataLabels]
+          });
+        } catch(e) { console.error('Equity chart error:', e); }
+      }
+
+      window.chart2 = new Chart($('chartFlow'), {
+        type:'doughnut',
+        data: { labels: ['Expenses', 'Cash Flow'], datasets: [{ data: [exp, Math.max(0, flow)], backgroundColor:['#b00020','#2E8B57'] }] },
+        options: pieOptions,
+        plugins: [ChartDataLabels]
+      });
+
+      window.chart3 = new Chart($('chartProjection'), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            { label: 'Gross Income', data: grossData, borderColor: '#00e6e6', backgroundColor: 'rgba(0,230,230,0.1)', fill: false, tension: 0.1 },
+            { label: 'Total Expenses', data: expData, borderColor: '#ff4444', backgroundColor: 'rgba(255,68,68,0.1)', fill: false, tension: 0.1 },
+            { label: 'Net Cashflow', data: cfData, borderColor: '#00cc44', backgroundColor: 'rgba(0,204,68,0.1)', fill: false, tension: 0.1 }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'top' }, title: { display: true, text: 'Cashflow Summary (30 Years)' }, datalabels: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { callback: function(value){ return formatCurrency(value); } } } }
+        }
+      });
+
+      window.chart4 = new Chart($('chartEquity30'), {
+        type: 'line',
+        data: { labels: labels, datasets: [{ label: 'Equity', data: eqData, borderColor: '#2E8B57', backgroundColor: 'rgba(46,139,87,0.2)', fill: true, tension: 0.1 }] },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'top' }, title: { display: true, text: 'Equity Growth Over Time' }, datalabels: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { callback: function(value){ return formatCurrency(value); } } } }
+        }
+      });
     }
 
     async function downloadPdfHandler(){

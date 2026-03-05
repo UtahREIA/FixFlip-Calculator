@@ -1000,13 +1000,19 @@ if($('capexType')) {
         else if(kind === 'fixed_year') itemTotal = (val/12);
         else if(kind === 'pct_price') itemTotal = price * (val/100);
         else if(kind === 'pct_rent') itemTotal = effectiveRent * (val/100);
-        else if(kind === 'pct_arv' && key==='refi') itemTotal = arv * (val/100);
-        else if(kind === 'pct_loan' && key==='purchase') {
-          // Use the Total Initial Financing from Step 4 for % of Loan
+        else if(kind === 'pct_arv') {
+          // Use effective ARV: if ARV blank, fall back to purchase price
+          const effectiveArv = arv || price;
+          itemTotal = effectiveArv * (val/100);
+        }
+        else if(kind === 'pct_loan') {
+          // Use effective loan: aggregated financed amount, or purchase price if ARV skipped
           let loanAmount = 0;
           if (typeof computeAggregatedFinancedAmount === 'function') {
             loanAmount = computeAggregatedFinancedAmount();
           }
+          // If no loan set yet (ARV skipped), fall back to purchase price
+          if (!loanAmount) loanAmount = price;
           itemTotal = loanAmount * (val/100);
         }
 

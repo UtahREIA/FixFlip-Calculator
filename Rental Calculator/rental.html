@@ -164,9 +164,10 @@
   <div id="rehabBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
 </div>
 <div class="card step" data-step="4">
-<div class="muted">Financing</div>
+<div class="muted">Financing &amp; Hold Period</div>
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
 <label class="toggle-label">Use Financing<label class="switch"><input checked="" id="useFinancing" type="checkbox"/><span class="slider"></span></label></label>
+<div class="muted-small">Default: Financing ON. Add loans to model interest and financed amounts.</div>
 <div style="margin-top:10px;margin-bottom:15px;"><a class="btn" href="https://retorocapitalinvestments.com/funding" style="background:#001F3F;color:#fff;" target="_blank">Get a Loan</a></div>
 </div>
 <div id="financingArea">
@@ -188,6 +189,14 @@
 <div id="loanPreview" style="margin-top:10px;padding:10px;background:#f0f8ff;border-radius:8px;display:none"><strong>Preview:</strong><div id="loanPreviewContent"></div></div>
 <div class="loan-list" id="loanList"></div>
 <div style="margin-top:12px;font-weight:700">Total Initial Financing: <span id="computedLoanAmount">$0</span></div>
+</div>
+<div style="margin-top:20px; border-top:1px solid #eee; padding-top:12px;">
+<div class="subheading">Hold Period</div>
+<div class="row">
+<div class="field"><label>Holding Timeframe (months)</label>
+<input id="holdingTime" type="number" value="6" min="1" step="1" placeholder="6"/>
+</div>
+</div>
 </div>
 </div>
 <div class="card step" data-step="5">
@@ -217,18 +226,17 @@
 <div class="field"><label>Monthly Holding (Manual Base)</label><input id="holdingMonthly" placeholder="$500" type="text"/></div>
 <div class="field" style="align-self:end"><label class="toggle-label">Manual Only<label class="switch"><input id="holdingManualToggle" type="checkbox"/><span class="slider"></span></label></label></div>
 </div>
-<div class="field"><label>Holding Timeframe (months)</label><input id="holdingTime" type="number" value="1" min="1" step="1" placeholder="1"/></div>
 <button class="pencil" onclick="toggleEditor('holding')" type="button">✏️ Edit Monthly Items</button>
 <div aria-hidden="true" class="editor" id="editor-holding">
-<div class="item"><input class="item-label" value="Property Tax"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button class="icon-btn" type="button">🗑️</button></div>
-<div class="item"><input class="item-label" value="Insurance"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button class="icon-btn" type="button">🗑️</button></div>
-<div class="item"><input class="item-label" value="Utilities"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Property Tax"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-freq"><option selected value="per_month">Per Month</option><option value="per_year">Per Year</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Insurance"/><input class="item-value small-input" data-kind="fixed" value="0"/><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-freq"><option selected value="per_month">Per Month</option><option value="per_year">Per Year</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button class="icon-btn" type="button">🗑️</button></div>
+<div class="item"><input class="item-label" value="Utilities"/><input class="item-value small-input" data-kind="fixed" value="150"/><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-freq"><option selected value="per_month">Per Month</option><option value="per_year">Per Year</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button class="icon-btn" type="button">🗑️</button></div>
 <div id="holding-add-area"></div>
 <div style="margin-top:8px;"><button class="btn" onclick="addItem('holding')" type="button">+ Add Item</button></div>
 <div class="row-actions"><div class="total-display">Monthly Extras: <span id="holdingEditorTotal">$0</span></div><div style="display:flex;gap:8px"><button class="btn secondary" onclick="cancelEditor('holding')" type="button">Cancel</button><button class="btn" onclick="saveEditor('holding')" type="button">Save</button></div></div>
 </div>
 <div id="holdingBreakdown" style="margin-top:6px;font-size:13px;color:#666"></div>
-<div style="margin-top:6px;font-size:13px"><strong>Total Holding (over <span id="holdMonthsDisplay">1</span> mo):</strong> <span id="holdingTotalDisplay">$0</span> (Includes loan interest if applicable)</div>
+<div style="margin-top:6px;font-size:13px"><strong>Total Holding (over <span id="holdMonthsDisplay">6</span> mo):</strong> <span id="holdingTotalDisplay">$0</span> (Includes Interest)</div>
 </div>
 <div class="card step" data-step="7">
 <div class="muted">Refinance / Financing</div>
@@ -550,14 +558,17 @@
           const currentItem = this.closest('.item');
           const currentKindSelect = currentItem.querySelector('.item-kind');
           const currentAfterVacWrapper = currentItem.querySelector('.after-vacancy-wrapper');
+          const freqSel = currentItem.querySelector('.item-freq');
           if(this.value === 'fixed') {
             currentKindSelect.style.display = 'none';
             currentKindSelect.innerHTML = '';
             if(currentAfterVacWrapper) currentAfterVacWrapper.style.display = 'none';
+            if(freqSel) freqSel.style.display = 'inline-block';
           } else {
             currentKindSelect.style.display = 'inline-block';
             currentKindSelect.innerHTML = '<option selected value="pct_rent">% of Rent</option><option value="pct_price">% of Price</option>';
             if(currentAfterVacWrapper && currentKindSelect.value === 'pct_rent') currentAfterVacWrapper.style.display = 'inline-flex';
+            if(freqSel) freqSel.style.display = 'none';
           }
           recalcEditor('holding');
         });
@@ -575,12 +586,20 @@
           afterVacCheck.replaceWith(newCheck);
           newCheck.addEventListener('change', () => recalcEditor('holding'));
         }
+        const freqSelectEl = item.querySelector('.item-freq');
+        if(freqSelectEl) {
+          const newFreqSel = freqSelectEl.cloneNode(true);
+          freqSelectEl.replaceWith(newFreqSel);
+          newFreqSel.addEventListener('change', () => recalcEditor('holding'));
+        }
         if(newTypeSelect.value === 'percent') {
           newKindSelect.style.display = 'inline-block';
           if(newKindSelect.value === 'pct_rent') afterVacWrapper.style.display = 'inline-flex';
+          if(freqSelectEl) freqSelectEl.style.display = 'none';
         } else {
           newKindSelect.style.display = 'none';
           afterVacWrapper.style.display = 'none';
+          if(freqSelectEl) freqSelectEl.style.display = 'inline-block';
         }
       });
     };
@@ -949,7 +968,7 @@
     extraElements = `<select class="item-pay"><option selected value="upfront">Pay Upfront</option><option value="roll">Roll Into Loan</option></select><select class="item-loan-target" style="display:none;width:150px;"></select>`;
   }
   else if(key==='holding'){
-    div.innerHTML = `<input class="item-label" placeholder="Item"><input class="item-value small-input" value="0"><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button type="button" class="icon-btn">🗑️</button>`;
+    div.innerHTML = `<input class="item-label" placeholder="Item"><input class="item-value small-input" value="0"><select class="item-type"><option selected value="fixed">$ Fixed</option><option value="percent">Percent</option></select><select class="item-freq"><option selected value="per_month">Per Month</option><option value="per_year">Per Year</option></select><select class="item-kind" style="display:none;"></select><span class="after-vacancy-wrapper" style="display:none;"><input type="checkbox" class="after-vacancy-check"/> After Vacancy</span><button type="button" class="icon-btn">🗑️</button>`;
     div.querySelector('.icon-btn').onclick = () => { div.remove(); recalcEditor(key); };
     div.querySelector('.item-value').oninput = () => recalcEditor(key);
     div.querySelector('.item-label').oninput = () => recalcEditor(key);
@@ -1011,7 +1030,20 @@
 
       items.forEach(i => {
         const val = unformatCurrency(i.querySelector('.item-value').value);
-        const kind = i.querySelector('.item-kind').value;
+        // Holding editor: item-type + item-freq determine calculation
+        const itemTypeEl = i.querySelector('.item-type');
+        const itemKindEl = i.querySelector('.item-kind');
+        const itemFreqEl = i.querySelector('.item-freq');
+        let kind;
+        if (key === 'holding') {
+          if (itemTypeEl && itemTypeEl.value === 'fixed') {
+            kind = (itemFreqEl && itemFreqEl.value === 'per_year') ? 'fixed_year' : 'fixed_month';
+          } else {
+            kind = itemKindEl ? itemKindEl.value : 'pct_rent';
+          }
+        } else {
+          kind = itemKindEl ? itemKindEl.value : 'fixed';
+        }
         let itemTotal = 0;
 
         // For pct_rent items, check if "After Vacancy" is checked
@@ -1028,13 +1060,19 @@
         else if(kind === 'fixed_year') itemTotal = (val/12);
         else if(kind === 'pct_price') itemTotal = price * (val/100);
         else if(kind === 'pct_rent') itemTotal = effectiveRent * (val/100);
-        else if(kind === 'pct_arv' && key==='refi') itemTotal = arv * (val/100);
-        else if(kind === 'pct_loan' && key==='purchase') {
-          // Use the Total Initial Financing from Step 4 for % of Loan
+        else if(kind === 'pct_arv') {
+          // Use effective ARV: if ARV blank, fall back to purchase price
+          const effectiveArv = arv || price;
+          itemTotal = effectiveArv * (val/100);
+        }
+        else if(kind === 'pct_loan') {
+          // Use effective loan: aggregated financed amount, or purchase price if ARV skipped
           let loanAmount = 0;
           if (typeof computeAggregatedFinancedAmount === 'function') {
             loanAmount = computeAggregatedFinancedAmount();
           }
+          // If no loan set yet (ARV skipped), fall back to purchase price
+          if (!loanAmount) loanAmount = price;
           itemTotal = loanAmount * (val/100);
         }
 
@@ -1100,10 +1138,17 @@
     function updateVisibleTotals(){
       if($('rehabBreakdown')) $('rehabBreakdown').textContent = editorState.rehabManualOnly ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(editorState.rehabExtras)})`;
       if($('holdingBreakdown')) $('holdingBreakdown').textContent = editorState.holdingManualOnly ? '(Manual Entry)' : `(Itemized Total: ${formatCurrency(editorState.holdingMonthlyExtras)})`;
-      // Update holding summary display
+      // Update holding summary display — use itemized extras + per-loan interest
       const holdMonths = Number($('holdingTime')?.value)||0;
       const holdMonthly = unformatCurrency($('holdingMonthly')?.value);
-      const holdTotalVal = holdMonthly * holdMonths;
+      const holdingMonthlyToUse = editorState.holdingManualOnly
+        ? (holdMonthly||0)
+        : (editorState.holdingMonthlyExtras||holdMonthly||0);
+      let holdInterest = 0;
+      if(typeof loans !== 'undefined') {
+        loans.forEach(l => { holdInterest += (l.financed * (l.rate/100)/12) * holdMonths; });
+      }
+      const holdTotalVal = (holdingMonthlyToUse * holdMonths) + holdInterest;
       if($('holdMonthsDisplay')) $('holdMonthsDisplay').textContent = holdMonths;
       if($('holdingTotalDisplay')) $('holdingTotalDisplay').textContent = formatCurrency(holdTotalVal);
       if($('purchaseBreakdown')) {
@@ -1143,8 +1188,13 @@
       const purchaseClose = unformatCurrency($('purchaseClosing').value);
       const holdMonths = Number($('holdingTime')?.value)||0;
       const holdMonthly = unformatCurrency($('holdingMonthly')?.value);
-      const holdTotal = holdMonthly * holdMonths;
       const initialLoanPrincipalRaw = computeAggregatedFinancedAmount();
+
+      // Per-loan interest calculation (same as BRRRR)
+      let interestTotal = 0;
+      loans.forEach(l => { interestTotal += (l.financed * (l.rate/100)/12) * holdMonths; });
+      const holdingMonthlyToUse = editorState.holdingManualOnly ? (holdMonthly||0) : (editorState.holdingMonthlyExtras||holdMonthly||0);
+      const holdTotal = (holdingMonthlyToUse * holdMonths) + interestTotal;
       // If ARV is blank, the user skipped financing (step 4) — purchase price is the effective loan
       const arvRaw = unformatCurrency($('arv').value);
       const initialLoanPrincipal = (initialLoanPrincipalRaw === 0 && arvRaw === 0) ? price : initialLoanPrincipalRaw;
