@@ -149,23 +149,34 @@ export default async function handler(req, res) {
 
     // ---- Build the Airtable fields to write ----
     const capitalizedName = capitalizeName(name);
+    const calculatorType  = resolveCalculatorType(surveyName);
+
+    // Multi-interest tracking: merge the new type into the existing interests array
+    // so submitting a second survey never erases the first.
+    const existingInterests = Array.isArray(existingFields["Calculator Interests"])
+      ? existingFields["Calculator Interests"]
+      : [];
+    const mergedInterests = existingInterests.includes(calculatorType)
+      ? existingInterests
+      : [...existingInterests, calculatorType];
 
     const fields = {
-      ...(capitalizedName                    ? { "Name":            capitalizedName }      : {}),
-      ...(email                              ? { "Email":           email.toLowerCase() }  : {}),
-      ...(normalizedPhone                    ? { "Phone Number":    normalizedPhone }       : {}),
-      ...(contactId                          ? { "GHL Contact ID":  contactId }             : {}),
-      "Survey Name":     surveyName,
-      "Calculator Type": resolveCalculatorType(surveyName),
-      "Request Date":    today,
-      "Access Status":   existingFields["Access Status"] || "Pending", // never overwrite a manual decision
+      ...(capitalizedName ? { "Name":           capitalizedName }     : {}),
+      ...(email           ? { "Email":          email.toLowerCase() } : {}),
+      ...(normalizedPhone ? { "Phone Number":   normalizedPhone }      : {}),
+      ...(contactId       ? { "GHL Contact ID": contactId }            : {}),
+      "Survey Name":          surveyName,           // most recent survey submitted
+      "Calculator Type":      calculatorType,       // type derived from most recent survey
+      "Calculator Interests": mergedInterests,      // full history — all types ever submitted
+      "Request Date":         today,
+      "Access Status":        existingFields["Access Status"] || "Pending", // never overwrite a manual decision
       ...(notes ? { "Notes": notes } : {}),
     };
 
     let result;
 
     if (existingRecordId) {
-      // PATCH existing record — update survey name / date, keep status
+      // PATCH existing record — appends new interest, keeps status and prior data
       const patchResp = await fetch(`${tableUrl}/${existingRecordId}`, {
         method: "PATCH",
         headers: airtableHeaders,
@@ -190,14 +201,23 @@ export default async function handler(req, res) {
       }
     }
 
-    const recordId = result.id;
-    console.log(`Deal access ${existingRecordId ? "updated" : "created"} — Airtable record ${recordId}, survey: "${surveyName}"`);
+    const recordId       = result.id;
+    const isNewInterest  = !existingInterests.includes(calculatorType);
+    const action         = existingRecordId ? "updated" : "created";
+
+    console.log(
+      `Deal access ${action} — record ${recordId}, survey: "${surveyName}", ` +
+      `interests: [${mergedInterests.join(", ")}]${isNewInterest ? " (+new)" : ""}`
+    );
 
     return res.status(200).json({
-      ok: true,
+      ok:                true,
       recordId,
-      action: existingRecordId ? "updated" : "created",
-      survey: surveyName,
+      action,
+      survey:            surveyName,
+      calculatorType,
+      interests:         mergedInterests,
+      newInterestAdded:  isNewInterest,
     });
 
   } catch (err) {
