@@ -1,43 +1,44 @@
 // /api/survey-deal-access.js
 //
 // Webhook endpoint called by a GHL workflow when a survey is submitted.
-// Upserts the contact into the Airtable "Deal Access Requests" table.
+// Upserts the contact into the Airtable "Deal Access Requests" table with:
+//   - Auto-approval for active GHL members
+//   - Multi-interest tracking (never overwrites previous interests)
+//   - Priority scoring based on membership, engagement, and recency
+//   - Admin notification via a configurable GHL webhook
 //
 // Required env vars (set in Vercel):
 //   AIRTABLE_API_KEY_DEAL_ACCESS   — Airtable personal access token
 //   AIRTABLE_BASE_ID_DEAL_ACCESS   — Base ID (appXXXXXXXXXXXXXX)
 //   AIRTABLE_TABLE_DEAL_ACCESS     — Table name (default: "Deal Access Requests")
-//   GHL_WEBHOOK_SECRET             — Optional: shared secret to validate GHL calls
+//
+// Optional env vars:
+//   GHL_API_KEY                    — GHL private token (enables auto-approval + contact lookup)
+//   GHL_LOCATION_ID                — GHL sub-account location ID
+//   GHL_ACTIVE_MEMBER_TAG          — Tag that marks an active member (default: "new member")
+//   ADMIN_NOTIFY_WEBHOOK_URL       — GHL inbound webhook URL that fires the admin notification
+//   GHL_WEBHOOK_SECRET             — Shared secret to validate incoming GHL calls
 
-// Survey names that should be IGNORED (do not add to deal-access).
-// Keep this list lowercase for case-insensitive comparison.
+// ─── Constants ───────────────────────────────────────────────────────────────
+
 const EXCLUDED_SURVEYS = [
   "rehab estimator readiness survey (old)",
 ];
 
-// Maps survey name keywords → Calculator Type value written to Airtable.
-// Matched case-insensitively against the surveyName field.
-// Order matters: first match wins.
+// First matching rule wins. Keep more-specific rules above broader ones.
 const SURVEY_TYPE_MAP = [
-  { keywords: ["brrrr"],                          type: "BRRRR" },
-  { keywords: ["fix", "flip"],                    type: "Fix & Flip" },
-  { keywords: ["rehab estimator", "rehab"],       type: "Rehab Estimator" },
-  { keywords: ["short-term", "short term"],       type: "Short Term" },
-  { keywords: ["rental", "rent"],                 type: "Rentals" },
-  { keywords: ["wholesaler", "wholesale"],        type: "Wholesale" },
+  { keywords: ["brrrr"],                         type: "BRRRR" },
+  { keywords: ["fix", "flip"],                   type: "Fix & Flip" },
+  { keywords: ["rehab estimator", "rehab"],      type: "Rehab Estimator" },
+  { keywords: ["short-term", "short term"],      type: "Short Term" },
+  { keywords: ["rental", "rent"],                type: "Rentals" },
+  { keywords: ["wholesaler", "wholesale"],       type: "Wholesale" },
   { keywords: ["your path to success", "path"],  type: "General" },
 ];
 
-function resolveCalculatorType(surveyName) {
-  const lower = (surveyName || "").toLowerCase();
-  for (const { keywords, type } of SURVEY_TYPE_MAP) {
-    if (keywords.every((kw) => lower.includes(kw))) return type;
-  }
-  return "General";
-}
+// ─── Main handler ─────────────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
-  // ---- CORS ----
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-ghl-secret");
@@ -48,7 +49,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // ---- Optional webhook secret validation ----
+    // ── Optional webhook secret validation ──────────────────────────────────
     const WEBHOOK_SECRET = process.env.GHL_WEBHOOK_SECRET;
     if (WEBHOOK_SECRET) {
       const incoming = req.headers["x-ghl-secret"] || req.headers["x-webhook-secret"];
@@ -57,39 +58,30 @@ export default async function handler(req, res) {
       }
     }
 
-    // ---- Parse body ----
+    // ── Parse body ──────────────────────────────────────────────────────────
     const body = typeof req.body === "string"
       ? JSON.parse(req.body || "{}")
       : (req.body || {});
 
-    const {
-      name,
-      email,
-      phone,
-      surveyName,        // Name of the GHL survey — set this in your GHL workflow action
-      contactId,         // GHL contact ID — available as {{contact.id}} in GHL workflow
-      notes,             // Optional extra notes from the survey/workflow
-    } = body;
+    const { name, email, phone, surveyName, contactId, notes } = body;
 
-    // ---- Validate survey name ----
     if (!surveyName) {
       return res.status(400).json({ error: "surveyName is required" });
     }
 
-    const surveyLower = surveyName.trim().toLowerCase();
-    if (EXCLUDED_SURVEYS.includes(surveyLower)) {
-      // Silently skip excluded surveys — return 200 so GHL doesn't retry
+    // ── Skip excluded surveys (silent 200 so GHL doesn't retry) ────────────
+    if (EXCLUDED_SURVEYS.includes(surveyName.trim().toLowerCase())) {
       console.log(`Skipping excluded survey: "${surveyName}"`);
       return res.status(200).json({ ok: true, skipped: true, reason: "excluded survey" });
     }
 
-    // ---- Require at least one identifier ----
     const normalizedPhone = normalizePhone(phone);
+
     if (!email && !normalizedPhone && !contactId) {
       return res.status(400).json({ error: "At least one of email, phone, or contactId is required" });
     }
 
-    // ---- Env vars ----
+    // ── Env vars ────────────────────────────────────────────────────────────
     const AIRTABLE_KEY   = process.env.AIRTABLE_API_KEY_DEAL_ACCESS;
     const AIRTABLE_BASE  = process.env.AIRTABLE_BASE_ID_DEAL_ACCESS;
     const AIRTABLE_TABLE = process.env.AIRTABLE_TABLE_DEAL_ACCESS || "Deal Access Requests";
@@ -112,26 +104,37 @@ export default async function handler(req, res) {
 
     const today = new Date().toISOString().split("T")[0];
 
-    // ---- Check for existing record (dedup by phone or email) ----
+    // ── 1. GHL contact lookup + auto-approval check ─────────────────────────
+    const GHL_TOKEN      = process.env.GHL_API_KEY;
+    const GHL_LOCATION   = process.env.GHL_LOCATION_ID;
+    const ACTIVE_TAG     = (process.env.GHL_ACTIVE_MEMBER_TAG || "new member").toLowerCase();
+
+    let ghlContact     = null;
+    let activeMember   = false;
+    let knownGHLContact = false;
+
+    if (GHL_TOKEN && GHL_LOCATION) {
+      ghlContact      = await getGHLContact({ phone: normalizedPhone, email, token: GHL_TOKEN, locationId: GHL_LOCATION });
+      knownGHLContact = !!ghlContact;
+      activeMember    = checkActiveMember(ghlContact, ACTIVE_TAG);
+    }
+
+    // ── 2. Airtable — find existing record ──────────────────────────────────
     let existingRecordId = null;
     let existingFields   = {};
 
     if (normalizedPhone || email) {
       const conditions = [];
       if (normalizedPhone) {
-        // Normalize stored phone the same way as the check-phone endpoints
         conditions.push(
-          `RIGHT(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Phone Number}, '(', ''), ')', ''), '-', ''), ' ', ''), 10) = '${normalizedPhone}'`
+          `RIGHT(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE({Phone Number},'(',''  ),')',''  ),'-',''  ),' ',''  ),10)='${normalizedPhone}'`
         );
       }
       if (email) {
-        conditions.push(`{Email} = '${email.replace(/'/g, "\\'")}'`);
+        conditions.push(`{Email}='${email.replace(/'/g, "\\'")}'`);
       }
 
-      const filter = conditions.length === 1
-        ? conditions[0]
-        : `OR(${conditions.join(", ")})`;
-
+      const filter    = conditions.length === 1 ? conditions[0] : `OR(${conditions.join(",")})`;
       const searchUrl = new URL(tableUrl);
       searchUrl.searchParams.set("filterByFormula", filter);
       searchUrl.searchParams.set("maxRecords", "1");
@@ -141,42 +144,61 @@ export default async function handler(req, res) {
       });
       const searchData = await searchResp.json();
 
-      if (searchData.records && searchData.records.length > 0) {
+      if (searchData.records?.length > 0) {
         existingRecordId = searchData.records[0].id;
         existingFields   = searchData.records[0].fields || {};
       }
     }
 
-    // ---- Build the Airtable fields to write ----
-    const capitalizedName = capitalizeName(name);
-    const calculatorType  = resolveCalculatorType(surveyName);
+    const isNewRecord = !existingRecordId;
 
-    // Multi-interest tracking: merge the new type into the existing interests array
-    // so submitting a second survey never erases the first.
+    // ── 3. Multi-interest tracking ──────────────────────────────────────────
+    const calculatorType    = resolveCalculatorType(surveyName);
     const existingInterests = Array.isArray(existingFields["Calculator Interests"])
       ? existingFields["Calculator Interests"]
       : [];
-    const mergedInterests = existingInterests.includes(calculatorType)
+    const mergedInterests   = existingInterests.includes(calculatorType)
       ? existingInterests
       : [...existingInterests, calculatorType];
+    const newInterestAdded  = !existingInterests.includes(calculatorType);
+
+    // ── 4. Priority score ───────────────────────────────────────────────────
+    const { score: priorityScore, level: priorityLevel } = calcPriorityScore({
+      activeMember,
+      knownGHLContact,
+      interestCount: mergedInterests.length,
+      isNewRecord,
+    });
+
+    // ── 5. Access status (auto-approve active members) ──────────────────────
+    // Never downgrade a previously set manual decision.
+    const existingStatus = existingFields["Access Status"];
+    const accessStatus   = existingStatus && existingStatus !== "Pending"
+      ? existingStatus                        // keep manual decision
+      : activeMember ? "Approved" : "Pending";
+
+    // ── 6. Build Airtable fields ────────────────────────────────────────────
+    const capitalizedName = capitalizeName(name);
 
     const fields = {
       ...(capitalizedName ? { "Name":           capitalizedName }     : {}),
       ...(email           ? { "Email":          email.toLowerCase() } : {}),
       ...(normalizedPhone ? { "Phone Number":   normalizedPhone }      : {}),
       ...(contactId       ? { "GHL Contact ID": contactId }            : {}),
-      "Survey Name":          surveyName,           // most recent survey submitted
-      "Calculator Type":      calculatorType,       // type derived from most recent survey
-      "Calculator Interests": mergedInterests,      // full history — all types ever submitted
+      "Survey Name":          surveyName,
+      "Calculator Type":      calculatorType,
+      "Calculator Interests": mergedInterests,
       "Request Date":         today,
-      "Access Status":        existingFields["Access Status"] || "Pending", // never overwrite a manual decision
+      "Access Status":        accessStatus,
+      "Priority Score":       priorityScore,
+      "Priority Level":       priorityLevel,
       ...(notes ? { "Notes": notes } : {}),
     };
 
+    // ── 7. Write to Airtable ────────────────────────────────────────────────
     let result;
 
     if (existingRecordId) {
-      // PATCH existing record — appends new interest, keeps status and prior data
       const patchResp = await fetch(`${tableUrl}/${existingRecordId}`, {
         method: "PATCH",
         headers: airtableHeaders,
@@ -188,7 +210,6 @@ export default async function handler(req, res) {
         return res.status(502).json({ error: "Airtable update failed", details: result });
       }
     } else {
-      // POST new record
       const postResp = await fetch(tableUrl, {
         method: "POST",
         headers: airtableHeaders,
@@ -201,23 +222,47 @@ export default async function handler(req, res) {
       }
     }
 
-    const recordId       = result.id;
-    const isNewInterest  = !existingInterests.includes(calculatorType);
-    const action         = existingRecordId ? "updated" : "created";
+    const recordId = result.id;
+    const action   = isNewRecord ? "created" : "updated";
 
     console.log(
-      `Deal access ${action} — record ${recordId}, survey: "${surveyName}", ` +
-      `interests: [${mergedInterests.join(", ")}]${isNewInterest ? " (+new)" : ""}`
+      `Deal access ${action} — record ${recordId} | survey: "${surveyName}" | ` +
+      `status: ${accessStatus} | score: ${priorityScore} (${priorityLevel}) | ` +
+      `interests: [${mergedInterests.join(", ")}]`
     );
 
+    // ── 8. Admin notification ───────────────────────────────────────────────
+    const NOTIFY_URL = process.env.ADMIN_NOTIFY_WEBHOOK_URL;
+    if (NOTIFY_URL) {
+      await notifyAdmin(NOTIFY_URL, {
+        name:            capitalizedName || name || "Unknown",
+        email:           email           || "",
+        phone:           normalizedPhone || phone || "",
+        surveyName,
+        calculatorType,
+        interests:       mergedInterests,
+        accessStatus,
+        priorityScore,
+        priorityLevel,
+        isNewRequest:    isNewRecord,
+        newInterestAdded,
+        airtableRecordId: recordId,
+        submittedAt:     new Date().toISOString(),
+      });
+    }
+
+    // ── 9. Response ─────────────────────────────────────────────────────────
     return res.status(200).json({
-      ok:                true,
+      ok:              true,
       recordId,
       action,
-      survey:            surveyName,
+      survey:          surveyName,
       calculatorType,
-      interests:         mergedInterests,
-      newInterestAdded:  isNewInterest,
+      interests:       mergedInterests,
+      newInterestAdded,
+      accessStatus,
+      priorityScore,
+      priorityLevel,
     });
 
   } catch (err) {
@@ -226,7 +271,22 @@ export default async function handler(req, res) {
   }
 }
 
-// ---- Helpers ----
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function resolveCalculatorType(surveyName) {
+  const lower = (surveyName || "").toLowerCase();
+  for (const { keywords, type } of SURVEY_TYPE_MAP) {
+    if (keywords.every((kw) => lower.includes(kw))) return type;
+  }
+  return "General";
+}
+
+function capitalizeName(name) {
+  if (!name) return "";
+  return name.trim().split(" ")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ");
+}
 
 function normalizePhone(raw) {
   const digits = String(raw || "").replace(/\D/g, "");
@@ -234,11 +294,68 @@ function normalizePhone(raw) {
   return digits.length >= 10 ? digits.slice(-10) : digits;
 }
 
-function capitalizeName(name) {
-  if (!name) return "";
-  return name
-    .trim()
-    .split(" ")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join(" ");
+// Searches GHL contacts by phone or email. Returns the first match or null.
+async function getGHLContact({ phone, email, token, locationId }) {
+  const query = phone || email;
+  if (!query) return null;
+
+  try {
+    const url = new URL("https://services.leadconnectorhq.com/contacts/search");
+    url.searchParams.set("locationId", locationId);
+    url.searchParams.set("query", query);
+    url.searchParams.set("page", "1");
+    url.searchParams.set("pageLimit", "1");
+
+    const resp = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Version: "2021-07-28",
+      },
+    });
+
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    return data?.contacts?.[0] || null;
+  } catch {
+    return null; // GHL lookup is best-effort — never block the main flow
+  }
+}
+
+// Returns true if the contact's tags include the active member tag.
+function checkActiveMember(ghlContact, activeTag) {
+  if (!ghlContact) return false;
+  const tags = (ghlContact.tags || []).map((t) => t.toLowerCase());
+  return tags.includes(activeTag);
+}
+
+// Calculates a 0-100 priority score.
+//   +40  active GHL member (paying, high intent)
+//   +20  known GHL contact (in your system)
+//   +10  per calculator interest, up to 5 (engagement depth)
+//   +10  first-ever submission (fresh lead, act fast)
+function calcPriorityScore({ activeMember, knownGHLContact, interestCount, isNewRecord }) {
+  let score = 0;
+  if (activeMember)    score += 40;
+  if (knownGHLContact) score += 20;
+  score += Math.min(interestCount, 5) * 10;
+  if (isNewRecord)     score += 10;
+
+  const level = score >= 60 ? "High" : score >= 30 ? "Medium" : "Low";
+  return { score, level };
+}
+
+// Fires admin notification webhook. Failures are logged but never bubble up.
+async function notifyAdmin(webhookUrl, payload) {
+  try {
+    const resp = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) {
+      console.warn(`Admin notification returned ${resp.status}`);
+    }
+  } catch (err) {
+    console.warn("Admin notification failed:", err.message);
+  }
 }
