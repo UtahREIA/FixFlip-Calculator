@@ -1,17 +1,20 @@
 // /api/track-event.js
 //
 // Receives a calculator behavior event from the frontend and forwards it
-// to a GHL inbound webhook to trigger automated follow-up workflows.
+// to the matching GHL inbound webhook to trigger automated follow-up workflows.
 //
-// Currently handled events:
-//   pdf_download — user clicked "Download PDF" after analyzing a deal
-//
-// Required env var:
-//   GHL_PDF_DOWNLOAD_WEBHOOK_URL — GHL inbound webhook URL for the
-//                                  "PDF Download Follow-up" workflow
+// Supported events and their required env vars:
+//   pdf_download        → GHL_PDF_DOWNLOAD_WEBHOOK_URL
+//   calculator_access   → GHL_CALCULATOR_ACCESS_WEBHOOK_URL
 //
 // Payload accepted (POST JSON):
-//   { phone: "8015551234", calculator: "Fix & Flip", event: "pdf_download" }
+//   { phone: "8015551234", calculator: "BRRRR", event: "calculator_access" }
+
+// Maps each event type to the Vercel env var that holds its GHL webhook URL.
+const EVENT_WEBHOOK_MAP = {
+  pdf_download:      'GHL_PDF_DOWNLOAD_WEBHOOK_URL',
+  calculator_access: 'GHL_CALCULATOR_ACCESS_WEBHOOK_URL',
+};
 
 export default async function handler(req, res) {
   // CORS preflight
@@ -34,10 +37,14 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields: phone, calculator, event' });
   }
 
-  const webhookUrl = process.env.GHL_PDF_DOWNLOAD_WEBHOOK_URL;
+  const envVar = EVENT_WEBHOOK_MAP[event];
+  if (!envVar) {
+    return res.status(400).json({ error: `Unknown event type: ${event}` });
+  }
+
+  const webhookUrl = process.env[envVar];
   if (!webhookUrl) {
-    // Don't block the user's PDF download if the webhook isn't configured yet
-    console.warn('GHL_PDF_DOWNLOAD_WEBHOOK_URL not set — skipping event tracking');
+    console.warn(`${envVar} not set — skipping event tracking for "${event}"`);
     return res.status(200).json({ ok: true, tracked: false });
   }
 
@@ -60,7 +67,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, tracked: true });
   } catch (err) {
     console.error('Failed to fire GHL webhook:', err.message);
-    // Still return 200 — don't surface internal errors to the user
+    // Still return 200 — never surface internal errors to the user
     return res.status(200).json({ ok: true, tracked: false });
   }
 }

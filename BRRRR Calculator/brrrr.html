@@ -1386,6 +1386,12 @@
         sessionStorage.setItem('utahreia_calc_verified', 'true');
         _verifiedPhone = normalizePhone(p);
         unlock();
+        // Notify GHL → triggers BRRRR resource follow-up sequence
+        fetch('https://fix-flip-calculator-delta.vercel.app/api/track-event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: _verifiedPhone, calculator: 'BRRRR', event: 'calculator_access' })
+        }).catch(() => {});
         const trialReminder = document.getElementById('trialReminder');
         if (trialReminder && res.status === 'Trial') {
           trialReminder.textContent = `You are on a 30-day free trial. Days left: ${res.daysLeft}. Contact Utah REIA to become a member and enjoy unlimited access!`;
