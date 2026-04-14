@@ -1583,6 +1583,15 @@
         const y = margin + Math.max(0, (maxH - imgH) / 2);
         pdf.addImage(img, 'JPEG', x, y, imgW, imgH);
         pdf.save('UTAHREIA_FixFlip_Report.pdf');
+        // Track PDF download → triggers Home Depot follow-up in GHL
+        const _trackedPhone = _verifiedPhone;
+        if (_trackedPhone) {
+          fetch('https://fix-flip-calculator-delta.vercel.app/api/track-event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: _trackedPhone, calculator: 'Fix & Flip', event: 'pdf_download' })
+          }).catch(() => {});
+        }
       }catch(e){ console.error(e); alert('PDF generation failed - try hosting the page.'); }
       finally{ container.remove(); }
     }
@@ -1832,6 +1841,9 @@
 
     /* ---------- PHONE GATE LOGIC (GHL WORKFLOW + DATABASE) ---------- */
 
+    // In-memory only — cleared on tab close, never written to any storage
+    let _verifiedPhone = null;
+
     // GHL Inbound Webhook URL
     const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/DNirEjy0ejVwbHsaBYrn/webhook-trigger/499932b5-2208-4131-b5a0-e1d5696c5b31';
 
@@ -1865,6 +1877,7 @@
           alert(`You are on a 30-day free trial. Days left: ${res.daysLeft}.\nContact Utah REIA to become a member and enjoy unlimited access!`);
         }
         sessionStorage.setItem('utahreia_calc_verified', 'true');
+        _verifiedPhone = normalizePhone(p);
         unlock();
         const trialReminder = document.getElementById('trialReminder');
         if(trialReminder && res.status === 'Trial') {
