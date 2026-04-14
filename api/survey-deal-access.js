@@ -13,13 +13,19 @@
 //   AIRTABLE_TABLE_DEAL_ACCESS     — Table name (default: "Deal Access Requests")
 //
 // Optional env vars:
-//   GHL_API_KEY                    — GHL private token (enables auto-approval + contact lookup)
+//   GHL_API_KEY                    — GHL private token (enables contact lookup)
 //   GHL_LOCATION_ID                — GHL sub-account location ID
-//   GHL_ACTIVE_MEMBER_TAG          — Tag that marks an active member (default: "new member")
 //   ADMIN_NOTIFY_WEBHOOK_URL       — GHL inbound webhook URL that fires the admin notification
 //   GHL_WEBHOOK_SECRET             — Shared secret to validate incoming GHL calls
+//
+// Active member check uses Airtable "Member Status" field (value: "Active" or "Inactive").
+// GHL tags are NOT used.
 
 // ─── Constants ───────────────────────────────────────────────────────────────
+
+// Active member check uses Airtable "Member Status" field (value: "Active" or "Inactive").
+// GHL tags are NOT used for this purpose.
+const ACTIVE_MEMBER_STATUS = "active";
 
 const EXCLUDED_SURVEYS = [
   "rehab estimator readiness survey (old)",
@@ -104,19 +110,17 @@ export default async function handler(req, res) {
 
     const today = new Date().toISOString().split("T")[0];
 
-    // ── 1. GHL contact lookup + auto-approval check ─────────────────────────
-    const GHL_TOKEN      = process.env.GHL_API_KEY;
-    const GHL_LOCATION   = process.env.GHL_LOCATION_ID;
-    const ACTIVE_TAG     = (process.env.GHL_ACTIVE_MEMBER_TAG || "new member").toLowerCase();
+    // ── 1. GHL contact lookup ───────────────────────────────────────────────
+    const GHL_TOKEN    = process.env.GHL_API_KEY;
+    const GHL_LOCATION = process.env.GHL_LOCATION_ID;
 
-    let ghlContact     = null;
-    let activeMember   = false;
+    let ghlContact      = null;
+    let activeMember    = false; // determined from Airtable Member Status after lookup
     let knownGHLContact = false;
 
     if (GHL_TOKEN && GHL_LOCATION) {
       ghlContact      = await getGHLContact({ phone: normalizedPhone, email, token: GHL_TOKEN, locationId: GHL_LOCATION });
       knownGHLContact = !!ghlContact;
-      activeMember    = checkActiveMember(ghlContact, ACTIVE_TAG);
     }
 
     // ── 2. Airtable — find existing record ──────────────────────────────────
@@ -149,6 +153,9 @@ export default async function handler(req, res) {
         existingFields   = searchData.records[0].fields || {};
       }
     }
+
+    // Determine active member from Airtable "Member Status" field (Active / Inactive)
+    activeMember = (existingFields["Member Status"] || "").toLowerCase() === ACTIVE_MEMBER_STATUS;
 
     const isNewRecord = !existingRecordId;
 
@@ -319,13 +326,6 @@ async function getGHLContact({ phone, email, token, locationId }) {
   } catch {
     return null; // GHL lookup is best-effort — never block the main flow
   }
-}
-
-// Returns true if the contact's tags include the active member tag.
-function checkActiveMember(ghlContact, activeTag) {
-  if (!ghlContact) return false;
-  const tags = (ghlContact.tags || []).map((t) => t.toLowerCase());
-  return tags.includes(activeTag);
 }
 
 // Calculates a 0-100 priority score.
