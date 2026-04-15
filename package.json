@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.54.0",
     "axios": "^1.13.2",
     "csv-parser": "^3.2.0",
     "csv-writer": "^1.6.0",
