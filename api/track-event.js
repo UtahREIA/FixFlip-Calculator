@@ -4,15 +4,16 @@
 // to the matching GHL inbound webhook to trigger automated follow-up workflows.
 //
 // Supported events and their required env vars:
-//   pdf_download        → GHL_PDF_DOWNLOAD_WEBHOOK_URL
+//   finish_analysis     → GHL_FINISH_ANALYSIS_WEBHOOK_URL
 //   calculator_access   → GHL_CALCULATOR_ACCESS_WEBHOOK_URL
 //
 // Payload accepted (POST JSON):
-//   { phone: "8015551234", calculator: "BRRRR", event: "calculator_access" }
+//   { phone: "8015551234", calculator: "BRRRR", event: "finish_analysis" }
 
 // Maps each event type to the Vercel env var that holds its GHL webhook URL.
 const EVENT_WEBHOOK_MAP = {
-  pdf_download:      'GHL_PDF_DOWNLOAD_WEBHOOK_URL',
+  finish_analysis:   'GHL_FINISH_ANALYSIS_WEBHOOK_URL',
+  pdf_download:      'GHL_FINISH_ANALYSIS_WEBHOOK_URL', // legacy alias
   calculator_access: 'GHL_CALCULATOR_ACCESS_WEBHOOK_URL',
 };
 
