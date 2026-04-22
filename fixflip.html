@@ -1583,15 +1583,6 @@
         const y = margin + Math.max(0, (maxH - imgH) / 2);
         pdf.addImage(img, 'JPEG', x, y, imgW, imgH);
         pdf.save('UTAHREIA_FixFlip_Report.pdf');
-        // Track PDF download → triggers Home Depot follow-up in GHL
-        const _trackedPhone = _verifiedPhone;
-        if (_trackedPhone) {
-          fetch('https://fix-flip-calculator-delta.vercel.app/api/track-event', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: _trackedPhone, calculator: 'Fix & Flip', event: 'pdf_download' })
-          }).catch(() => {});
-        }
       }catch(e){ console.error(e); alert('PDF generation failed - try hosting the page.'); }
       finally{ container.remove(); }
     }
@@ -1697,6 +1688,13 @@
         }
         recalcAllEditors();
         computeAndRender();
+        if (_verifiedPhone) {
+          fetch('https://fix-flip-calculator-delta.vercel.app/api/track-event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: _verifiedPhone, calculator: 'Fix & Flip', event: 'finish_analysis' })
+          }).catch(() => {});
+        }
       });
 
       try{ attachGlobalChangeListeners(); }catch(e){}

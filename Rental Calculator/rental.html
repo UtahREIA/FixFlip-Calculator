@@ -869,7 +869,16 @@
       });
     }
     $('prevBtnFinish').addEventListener('click', ()=>showStep(currentStep-1));
-    $('finishBtn').addEventListener('click', computeAndRender);
+    $('finishBtn').addEventListener('click', () => {
+      computeAndRender();
+      if (_verifiedPhone) {
+        fetch('https://fix-flip-calculator-delta.vercel.app/api/track-event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: _verifiedPhone, calculator: 'Rental', event: 'finish_analysis' })
+        }).catch(() => {});
+      }
+    });
 
     /* ---------- Loan Logic ---------- */
     function addLoanFromInputs(){
@@ -1496,15 +1505,6 @@ const cashFlow = grossIncome - totalExpenses;
       const y = (pageHeight - renderHeight) / 2;
       pdf.addImage(img, 'JPEG', x, y, renderWidth, renderHeight);
       pdf.save('Rental_Property_Report.pdf');
-      // Track PDF download → triggers Home Depot follow-up in GHL
-      const _trackedPhone = _verifiedPhone;
-      if (_trackedPhone) {
-        fetch('https://fix-flip-calculator-delta.vercel.app/api/track-event', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone: _trackedPhone, calculator: 'Rental', event: 'pdf_download' })
-        }).catch(() => {});
-      }
     }
 
     /* ---------- Auth Logic ---------- */

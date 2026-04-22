@@ -378,7 +378,7 @@
 <div class="finish-analysis-notice">
 ⚠️ <strong>Important:</strong> Always click "Finish Analysis" after making any changes to the calculator to update your report.
 </div>
-<button class="btn" onclick="computeAndRender()" type="button" style="width:100%;margin-bottom:16px">📊 Finish Analysis</button>
+<button class="btn" onclick="computeAndRender(); if(window._verifiedPhone){ fetch('https://fix-flip-calculator-delta.vercel.app/api/track-event',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:_verifiedPhone,calculator:'BRRRR',event:'finish_analysis'})}).catch(()=>{}); }" type="button" style="width:100%;margin-bottom:16px">📊 Finish Analysis</button>
 <div id="reportContainer" style="margin-top:20px;">
 <p style="text-align:center;color:#666;">Your analysis report will appear here.</p>
 </div>
@@ -1342,15 +1342,6 @@
       const y = (pageHeight - renderHeight) / 2;
       pdf.addImage(img, 'JPEG', x, y, renderWidth, renderHeight);
       pdf.save('UTAHREIA_BRRRR_Report.pdf');
-      // Track PDF download → triggers Home Depot follow-up in GHL
-      const _trackedPhone = _verifiedPhone;
-      if (_trackedPhone) {
-        fetch('https://fix-flip-calculator-delta.vercel.app/api/track-event', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone: _trackedPhone, calculator: 'BRRRR', event: 'pdf_download' })
-        }).catch(() => {});
-      }
     }
 
     /* ---------- Auth Logic ---------- */
