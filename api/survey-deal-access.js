@@ -27,20 +27,17 @@
 // GHL tags are NOT used for this purpose.
 const ACTIVE_MEMBER_STATUS = "active";
 
-const EXCLUDED_SURVEYS = [
-  "rehab estimator readiness survey (old)",
-];
-
-// First matching rule wins. Keep more-specific rules above broader ones.
-const SURVEY_TYPE_MAP = [
-  { keywords: ["brrrr"],                         type: "BRRRR" },
-  { keywords: ["fix", "flip"],                   type: "Fix & Flip" },
-  { keywords: ["rehab estimator", "rehab"],      type: "Rehab Estimator" },
-  { keywords: ["short-term", "short term"],      type: "Short Term" },
-  { keywords: ["rental", "rent"],                type: "Rentals" },
-  { keywords: ["wholesaler", "wholesale"],       type: "Wholesale" },
-  { keywords: ["your path to success", "path"],  type: "General" },
-];
+// Maps GHL survey ID → { name, type }.
+// null = excluded (skip silently). Add new surveys here as needed.
+const SURVEY_ID_MAP = {
+  "8CzJrtK4SZ8KuOFkpc9q": { name: "BRRRRR Readiness Survey",                    type: "BRRRR" },
+  "DhnDb2SsytJF6bacAafd": { name: "Fix & Flip Readiness Survey",                type: "Fix & Flip" },
+  "12zEvlS4FVglce7fWUTN": { name: "BuildScope Ai Estimator Readiness Survey",   type: "Rehab Estimator" },
+  "83hyIL3oCuS0Sp29QVyN": { name: "Rental Readiness Survey",                    type: "Rentals" },
+  "jhrib8YKGa00UDFevyaQ": { name: "Short Term Readiness Survey",                type: "Short Term" },
+  "w5e3kPk4jK60mJFjKfWo": { name: "Wholesaler Readiness Survey",                type: "Wholesale" },
+  "lJqvIwt2mIPKmf9OqFUu": null, // Rehab Estimator Readiness Survey Old — excluded
+};
 
 // ─── Main handler ─────────────────────────────────────────────────────────────
 
@@ -69,17 +66,28 @@ export default async function handler(req, res) {
       ? JSON.parse(req.body || "{}")
       : (req.body || {});
 
-    const { name, email, phone, surveyName, contactId, notes } = body;
+    const { name, email, phone, surveyId, contactId, notes } = body;
 
-    if (!surveyName) {
-      return res.status(400).json({ error: "surveyName is required" });
+    if (!surveyId) {
+      return res.status(400).json({ error: "surveyId is required" });
     }
 
-    // ── Skip excluded surveys (silent 200 so GHL doesn't retry) ────────────
-    if (EXCLUDED_SURVEYS.includes(surveyName.trim().toLowerCase())) {
-      console.log(`Skipping excluded survey: "${surveyName}"`);
+    // ── Resolve survey from ID ───────────────────────────────────────────────
+    const surveyEntry = SURVEY_ID_MAP[surveyId];
+
+    // Unknown survey ID — skip silently so GHL doesn't retry
+    if (surveyEntry === undefined) {
+      console.log(`Unknown surveyId "${surveyId}" — skipping`);
+      return res.status(200).json({ ok: true, skipped: true, reason: "unknown survey" });
+    }
+
+    // Excluded survey (null entry) — skip silently
+    if (surveyEntry === null) {
+      console.log(`Excluded surveyId "${surveyId}" — skipping`);
       return res.status(200).json({ ok: true, skipped: true, reason: "excluded survey" });
     }
+
+    const { name: surveyName, type: calculatorType } = surveyEntry;
 
     const normalizedPhone = normalizePhone(phone);
 
@@ -160,7 +168,7 @@ export default async function handler(req, res) {
     const isNewRecord = !existingRecordId;
 
     // ── 3. Multi-interest tracking ──────────────────────────────────────────
-    const calculatorType    = resolveCalculatorType(surveyName);
+    // calculatorType already resolved from SURVEY_ID_MAP above
     const existingInterests = Array.isArray(existingFields["Calculator Interests"])
       ? existingFields["Calculator Interests"]
       : [];
@@ -279,14 +287,6 @@ export default async function handler(req, res) {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function resolveCalculatorType(surveyName) {
-  const lower = (surveyName || "").toLowerCase();
-  for (const { keywords, type } of SURVEY_TYPE_MAP) {
-    if (keywords.every((kw) => lower.includes(kw))) return type;
-  }
-  return "General";
-}
 
 function capitalizeName(name) {
   if (!name) return "";
