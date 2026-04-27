@@ -36,6 +36,7 @@ const SURVEY_ID_MAP = {
   "83hyIL3oCuS0Sp29QVyN": { name: "Rental Readiness Survey",                    type: "Rentals" },
   "jhrib8YKGa00UDFevyaQ": { name: "Short Term Readiness Survey",                type: "Short Term" },
   "w5e3kPk4jK60mJFjKfWo": { name: "Wholesaler Readiness Survey",                type: "Wholesale" },
+  "KF89kt5k4npRKkKuLYZi": { name: "Your Path to Success",                          type: "General" },
   "lJqvIwt2mIPKmf9OqFUu": null, // Rehab Estimator Readiness Survey Old — excluded
 };
 
