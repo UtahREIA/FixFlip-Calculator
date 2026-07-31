@@ -64,7 +64,7 @@ export default async function handler(req, res) {
     // "Timestamp" in this base is a Created Time field (computed by
     // Airtable itself), so it's deliberately left out here. Computed
     // fields are read-only via the API, writing to them is what was
-    // causing the 422. Airtable will stamp the time automatically
+    // causing the earlier 422. Airtable will stamp the time automatically
     // when the record is created; there's nothing to set on update.
     const fieldsPayload = {
       'Phone Number': phone,
@@ -72,20 +72,48 @@ export default async function handler(req, res) {
       'Name': name || ''
     };
 
-    // Upsert: one call that creates the record if "Phone Number" doesn't
-    // already exist, or updates it if it does. This replaces the old
-    // search-then-create/update pattern, which cost 2 requests per contact.
-    // At your volume (4,000+ contacts per base), that's the difference
-    // between 8,000 and 4,000 requests against the 5 req/sec ceiling.
-    const airtableRes = await fetchWithRetry(BASE_URL, {
-      method: 'PATCH',
-      headers,
-      body: JSON.stringify({
-        performUpsert: { fieldsToMergeOn: ['Phone Number'] },
-        records: [{ fields: fieldsPayload }],
-        typecast: true
-      })
-    });
+    // Search-then-create/update (not upsert): "Phone Number" is a Phone
+    // Number field type in this base, and Airtable's performUpsert does
+    // not support that field type as a merge key (that was the source of
+    // the "UNSUPPORTED..." 422s). At this traffic volume (10 contacts/min
+    // in drip mode, roughly 1 request every 6 seconds) the extra search
+    // call per contact is nowhere near the 5 req/sec limit, so there's no
+    // need for upsert's efficiency gain here, it just introduced new bugs.
+    const searchRes = await fetchWithRetry(`${BASE_URL}?filterByFormula={Phone Number}="${phone}"`, { headers });
+    const searchData = await searchRes.json();
+
+    if (!searchRes.ok) {
+      console.error(`❌ [${calculator}] Airtable search failed, status: ${searchRes.status}`);
+      console.error(`❌ [${calculator}] error.type: ${searchData?.error?.type}`);
+      console.error(`❌ [${calculator}] error.message: ${searchData?.error?.message}`);
+      const status = searchRes.status === 429 ? 429 : 502;
+      return res.status(status).json({ error: 'Airtable search failed', details: searchData });
+    }
+
+    let airtableRes;
+
+    if (searchData.records && searchData.records.length > 0) {
+      // Update existing record
+      const recordId = searchData.records[0].id;
+      airtableRes = await fetchWithRetry(`${BASE_URL}/${recordId}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({
+          fields: fieldsPayload,
+          typecast: true // allows new/unrecognized select values instead of rejecting them
+        })
+      });
+    } else {
+      // Create new record
+      airtableRes = await fetchWithRetry(BASE_URL, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          fields: fieldsPayload,
+          typecast: true
+        })
+      });
+    }
 
     const airtableData = await airtableRes.json();
 
@@ -93,7 +121,12 @@ export default async function handler(req, res) {
       // This is the part that was previously silent. Airtable's response
       // body tells you exactly which field/value it rejected (or, for a
       // 429, that retries were exhausted after the backoff attempts above).
-      console.error(`❌ [${calculator}] Airtable write failed (${airtableRes.status}):`, JSON.stringify(airtableData));
+      // Logged as separate lines (not one long JSON blob) because Vercel's
+      // log table truncates long single lines, the full detail still comes
+      // back in the JSON response body below regardless.
+      console.error(`❌ [${calculator}] Airtable write failed, status: ${airtableRes.status}`);
+      console.error(`❌ [${calculator}] error.type: ${airtableData?.error?.type}`);
+      console.error(`❌ [${calculator}] error.message: ${airtableData?.error?.message}`);
       return res.status(airtableRes.status).json({
         error: 'Airtable write failed',
         airtableStatus: airtableRes.status,
@@ -101,8 +134,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const wasCreated = airtableData.createdRecords && Object.keys(airtableData.createdRecords).length > 0;
-    console.log(`✅ [${calculator}] ${wasCreated ? 'Created' : 'Updated'} record for ${phone}`);
+    console.log(`✅ [${calculator}] ${searchData.records?.length ? 'Updated' : 'Created'} record for ${phone}`);
     return res.status(200).json({ success: true, calculator });
 
   } catch (error) {
