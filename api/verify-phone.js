@@ -61,14 +61,24 @@ export default async function handler(req, res) {
       'Content-Type': 'application/json'
     };
 
-    // "Timestamp" in this base is a Created Time field (computed by
-    // Airtable itself), so it's deliberately left out here. Computed
-    // fields are read-only via the API, writing to them is what was
-    // causing the earlier 422. Airtable will stamp the time automatically
-    // when the record is created; there's nothing to set on update.
+    // GHL sends the contact's membership status ("Active" / "Inactive",
+    // etc.) in the "approved" field, it's not an actual true/false flag.
+    // "Approval Status" in Airtable is a checkbox field, so it needs a
+    // real boolean, derived here as "Active" = true, anything else = false.
+    // "Member Status" is a separate Single Select field and gets the raw
+    // status text as-is.
+    //
+    // Note: "Timestamp" is deliberately not included below, it's a Created
+    // Time field (computed by Airtable itself). Computed fields are
+    // read-only via the API, writing to them is what caused the earlier
+    // 422s. Airtable stamps it automatically when the record is created.
+    const memberStatus = approved || '';
+    const isApproved = String(memberStatus).trim().toLowerCase() === 'active';
+
     const fieldsPayload = {
       'Phone Number': phone,
-      'Approval Status': approved,
+      'Approval Status': isApproved,
+      'Member Status': memberStatus,
       'Name': name || ''
     };
 
