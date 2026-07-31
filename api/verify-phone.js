@@ -61,16 +61,6 @@ export default async function handler(req, res) {
       'Content-Type': 'application/json'
     };
 
-    // Check if record already exists
-    const searchRes = await fetchWithRetry(`${BASE_URL}?filterByFormula={Phone Number}="${phone}"`, { headers });
-    const searchData = await searchRes.json();
-
-    if (!searchRes.ok) {
-      console.error(`❌ [${calculator}] Airtable search failed:`, JSON.stringify(searchData));
-      const status = searchRes.status === 429 ? 429 : 502;
-      return res.status(status).json({ error: 'Airtable search failed', details: searchData });
-    }
-
     // "Timestamp" in this base is a Created Time field (computed by
     // Airtable itself), so it's deliberately left out here. Computed
     // fields are read-only via the API, writing to them is what was
@@ -82,32 +72,22 @@ export default async function handler(req, res) {
       'Name': name || ''
     };
 
-    let airtableRes, airtableData;
+    // Upsert: one call that creates the record if "Phone Number" doesn't
+    // already exist, or updates it if it does. This replaces the old
+    // search-then-create/update pattern, which cost 2 requests per contact.
+    // At your volume (4,000+ contacts per base), that's the difference
+    // between 8,000 and 4,000 requests against the 5 req/sec ceiling.
+    const airtableRes = await fetchWithRetry(BASE_URL, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({
+        performUpsert: { fieldsToMergeOn: ['Phone Number'] },
+        records: [{ fields: fieldsPayload }],
+        typecast: true
+      })
+    });
 
-    if (searchData.records && searchData.records.length > 0) {
-      // Update existing record
-      const recordId = searchData.records[0].id;
-      airtableRes = await fetchWithRetry(`${BASE_URL}/${recordId}`, {
-        method: 'PATCH',
-        headers,
-        body: JSON.stringify({
-          fields: fieldsPayload,
-          typecast: true // allows new/unrecognized select values instead of rejecting them
-        })
-      });
-    } else {
-      // Create new record
-      airtableRes = await fetchWithRetry(BASE_URL, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          fields: fieldsPayload,
-          typecast: true
-        })
-      });
-    }
-
-    airtableData = await airtableRes.json();
+    const airtableData = await airtableRes.json();
 
     if (!airtableRes.ok) {
       // This is the part that was previously silent. Airtable's response
@@ -121,7 +101,8 @@ export default async function handler(req, res) {
       });
     }
 
-    console.log(`✅ [${calculator}] ${searchData.records?.length ? 'Updated' : 'Created'} record for ${phone}`);
+    const wasCreated = airtableData.createdRecords && Object.keys(airtableData.createdRecords).length > 0;
+    console.log(`✅ [${calculator}] ${wasCreated ? 'Created' : 'Updated'} record for ${phone}`);
     return res.status(200).json({ success: true, calculator });
 
   } catch (error) {
