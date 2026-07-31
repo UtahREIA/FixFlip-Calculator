@@ -3,6 +3,31 @@
  * Called BY the GHL workflow when a contact is created or status changes.
  * Pass "calculator" in the body to route to the correct Airtable base.
  */
+
+// Airtable allows 5 requests/sec per base. When a burst of contacts fires
+// in quick succession (bulk enrollment, mass status change, etc.), Airtable
+// responds with 429 + RATE_LIMIT_REACHED instead of queueing the request
+// for you. This wrapper retries on that specific error with a short,
+// increasing delay instead of failing the whole verification outright.
+async function fetchWithRetry(url, options, maxRetries = 4) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const res = await fetch(url, options);
+
+    if (res.status !== 429) return res;
+
+    const data = await res.clone().json().catch(() => null);
+    const isRateLimit = data?.error?.type === 'RATE_LIMIT_REACHED' || res.status === 429;
+
+    if (!isRateLimit || attempt === maxRetries) return res;
+
+    // Airtable doesn't send a Retry-After header, so back off with
+    // increasing delay: ~500ms, 1s, 2s, 4s.
+    const delayMs = 500 * Math.pow(2, attempt);
+    console.warn(`⏳ Airtable rate limit hit, retrying in ${delayMs}ms (attempt ${attempt + 1}/${maxRetries})`);
+    await new Promise(resolve => setTimeout(resolve, delayMs));
+  }
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -37,12 +62,13 @@ export default async function handler(req, res) {
     };
 
     // Check if record already exists
-    const searchRes = await fetch(`${BASE_URL}?filterByFormula={Phone Number}="${phone}"`, { headers });
+    const searchRes = await fetchWithRetry(`${BASE_URL}?filterByFormula={Phone Number}="${phone}"`, { headers });
     const searchData = await searchRes.json();
 
     if (!searchRes.ok) {
       console.error(`❌ [${calculator}] Airtable search failed:`, JSON.stringify(searchData));
-      return res.status(502).json({ error: 'Airtable search failed', details: searchData });
+      const status = searchRes.status === 429 ? 429 : 502;
+      return res.status(status).json({ error: 'Airtable search failed', details: searchData });
     }
 
     // "Timestamp" in this base is a Created Time field (computed by
@@ -61,7 +87,7 @@ export default async function handler(req, res) {
     if (searchData.records && searchData.records.length > 0) {
       // Update existing record
       const recordId = searchData.records[0].id;
-      airtableRes = await fetch(`${BASE_URL}/${recordId}`, {
+      airtableRes = await fetchWithRetry(`${BASE_URL}/${recordId}`, {
         method: 'PATCH',
         headers,
         body: JSON.stringify({
@@ -71,7 +97,7 @@ export default async function handler(req, res) {
       });
     } else {
       // Create new record
-      airtableRes = await fetch(BASE_URL, {
+      airtableRes = await fetchWithRetry(BASE_URL, {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -85,9 +111,10 @@ export default async function handler(req, res) {
 
     if (!airtableRes.ok) {
       // This is the part that was previously silent. Airtable's response
-      // body tells you exactly which field/value it rejected.
+      // body tells you exactly which field/value it rejected (or, for a
+      // 429, that retries were exhausted after the backoff attempts above).
       console.error(`❌ [${calculator}] Airtable write failed (${airtableRes.status}):`, JSON.stringify(airtableData));
-      return res.status(422).json({
+      return res.status(airtableRes.status).json({
         error: 'Airtable write failed',
         airtableStatus: airtableRes.status,
         airtableError: airtableData?.error || airtableData
