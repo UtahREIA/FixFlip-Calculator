@@ -3,34 +3,28 @@
  * Called BY the GHL workflow when a contact is created or status changes.
  * Pass "calculator" in the body to route to the correct Airtable base.
  */
-
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const { phone, approved, name, calculator = 'fixflip' } = body;
-
     if (!phone) return res.status(400).json({ error: 'No phone provided' });
 
-    // Map calculator slug to its Airtable env vars
     const envMap = {
       fixflip:   { key: process.env.AIRTABLE_API_KEY,            id: process.env.AIRTABLE_BASE_ID },
       brrrr:     { key: process.env.AIRTABLE_API_KEY_BRRRR,      id: process.env.AIRTABLE_BASE_ID_BRRRR },
       rental:    { key: process.env.AIRTABLE_API_KEY_RENTAL,     id: process.env.AIRTABLE_BASE_ID_RENTAL },
       shortterm: { key: process.env.AIRTABLE_API_KEY_SHORT_TERM, id: process.env.AIRTABLE_BASE_SHORT_TERM },
     };
-
     const env = envMap[calculator];
     if (!env) return res.status(400).json({ error: `Unknown calculator: "${calculator}". Valid values: fixflip, brrrr, rental, shortterm` });
 
     const { key: AIRTABLE_API_KEY, id: AIRTABLE_BASE_ID } = env;
-
     if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID) {
       return res.status(500).json({ error: `Missing Airtable env vars for calculator: ${calculator}` });
     }
@@ -46,42 +40,65 @@ export default async function handler(req, res) {
     const searchRes = await fetch(`${BASE_URL}?filterByFormula={Phone Number}="${phone}"`, { headers });
     const searchData = await searchRes.json();
 
+    if (!searchRes.ok) {
+      console.error(`❌ [${calculator}] Airtable search failed:`, JSON.stringify(searchData));
+      return res.status(502).json({ error: 'Airtable search failed', details: searchData });
+    }
+
+    // "Timestamp" in this base is a Created Time field (computed by
+    // Airtable itself), so it's deliberately left out here. Computed
+    // fields are read-only via the API, writing to them is what was
+    // causing the 422. Airtable will stamp the time automatically
+    // when the record is created; there's nothing to set on update.
+    const fieldsPayload = {
+      'Phone Number': phone,
+      'Approval Status': approved,
+      'Name': name || ''
+    };
+
+    let airtableRes, airtableData;
+
     if (searchData.records && searchData.records.length > 0) {
       // Update existing record
       const recordId = searchData.records[0].id;
-      await fetch(`${BASE_URL}/${recordId}`, {
+      airtableRes = await fetch(`${BASE_URL}/${recordId}`, {
         method: 'PATCH',
         headers,
         body: JSON.stringify({
-          fields: {
-            'Approval Status': approved,
-            'Name': name || '',
-            'Timestamp': new Date().toISOString()
-          }
+          fields: fieldsPayload,
+          typecast: true // allows new/unrecognized select values instead of rejecting them
         })
       });
-      console.log(`✅ [${calculator}] Updated record for ${phone}`);
     } else {
       // Create new record
-      await fetch(BASE_URL, {
+      airtableRes = await fetch(BASE_URL, {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          fields: {
-            'Phone Number': phone,
-            'Approval Status': approved,
-            'Name': name || '',
-            'Timestamp': new Date().toISOString()
-          }
+          fields: fieldsPayload,
+          typecast: true
         })
       });
-      console.log(`✅ [${calculator}] Created record for ${phone}`);
     }
 
+    airtableData = await airtableRes.json();
+
+    if (!airtableRes.ok) {
+      // This is the part that was previously silent. Airtable's response
+      // body tells you exactly which field/value it rejected.
+      console.error(`❌ [${calculator}] Airtable write failed (${airtableRes.status}):`, JSON.stringify(airtableData));
+      return res.status(422).json({
+        error: 'Airtable write failed',
+        airtableStatus: airtableRes.status,
+        airtableError: airtableData?.error || airtableData
+      });
+    }
+
+    console.log(`✅ [${calculator}] ${searchData.records?.length ? 'Updated' : 'Created'} record for ${phone}`);
     return res.status(200).json({ success: true, calculator });
 
   } catch (error) {
     console.error('❌ verify-phone error:', error);
-    return res.status(500).json({ error: 'Failed to save verification' });
+    return res.status(500).json({ error: 'Failed to save verification', details: error.message });
   }
 }
