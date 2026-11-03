@@ -32,7 +32,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { phone: rawPhone, calculator, event } = req.body || {};
+  const { phone: rawPhone, calculator, event, utms } = req.body || {};
 
   if (!rawPhone || !calculator || !event) {
     return res.status(400).json({ error: 'Missing required fields: phone, calculator, event' });
@@ -62,6 +62,9 @@ export default async function handler(req, res) {
         calculator,
         event,
         timestamp: new Date().toISOString(),
+        // Campaign attribution captured from the landing URL (utm_*, gclid/fbclid, referrer).
+        // Forwarded so the GHL workflow can map it onto the contact for the dashboard funnel.
+        ...(utms && typeof utms === 'object' ? utms : {}),
       }),
     });
 
