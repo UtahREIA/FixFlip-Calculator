@@ -1692,7 +1692,7 @@
           fetch('https://fix-flip-calculator-delta.vercel.app/api/track-event', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: _verifiedPhone, calculator: 'Fix & Flip', event: 'finish_analysis' })
+            body: JSON.stringify({ phone: _verifiedPhone, calculator: 'Fix & Flip', event: 'finish_analysis', utms: getStoredUtms() })
           }).catch(() => {});
         }
       });
@@ -1836,6 +1836,23 @@
     function escapeHtml(unsafe) {
       return String(unsafe).replace(/[&<"'>]/g, function(m) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[m]; });
     }
+
+    /* ---------- UTM / ATTRIBUTION CAPTURE ---------- */
+    // Capture campaign attribution from the landing URL on first touch, so a lead can be traced
+    // back to the ad/campaign that drove them. Kept per-session; first touch wins.
+    (function captureUtms(){
+      try {
+        var KEY = 'ureia_utms';
+        if (sessionStorage.getItem(KEY)) return; // keep first-touch
+        var qp = new URLSearchParams(location.search);
+        var fields = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','gclid','fbclid'];
+        var out = {};
+        fields.forEach(function(k){ var v = qp.get(k); if (v) out[k] = v; });
+        if (document.referrer) out.referrer = document.referrer;
+        if (Object.keys(out).length) sessionStorage.setItem(KEY, JSON.stringify(out));
+      } catch(e){}
+    })();
+    function getStoredUtms(){ try { return JSON.parse(sessionStorage.getItem('ureia_utms')||'{}'); } catch(e){ return {}; } }
 
     /* ---------- PHONE GATE LOGIC (GHL WORKFLOW + DATABASE) ---------- */
 
