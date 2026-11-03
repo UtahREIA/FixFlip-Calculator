@@ -88,6 +88,24 @@
 </style>
 </head>
 <body>
+<script>
+  // Capture campaign attribution (utm_*, gclid/fbclid, referrer) from the landing
+  // URL on first load, persist for the session, and forward through the existing
+  // track-event POST so a calculator lead can be attributed to its campaign.
+  (function captureUtms(){
+    try {
+      var KEY = 'ureia_utms';
+      if (sessionStorage.getItem(KEY)) return;
+      var qp = new URLSearchParams(location.search);
+      var fields = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','gclid','fbclid'];
+      var out = {};
+      fields.forEach(function(k){ var v = qp.get(k); if (v) out[k] = v; });
+      if (document.referrer) out.referrer = document.referrer;
+      if (Object.keys(out).length) sessionStorage.setItem(KEY, JSON.stringify(out));
+    } catch(e){}
+  })();
+  function getStoredUtms(){ try { return JSON.parse(sessionStorage.getItem('ureia_utms')||'{}'); } catch(e){ return {}; } }
+</script>
 <div class="wrap" id="gateWrap">
 <div class="top"><img alt="UTAH REIA logo" src="https://assets.cdn.filesafe.space/DNirEjy0ejVwbHsaBYrn/media/682f680ec314718407baed82.png"/></div>
 <h1 style="text-align:center;color:var(--blue);margin-top:12px;">Rental Calculator Access</h1>
@@ -875,7 +893,7 @@
         fetch('https://fix-flip-calculator-delta.vercel.app/api/track-event', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone: _verifiedPhone, calculator: 'Rental', event: 'finish_analysis' })
+          body: JSON.stringify({ phone: _verifiedPhone, calculator: 'Rental', event: 'finish_analysis', utms: getStoredUtms() })
         }).catch(() => {});
       }
     });
